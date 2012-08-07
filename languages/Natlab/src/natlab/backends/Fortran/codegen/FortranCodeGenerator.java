@@ -412,6 +412,11 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	//TODO
 	public void caseTIRForStmt(TIRForStmt node){
 		System.out.println("in for statement.");
+		System.out.println(node.getLoopVarName().getVarName());
+		buf.append("      do "+node.getLoopVarName().getVarName()+" = "+node.getLowerName().getVarName()+" , "+node.getUpperName().getVarName()+"\n");
+		printStatements(node.getStatements());
+		buf.append("      enddo");
+		
 	}
 	/**********************HELPER METHODS***********************************/
 	private String getLHSType(ValueAnalysis<?> analysis,
