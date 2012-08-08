@@ -27,6 +27,7 @@ public class FortranMapping {
 	{
 		FortranTypeMap.put("char", "char");
 		FortranTypeMap.put("double", "real");
+		FortranTypeMap.put("int8", "Integer");
 		/*FortranTypeMap.put("single", "Float");
 		FortranTypeMap.put("int8", "Byte");
 		FortranTypeMap.put("int16", "Short");

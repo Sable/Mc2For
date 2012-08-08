@@ -20,15 +20,19 @@ import natlab.backends.Fortran.codegen.FortranMapping;
 public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	ValueAnalysis<AggrValue<BasicMatrixValue>> analysis;
 	private StringBuffer buf;
+	private StringBuffer buf2;
 	private FortranMapping FortranMap;
 	private HashMap<String, Collection<ClassReference>> symbolMap = new HashMap<String, Collection<ClassReference>>(); 
-	private String symbolMapKey;	
-	static boolean Debug = false;
+	private String symbolMapKey;
+	private ArrayList<String> forStmtParameter;
+	static boolean Debug = true;
 	
 	private FortranCodeGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis2, String classname) {
 		this.buf = new StringBuffer();
+		this.buf2 = new StringBuffer();
 		this.FortranMap = new FortranMapping();
 		this.analysis = analysis2;
+		this.forStmtParameter = new ArrayList<String>();
 		//buf.append("public class "+classname+" {\n");
 		((TIRNode)analysis2.getNodeList().get(0).getAnalysis().getTree()).tirAnalyze(this);
 	}
@@ -36,7 +40,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	public static String FortranCodePrinter(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis2, String classname){
-		return new FortranCodeGenerator(analysis2, classname).buf.toString();
+		return new FortranCodeGenerator(analysis2, classname).buf2.toString();
 	
 	}
 	
@@ -50,12 +54,17 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		boolean first = true;
 		ArrayList<String> inArgs = new ArrayList<String>();
 		//buf.append(indent + "public static def " );
-		buf.append(indent + "      program ");
-		// TODO - CHANGE IT TO DETERMINE RETURN TYPE
+		printStatements(node.getStmts());
+		//Write code for nested functions here
+		//buf.append(indent + "}//end of function\n}//end of class\n");
+		buf.append(indent + "      stop\n      end");
 		
-				
-		buf.append(node.getName());
-		buf.append("\n      implicit none");
+		if (Debug) System.out.println("the parameters in for stmt: "+forStmtParameter);
+		
+		buf2.append(indent + "      program ");
+		// TODO - CHANGE IT TO DETERMINE RETURN TYPE		
+		buf2.append(node.getName());
+		buf2.append("\n      implicit none");
 		/*buf.append("(");
 		first = true;
 		for(Name param : node.getInputParams()) {
@@ -71,50 +80,71 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		if (Debug) System.out.println(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().keySet()+"\n");
 		
 		for(String variable : this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().keySet()){
-			if (Debug) System.out.println(variable + " = " + this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable));
-			
-			//complex or not others, like real, integer or something else
-			/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
-				if (Debug) System.out.println("COMPLEX here!");
-				buf.append("\n      complex");
-			}
-			else{
-				buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
-			}*/
-			buf.append("\n      " + FortranMap.getFortranTypeMapping(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
-			//parameter
-			if(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
-				if (Debug) System.out.println("add parameter here!");
-				buf.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
-			}
-			else{
-				//dimension
-				if(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
-					if (Debug) System.out.println("add dimension here!");
-					buf.append(" , dimension(");
-					ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
-					if (Debug) System.out.println(dim);
-					boolean cont = false;
-					for(Integer inte : dim){
-						if(cont){
-							buf.append(",");
-						}
-						buf.append("1:" + inte.toString());
-						cont = true;
-					}
-					buf.append(")");
-					buf.append(" :: " + variable);
+			if(forStmtParameter.contains(variable)){
+				if (Debug) System.out.println("variable "+variable+" is a for stmt parameter.");
+				if (Debug) System.out.println(variable + " = " + this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable));
+				
+				//complex or not others, like real, integer or something else
+				/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
+					if (Debug) System.out.println("COMPLEX here!");
+					buf.append("\n      complex");
 				}
 				else{
-					buf.append(" :: " + variable);
+					buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+				}*/
+				buf2.append("\n      " + FortranMap.getFortranTypeMapping("int8"));
+				//parameter
+				if(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+					if (Debug) System.out.println("add parameter here!");
+					buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
+				}
+				else{
+					buf2.append(" :: " + variable);
+				}
+			}
+			else{
+				if (Debug) System.out.println(variable + " = " + this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable));
+				
+				//complex or not others, like real, integer or something else
+				/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
+					if (Debug) System.out.println("COMPLEX here!");
+					buf.append("\n      complex");
+				}
+				else{
+					buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+				}*/
+				buf2.append("\n      " + FortranMap.getFortranTypeMapping(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+				//parameter
+				if(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+					if (Debug) System.out.println("add parameter here!");
+					buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
+				}
+				else{
+					//dimension
+					if(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
+						if (Debug) System.out.println("add dimension here!");
+						buf2.append(" , dimension(");
+						ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(0).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
+						if (Debug) System.out.println(dim);
+						boolean cont = false;
+						for(Integer inte : dim){
+							if(cont){
+								buf2.append(",");
+							}
+							buf2.append("1:" + inte.toString());
+							cont = true;
+						}
+						buf2.append(")");
+						buf2.append(" :: " + variable);
+					}
+					else{
+						buf2.append(" :: " + variable);
+					}
 				}
 			}
 		}
-		buf.append("\n");
-		printStatements(node.getStmts());
-		//Write code for nested functions here
-		//buf.append(indent + "}//end of function\n}//end of class\n");
-		buf.append(indent + "      stop\n      end");
+		buf2.append("\n");
+		buf2.append(buf);
 	}
 	
 	@Override
@@ -416,7 +446,9 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		buf.append("      do "+node.getLoopVarName().getVarName()+" = "+node.getLowerName().getVarName()+" , "+node.getUpperName().getVarName()+"\n");
 		printStatements(node.getStatements());
 		buf.append("      enddo");
-		
+		forStmtParameter.add(node.getLoopVarName().getVarName());
+		forStmtParameter.add(node.getLowerName().getVarName());
+		forStmtParameter.add(node.getUpperName().getVarName());
 	}
 	/**********************HELPER METHODS***********************************/
 	private String getLHSType(ValueAnalysis<?> analysis,
