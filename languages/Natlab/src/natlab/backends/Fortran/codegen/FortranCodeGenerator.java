@@ -35,6 +35,8 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	private ArrayList<String> inArgs;
 	private ArrayList<String> outRes;
 	private HashMap<String, String> funcNameRep;
+	private boolean indentIf;
+	private boolean indentFW;
 	//the key of this hashmap is the user defined function name, and the value is the corresponding substitute variable name.
 	static boolean Debug = false;
 	
@@ -77,7 +79,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		/*
 		 *deal with main entry point, main program. 
 		 */
-		if(callgraphSize==index+1){
+		if(index==0){
 			String indent = node.getIndent();
 			boolean first = true;;
 			//buf.append(indent + "public static def " );
@@ -377,11 +379,27 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		*/
 	}
 	
-	public void handleTIRAbstractAssignToListStmt(TIRAbstractAssignStmt node){
-		
-		
+	@Override
+	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
 		String LHS;
-		
+		LHS = node.getTargetName().getVarName();
+		String RHS;
+		if(node.getRHS().getRValue() instanceof IntLiteralExpr){
+			RHS = ((IntLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString();
+		}
+		else{
+			RHS = ((FPLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString();
+		}
+		if(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).isConstant()){
+			if (Debug) System.out.println(LHS+" is a constant");
+		}
+		else{
+			buf.append("      "+LHS+" = "+RHS+";");
+		}
+	}
+	
+	public void handleTIRAbstractAssignToListStmt(TIRAbstractAssignStmt node){
+		String LHS;
 		ArrayList<String> vars = new ArrayList<String>();
 		for(ast.Name name : ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
 			vars.add(name.getID());
@@ -641,9 +659,13 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		if (Debug) System.out.println("in if statement.");
 		if (Debug) System.out.println(node.getConditionVarName().getID());
 		buf.append("      if ("+node.getConditionVarName().getID()+") then\n");
+		indentIf = true;
 		printStatements(node.getIfStameents());
+		indentIf = false;
 		buf.append("      else\n");
+		indentIf = true;
 		printStatements(node.getElseStatements());
+		indentIf = false;
 		buf.append("      endif");
 		return;
 	}
@@ -652,7 +674,9 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		if (Debug) System.out.println("in while statement.");
 		if (Debug) System.out.println(node.getCondition().getVarName());
 		buf.append("      do while ("+node.getCondition().getVarName()+")\n");
+		indentFW = true;
 		printStatements(node.getStatements());
+		indentFW = false;
 		buf.append("      enddo");
 		return;
 	}
@@ -661,7 +685,9 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		if (Debug) System.out.println("in for statement.");
 		if (Debug) System.out.println(node.getLoopVarName().getVarName());
 		buf.append("      do "+node.getLoopVarName().getVarName()+" = "+node.getLowerName().getVarName()+" , "+node.getUpperName().getVarName()+"\n");
+		indentFW = true;
 		printStatements(node.getStatements());
+		indentFW = false;
 		buf.append("      enddo");
 		forStmtParameter.add(node.getLoopVarName().getVarName());
 		forStmtParameter.add(node.getLowerName().getVarName());
@@ -720,6 +746,12 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	private void printStatements(ast.List<ast.Stmt> stmts){
 		for(ast.Stmt stmt : stmts) {
+			if(indentIf == true){
+				buf.append("  ");
+			}
+			else if(indentFW == true){
+				buf.append(" ");
+			}
 			int length = buf.length();
 			((TIRNode)stmt).tirAnalyze(this);
 			if (buf.length() > length) buf.append('\n');

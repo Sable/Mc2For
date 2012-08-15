@@ -19,7 +19,7 @@ public class Main {
 		BasicTamerTool tool = new BasicTamerTool();
 		ValueAnalysis<AggrValue<BasicMatrixValue>>  analysis = tool.analyze(args, env);
 		int size = analysis.getNodeList().size();
-		for(int i=size-1;i>=0;i--){
+		for(int i=0;i<=size-1;i++){
 			System.out.println("\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
 			fortranCode = FortranCodeGenerator.FortranCodePrinter(analysis, size, i, fileDir);
 			System.out.println("\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
