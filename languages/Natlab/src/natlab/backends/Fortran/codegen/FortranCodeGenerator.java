@@ -65,9 +65,9 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	
 	@Override
-	public void caseASTNode(ASTNode node) {
-				
-	}
+	public void caseASTNode(ASTNode node){}
+	
+	@Override
 	public void caseTIRFunction(TIRFunction node){
 		this.majorName = node.getName();
 		for(Name param : node.getInputParams()){
@@ -355,31 +355,6 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	}
 	
 	@Override
-	public void caseTIRAbstractAssignStmt(TIRAbstractAssignStmt node) {
-		
-		if (node instanceof TIRAbstractAssignToVarStmt){
-			handleTIRAbstractAssignToVarStmt(node);
-		}
-		else if (node instanceof TIRAbstractAssignToListStmt){
-		//	for(ast.Name name : ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
-		//		vars.add(name.getID());
-			handleTIRAbstractAssignToListStmt(node);		
-		}
-					
-		//TODO implement other cases here - refer to ValueAnalysisPrinter
-		/*
-		} else if (node instanceof TIRArraySetStmt){
-			vars.add(((TIRArraySetStmt)node).getArrayName().getID());
-		} else if (node instanceof TIRCellArraySetStmt){
-			vars.add(((TIRCellArraySetStmt)node).getCellArrayName().getID());
-		} else if (node instanceof TIRDotSetStmt){
-			vars.add(((TIRDotSetStmt)node).getDotName().getID());
-		}
-		......
-		*/
-	}
-	
-	@Override
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
 		String LHS;
 		LHS = node.getTargetName().getVarName();
@@ -398,43 +373,66 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		}
 	}
 	
-	public void handleTIRAbstractAssignToListStmt(TIRAbstractAssignStmt node){
-		String LHS;
-		ArrayList<String> vars = new ArrayList<String>();
-		for(ast.Name name : ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
-			vars.add(name.getID());
+	@Override
+	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
+		if(FortranMap.isFortranNoDirectBuiltin(node.getRHS().getVarName())){
+			System.out.println("this function has no corresponding builtin function in Fortran...");
+			if(node.getRHS().getVarName().equals("horzcat")){
+				String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+				ArrayList<String> Args = new ArrayList<String>();
+				Args = GetArgs(node);
+				ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).getShape().getDimensions());
+				int i=1;
+				int length = Args.size();
+				for(String Arg : Args){
+					buf.append("      "+LHS+"(1,"+i+") = "+Arg+";");
+					i = i+1;
+					if(i<=length){
+					buf.append("\n");	
+					}
+				}
+			}
+			//TODO add more no direct mapping built-ins
+			 
 		}
-		
-		if (1==vars.size()){ //only one variable on LHS
-			symbolMapKey = vars.get(0);
-			LHS = symbolMapKey;
+		else{
+			String LHS;
+			ArrayList<String> vars = new ArrayList<String>();
+			for(ast.Name name : node.getTargets().asNameList()){
+				vars.add(name.getID());
+			}
 			
-			if(true == symbolMap.containsKey(symbolMapKey)) //variable already defined and analyzed
-			{
-				//buf.append(((TIRAbstractAssignToVarStmt)node).getPrettyPrintedLessComments());
-				if(outRes.contains(LHS)){
-					buf.append("      "+majorName + " = ");
+			if (1==vars.size()){ //only one variable on LHS
+				symbolMapKey = vars.get(0);
+				LHS = symbolMapKey;
+				
+				if(true == symbolMap.containsKey(symbolMapKey)) //variable already defined and analyzed
+				{
+					//buf.append(((TIRAbstractAssignToVarStmt)node).getPrettyPrintedLessComments());
+					if(outRes.contains(LHS)){
+						buf.append("      "+majorName + " = ");
+					}
+					else{
+						buf.append("      "+LHS+" = ");
+					}
 				}
-				else{
-					buf.append("      "+LHS+" = ");
+				else
+				{
+					if(outRes.contains(LHS)){
+						buf.append("      "+majorName + " = ");
+					}
+					else{
+						buf.append("      "+LHS+" = ");
+					}
+					//use varname to get the name of the method/operator/Var
 				}
+				    makeExpression(node);
+					symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node, LHS));
 			}
-			else
-			{
-				if(outRes.contains(LHS)){
-					buf.append("      "+majorName + " = ");
-				}
-				else{
-					buf.append("      "+LHS+" = ");
-				}
-				//use varname to get the name of the method/operator/Var
+			else if(0==vars.size()){
+				//TODO
+				  makeExpression(node);
 			}
-			    makeExpression(node);
-				symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node, LHS));
-		}
-		else if(0==vars.size()){
-			//TODO
-			  makeExpression(node);
 		}		
 	}
 	
@@ -477,9 +475,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			//buf.append("      " + RHS + ArgsListasString);
 			break;
 		case 4:
-			Args = GetArgs(node);
-			ArgsListasString = GetArgsListasString(Args);
-			buf.append(RHS+"("+ArgsListasString+");");
+			//TODO, add more similar "method"
 			break;
 		case 5:
 			buf.append(RHS+";");
@@ -591,13 +587,13 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		return RHS;
 	}
 	
-	
-	public void handleTIRAbstractAssignToVarStmt(TIRAbstractAssignStmt node){
+	@Override
+	public void caseTIRAbstractAssignToVarStmt(TIRAbstractAssignToVarStmt node){
 		//vars.add(((TIRAbstractAssignToVarStmt)node).getTargetName().getID());
 		//if already present in symbolMap=>has been analyzed else define
 		String LHS;
 		//ArrayList<String> vars = new ArrayList<String>();
-		symbolMapKey = ((TIRAbstractAssignToVarStmt)node).getTargetName().getID();
+		symbolMapKey = node.getTargetName().getID();
 		LHS = symbolMapKey;
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).isConstant()){
 			if (Debug) System.out.println(LHS+" is a constant");
@@ -605,7 +601,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		else{
 			if(true == symbolMap.containsKey(symbolMapKey)) //variable already defined and analyzed
 			{
-				buf.append(((TIRAbstractAssignToVarStmt)node).getPrettyPrintedLessComments());
+				buf.append(node.getPrettyPrintedLessComments());
 			}
 			else 
 			{   
@@ -655,6 +651,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	   return ArgListasString;
 	}
 	
+	@Override
 	public void caseTIRIfStmt(TIRIfStmt node){
 		if (Debug) System.out.println("in if statement.");
 		if (Debug) System.out.println(node.getConditionVarName().getID());
@@ -670,6 +667,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		return;
 	}
 	
+	@Override
 	public void caseTIRWhileStmt(TIRWhileStmt node){
 		if (Debug) System.out.println("in while statement.");
 		if (Debug) System.out.println(node.getCondition().getVarName());
@@ -681,6 +679,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		return;
 	}
 	
+	@Override
 	public void caseTIRForStmt(TIRForStmt node){
 		if (Debug) System.out.println("in for statement.");
 		if (Debug) System.out.println(node.getLoopVarName().getVarName());
@@ -694,11 +693,16 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		forStmtParameter.add(node.getUpperName().getVarName());
 	}
 	
-	/*public void caseTIRCallStmt(TIRCallStmt node){
-		System.out.println("in function call statement.");
-		System.out.println(node.getFunctionName().getVarName());
-		System.out.println(node.getArguments().getVarName());	
-	}*/
+	@Override
+	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
+		
+	}
+	
+	@Override
+	public void caseTIRArraySetStmt(TIRArraySetStmt node){
+		
+	}
+	
 	/**********************HELPER METHODS***********************************/
 	private String getLHSType(ValueAnalysis<?> analysis,
 			TIRAbstractAssignStmt node, String SymbolMapKey) {
