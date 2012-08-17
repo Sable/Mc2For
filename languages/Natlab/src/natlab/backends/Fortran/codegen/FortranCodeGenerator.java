@@ -28,6 +28,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	private HashMap<String, Collection<ClassReference>> symbolMap;
 	private String symbolMapKey;
 	private ArrayList<String> forStmtParameter;
+	private ArrayList<String> arrayIndexParameter;
 	private int callgraphSize;
 	private int index;
 	private String fileDir;
@@ -47,6 +48,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		this.symbolMap = new HashMap<String, Collection<ClassReference>>();
 		this.analysis = analysis;
 		this.forStmtParameter = new ArrayList<String>();
+		this.arrayIndexParameter = new ArrayList<String>();
 		this.callgraphSize = callgraphSize;
 		this.index = index;
 		this.fileDir = fileDir;
@@ -109,7 +111,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			if (Debug) System.out.println(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().keySet()+"\n");
 			
 			for(String variable : this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().keySet()){
-				if(forStmtParameter.contains(variable)){
+				if(forStmtParameter.contains(variable)||arrayIndexParameter.contains(variable)){
 					if (Debug) System.out.println("variable "+variable+" is a for stmt parameter.");
 					if (Debug) System.out.println(variable + " = " + this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable));
 					
@@ -376,7 +378,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
 		if(FortranMap.isFortranNoDirectBuiltin(node.getRHS().getVarName())){
-			System.out.println("this function has no corresponding builtin function in Fortran...");
+			if (Debug) System.out.println("the function \""+node.getRHS().getVarName()+"\" has no corresponding builtin function in Fortran...");
 			if(node.getRHS().getVarName().equals("horzcat")){
 				String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 				ArrayList<String> Args = new ArrayList<String>();
@@ -620,8 +622,6 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 				//TODO check for operators
 				//add to symbol Map
 				symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node,LHS));
-				
-				
 			}
 		}
 	}
@@ -695,7 +695,14 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
-		
+		if (Debug) System.out.println("in an arrayget statement!");
+		System.out.println(node.getLHS().getNodeString());
+		System.out.println(node.getArrayName().getVarName());
+		System.out.println(node.getIndizes());
+		buf.append("      "+node.getLHS().getNodeString().replace("[", "").replace("]", "")+" = "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")");
+		for(Name index : node.getIndizes().asNameList()){
+			arrayIndexParameter.add(index.getVarName());
+		}
 	}
 	
 	@Override
