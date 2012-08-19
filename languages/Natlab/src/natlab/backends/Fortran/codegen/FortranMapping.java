@@ -80,6 +80,7 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("sin", "sin");	
 		FortranDirectBuiltinMap.put("cos", "cos");
 		FortranDirectBuiltinMap.put("sum", "sum");
+		FortranDirectBuiltinMap.put("size", "size");
 	}
 	
 	private void makeFortranNoDirectBuiltinSet(){
@@ -164,7 +165,7 @@ public class FortranMapping {
 			return false;
 	}
 	
-	public static String getFortranMethodMapping(String MethodName){
+	public String getFortranMethodMapping(String MethodName){
 		return FortranMethodMap.get(MethodName);
 	}
 	

@@ -25,8 +25,6 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	private StringBuffer buf;
 	private StringBuffer buf2;
 	private FortranMapping FortranMap;
-	private HashMap<String, Collection<ClassReference>> symbolMap;
-	private String symbolMapKey;
 	private ArrayList<String> forStmtParameter;
 	private ArrayList<String> arrayIndexParameter;
 	private int callgraphSize;
@@ -45,7 +43,6 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		this.buf = new StringBuffer();
 		this.buf2 = new StringBuffer();
 		this.FortranMap = new FortranMapping();
-		this.symbolMap = new HashMap<String, Collection<ClassReference>>();
 		this.analysis = analysis;
 		this.forStmtParameter = new ArrayList<String>();
 		this.arrayIndexParameter = new ArrayList<String>();
@@ -62,7 +59,6 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	public static String FortranCodePrinter(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
 		return new FortranCodeGenerator(analysis, callgraphSize, index, fileDir).buf2.toString();
-	
 	}
 	
 	
@@ -78,7 +74,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		for(Name result : node.getOutputParams()){
 			outRes.add(result.getVarName());
 		}
-		/*
+		/**
 		 *deal with main entry point, main program. 
 		 */
 		if(index==0){
@@ -98,8 +94,8 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			buf2.append("\n      implicit none");
 			/*buf.append("(");
 			first = true;
-			for(Name param : node.getInputParams()) {
-				if(!first) {
+			for(Name param : node.getInputParams()){
+				if(!first){
 					buf.append(", ");
 				}
 				buf.append(param.getPrettyPrinted()+": "+FortranMap.getFortranTypeMapping(getArgumentType(analysis, node, param.getID())) );
@@ -156,14 +152,35 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 							if (Debug) System.out.println("add dimension here!");
 							buf2.append(" , dimension(");
 							ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
-							if (Debug) System.out.println(dim);
-							boolean cont = false;
-							for(Integer inte : dim){
-								if(cont){
+							boolean conter = false;
+							/**
+							 * if one of the dimension is unknown, which value is null, goes to catch.
+							 */
+							try{
+								for(Integer intgr : dim){
+									String test = intgr.toString();
+								}
+							}
+							catch(Exception e){
+								for(int i=1; i<=dim.size(); i++){
+									if(conter){
+										buf2.append(",");
+									}
+									buf2.append(":");
+									conter = true;
+								}
+								buf2.append(") , allocatable :: " + variable);
+								break;
+							}
+							/**
+							 * if all the dimension is exactly known, which values are all integer, goes to here.
+							 */
+							for(Integer intgr : dim){
+								if(conter){
 									buf2.append(",");
 								}
-								buf2.append("1:" + inte.toString());
-								cont = true;
+								buf2.append(intgr.toString());
+								conter = true;
 							}
 							buf2.append(")");
 							buf2.append(" :: " + variable);
@@ -174,7 +191,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 					}
 				}
 			}
-			/*
+			/**
 			 * at the end of declaration, declare those user defined function.
 			 */
 			for(String key : funcNameRep.keySet()){
@@ -203,13 +220,35 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 						buf2.append(" , dimension(");
 						ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 						if (Debug) System.out.println(dim);
-						boolean cont = false;
+						boolean conter = false;
+						/**
+						 * if one of the dimension is unknown, which value is null, goes to catch.
+						 */
+						try{
+							for(Integer intgr : dim){
+								String test = intgr.toString();
+							}
+						}
+						catch(Exception e){
+							for(int i=1; i<=dim.size(); i++){
+								if(conter){
+									buf2.append(",");
+								}
+								buf2.append(":");
+								conter = true;
+							}
+							buf2.append(") , allocatable :: " + variable);
+							break;
+						}
+						/**
+						 * if all the dimension is exactly known, which values are all integer, goes to here.
+						 */
 						for(Integer inte : dim){
-							if(cont){
+							if(conter){
 								buf2.append(",");
 							}
-							buf2.append("1:" + inte.toString());
-							cont = true;
+							buf2.append(inte.toString());
+							conter = true;
 						}
 						buf2.append(")");
 						buf2.append(" :: " + key);
@@ -232,7 +271,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 
 			}
 		}
-		/*
+		/**
 		 * deal with functions or sub-routines
 		 */
 		else{
@@ -261,7 +300,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			if (Debug) System.out.println(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().keySet()+"\n");
 			
 			for(String variable : this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().keySet()){
-				/*
+				/**
 				 * deal with for statement variables...Fortran must declare them integer
 				 */
 				if(forStmtParameter.contains(variable)){
@@ -286,7 +325,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 						buf2.append(" :: " + variable);
 					}
 				}
-				/*
+				/**
 				 * general situations...
 				 */
 				else{
@@ -313,13 +352,35 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 							buf2.append(" , dimension(");
 							ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 							if (Debug) System.out.println(dim);
-							boolean cont = false;
+							boolean conter = false;
+							/**
+							 * if one of the dimension is unknown, which value is null, goes to catch.
+							 */
+							try{
+								for(Integer intgr : dim){
+									String test = intgr.toString();
+								}
+							}
+							catch(Exception e){
+								for(int i=1; i<=dim.size(); i++){
+									if(conter){
+										buf2.append(",");
+									}
+									buf2.append(":");
+									conter = true;
+								}
+								buf2.append(") , allocatable :: " + variable);
+								break;
+							}
+							/**
+							 * if all the dimension is exactly known, which values are all integer, goes to here.
+							 */
 							for(Integer inte : dim){
-								if(cont){
+								if(conter){
 									buf2.append(",");
 								}
-								buf2.append("1:" + inte.toString());
-								cont = true;
+								buf2.append(inte.toString());
+								conter = true;
 							}
 							buf2.append(")");
 							if(outRes.contains(variable)){
@@ -358,6 +419,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
+		if (Debug) System.out.println("in an assignLiteral statement");
 		String LHS;
 		LHS = node.getTargetName().getVarName();
 		String RHS;
@@ -371,12 +433,22 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			if (Debug) System.out.println(LHS+" is a constant");
 		}
 		else{
+			ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).getShape().getDimensions());
+			try{
+				for(Integer intgr : dim){
+					String test = intgr.toString();
+				}
+			}
+			catch(Exception e){
+				buf.append("      allocate("+LHS+"(1, 1));\n  ");
+			}
 			buf.append("      "+LHS+" = "+RHS+";");
 		}
 	}
 	
 	@Override
 	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
+		if (Debug) System.out.println("in an abstractAssignToList  statement");
 		if(FortranMap.isFortranNoDirectBuiltin(node.getRHS().getVarName())){
 			if (Debug) System.out.println("the function \""+node.getRHS().getVarName()+"\" has no corresponding builtin function in Fortran...");
 			if(node.getRHS().getVarName().equals("horzcat")){
@@ -395,7 +467,6 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 				}
 			}
 			//TODO add more no direct mapping built-ins
-			 
 		}
 		else{
 			String LHS;
@@ -403,252 +474,56 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			for(ast.Name name : node.getTargets().asNameList()){
 				vars.add(name.getID());
 			}
-			
-			if (1==vars.size()){ //only one variable on LHS
-				symbolMapKey = vars.get(0);
-				LHS = symbolMapKey;
-				
-				if(true == symbolMap.containsKey(symbolMapKey)) //variable already defined and analyzed
-				{
-					//buf.append(((TIRAbstractAssignToVarStmt)node).getPrettyPrintedLessComments());
-					if(outRes.contains(LHS)){
-						buf.append("      "+majorName + " = ");
-					}
-					else{
-						buf.append("      "+LHS+" = ");
-					}
+			if(1==vars.size()){ //only one variable on LHS
+				LHS = vars.get(0);
+				if(outRes.contains(LHS)){
+					buf.append("      "+majorName + " = ");
 				}
-				else
-				{
-					if(outRes.contains(LHS)){
-						buf.append("      "+majorName + " = ");
-					}
-					else{
-						buf.append("      "+LHS+" = ");
-					}
-					//use varname to get the name of the method/operator/Var
+				else{
+					buf.append("      "+LHS+" = ");
 				}
-				    makeExpression(node);
-					symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node, LHS));
+				//use varname to get the name of the method/operator/Var
+				makeExpression(node);
 			}
 			else if(0==vars.size()){
 				//TODO
-				  makeExpression(node);
+				makeExpression(node);
 			}
 		}		
 	}
 	
-	
-	
-	public void makeExpression(TIRAbstractAssignStmt node)
-	{
-		/* Change for built-ins with n args
-		 * Currently it handles general case built-ins with one or two args only
-		 */
-		
-		int RHStype;
-		String RHS;
-		String Operand1, Operand2, prefix="";
-		String ArgsListasString;
-		RHStype = getRHSType(node);
-		RHS = getRHSExp(node);
-		//TODO
-		
-		Operand1 = getOperand1(node);
-		Operand2 = getOperand2(node);
-		
-		ArrayList<String> Args = new ArrayList<String>();
-		
-		
-		if (Operand2 != "" && Operand2 != null)
-			prefix = ", ";
-		switch(RHStype)
-		{
-		case 1:
-			buf.append(Operand1+" "+RHS+" "+Operand2+" ;");
-			break;
-		case 2:
-			buf.append(RHS+""+Operand1+" ;"); //TODO test this
-			break;
-		case 3:
-			Args = GetArgs(node);
-			ArgsListasString = GetArgsListasString(Args);
-			buf.append(RHS+"("+ArgsListasString+");");
-			//buf.append("      " + RHS + ArgsListasString);
-			break;
-		case 4:
-			//TODO, add more similar "method"
-			break;
-		case 5:
-			buf.append(RHS+";");
-			break;
-		case 6:
-			Args = GetArgs(node);
-			ArgsListasString = GetArgsListasString(Args);
-			buf.append("      "+RHS+ArgsListasString);
-			break;
-		case 7:
-			String RHSName;
-			RHSName = node.getRHS().getVarName();
-			String LHSName;
-			LHSName = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			//XU, a little bit trick, go back to IR to get a better solution
-			funcNameRep.put(RHSName, LHSName);
-			Args = GetArgs(node);
-			ArgsListasString = GetArgsListasString(Args);
-			buf.append(RHSName+"("+ArgsListasString+");");
-			break;
-		default:
-			buf.append("//is it an error?");
-			break;
-		}
-	}
-	
-	
-	public String getOperand1(TIRAbstractAssignStmt node){
-		if(node.getRHS().getChild(1).getNumChild() >= 1)
-			return node.getRHS().getChild(1).getChild(0).getNodeString();
-		else
-			return "";
-	}
-	
-	public String getOperand2(TIRAbstractAssignStmt node){
-		if(node.getRHS().getChild(1).getNumChild() >= 2)
-			return node.getRHS().getChild(1).getChild(1).getNodeString();
-		else
-			return "";
-	}
-	
-	public int getRHSType(TIRAbstractAssignStmt node){
-		String RHSName;
-		RHSName = node.getRHS().getVarName();
-		if (true==FortranMap.isBinOperator(RHSName))
-		{
-			return 1; //"binop";
-		}
-		else if (true==FortranMap.isUnOperator(RHSName))
-		{
-		   return 2; //"unop";
-		}
-		
-		else if (true==FortranMap.isFortranDirectBuiltin(RHSName))
-		{
-			return 3; // "builtin";
-		}
-		else if (true == FortranMap.isMethod(RHSName))
-		{
-			return 4; // "method";
-		}
-		else if (true==FortranMap.isBuiltinConst(RHSName))
-		{
-			return 5; // "builtin";
-		}
-		else if (true==FortranMap.isIOOperation(RHSName))
-		{
-			return 6; // "IO OPeration";
-		}
-		else
-		{
-			return 7; // "user defined function";
-		}
-	}
-	
-	public String getRHSExp(TIRAbstractAssignStmt node){
-		String RHS = null;
-		String RHSName;
-		RHSName = node.getRHS().getVarName();
-		if (true==FortranMap.isBinOperator(RHSName))
-		{
-			RHS= FortranMap.getFortranBinOpMapping(RHSName);
-		}
-		else if (true==FortranMap.isUnOperator(RHSName))
-		{
-		   RHS= FortranMap.getFortranUnOpMapping(RHSName);
-		}
-		
-		else if (true==FortranMap.isFortranDirectBuiltin(RHSName))
-		{
-			RHS= FortranMap.getFortranDirectBuiltinMapping(RHSName);
-		}
-		else if (true==FortranMap.isBuiltinConst(RHSName))
-		{
-			RHS= FortranMap.getFortranBuiltinConstMapping(RHSName);
-		}
-		else if (true == FortranMap.isMethod(RHSName))
-		{
-			RHS= FortranMap.getFortranMethodMapping(RHSName);
-		}
-		else if (true == FortranMap.isIOOperation(RHSName))
-		{
-			RHS= FortranMap.getFortranIOOperationMapping(RHSName);
-		}
-		else
-		{
-			RHS = "//cannot process it yet";
-		}
-		return RHS;
-	}
-	
 	@Override
 	public void caseTIRAbstractAssignToVarStmt(TIRAbstractAssignToVarStmt node){
-		//vars.add(((TIRAbstractAssignToVarStmt)node).getTargetName().getID());
-		//if already present in symbolMap=>has been analyzed else define
+		if (Debug) System.out.println("in an abstractAssignToVar statement");
 		String LHS;
 		//ArrayList<String> vars = new ArrayList<String>();
-		symbolMapKey = node.getTargetName().getID();
-		LHS = symbolMapKey;
+		LHS = node.getTargetName().getID();
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).isConstant()){
 			if (Debug) System.out.println(LHS+" is a constant");
 		}
 		else{
-			if(true == symbolMap.containsKey(symbolMapKey)) //variable already defined and analyzed
-			{
-				buf.append(node.getPrettyPrintedLessComments());
-			}
-			else 
-			{   
-				
-				String type = FortranMap.getFortranTypeMapping(getLHSType(analysis,node,LHS ));
-				buf.append("      "+node.getLHS().getNodeString()+" = ");
-				if (type == "String")
-				{
-					//type = makeFortranStringLiteral(type);
-					buf.append(makeFortranStringLiteral(node.getRHS().getNodeString()) + ";");
+			ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).getShape().getDimensions());
+			ArrayList<Integer> dimRHS = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(node.getRHS().getNodeString()).getSingleton())).getShape().getDimensions());
+			try{
+				for(Integer intgr : dim){
+					String test = intgr.toString();
 				}
-				else
-				buf.append(node.getRHS().getNodeString() + ";");
-				//TODO check for expression on RHS
-				//TODO check for built-ins
-				//TODO check for operators
-				//add to symbol Map
-				symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node,LHS));
 			}
+			catch(Exception e){
+				buf.append("      allocate("+LHS+"("+dimRHS.toString().replace("[", "").replace("]", "")+"));\n  ");
+			}
+			String type = FortranMap.getFortranTypeMapping(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).getMatlabClass().toString());
+			buf.append("      "+node.getLHS().getNodeString()+" = ");
+			if(type == "String"){
+				//type = makeFortranStringLiteral(type);
+				buf.append(makeFortranStringLiteral(node.getRHS().getNodeString()) + ";");
+			}
+			else
+			buf.append(node.getRHS().getNodeString() + ";");
+			//TODO check for expression on RHS
+			//TODO check for built-ins
+			//TODO check for operators
 		}
-	}
-		
-	ArrayList<String> GetArgs(TIRAbstractAssignStmt node)
-	{
-		ArrayList<String> Args = new ArrayList<String>();
-		int numArgs = node.getRHS().getChild(1).getNumChild();
-		for (int i=0;i<numArgs;i++)
-		{
-			Args.add(node.getRHS().getChild(1).getChild(i).getNodeString());
-		}
-		
-		return Args;
-	}
-	
-	
-	String GetArgsListasString(ArrayList<String> Args)
-	{
-	   String prefix ="";
-	   String ArgListasString="";
-	   for (String arg : Args)
-	   {
-		   ArgListasString = ArgListasString+prefix+arg;
-		   prefix=", ";
-	   }
-	   return ArgListasString;
 	}
 	
 	@Override
@@ -696,9 +571,6 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
 		if (Debug) System.out.println("in an arrayget statement!");
-		System.out.println(node.getLHS().getNodeString());
-		System.out.println(node.getArrayName().getVarName());
-		System.out.println(node.getIndizes());
 		buf.append("      "+node.getLHS().getNodeString().replace("[", "").replace("]", "")+" = "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")");
 		for(Name index : node.getIndizes().asNameList()){
 			arrayIndexParameter.add(index.getVarName());
@@ -707,56 +579,182 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRArraySetStmt(TIRArraySetStmt node){
-		
+		if (Debug) System.out.println("in an arrayset statement!");
+		buf.append("      "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")"+" = "+node.getValueName().getVarName()+";");
+		for(Name index : node.getIndizes().asNameList()){
+			arrayIndexParameter.add(index.getVarName());
+		}
 	}
 	
+	@Override
+	public void caseTIRCommentStmt(TIRCommentStmt node){
+		if (Debug) System.out.println("in a comment statement");
+		/**
+		 * for Natlab, it consider blank line is also a comment statement
+		 */
+		if(node.getNodeString().contains("%")){
+			buf.append("c "+node.getNodeString().replace("%", ""));			
+		}
+	}
+
 	/**********************HELPER METHODS***********************************/
-	private String getLHSType(ValueAnalysis<?> analysis,
-			TIRAbstractAssignStmt node, String SymbolMapKey) {
-		//node.getTargetName().getID()
-		return analysis.getNodeList().get(index).getAnalysis().getOutFlowSets().get(node).get(SymbolMapKey).getMatlabClasses().toArray()[0].toString();
+	private void makeExpression(TIRAbstractAssignStmt node){
+		/** 
+		 * Change for built-ins with n args
+		 * Currently it handles general case built-ins with one or two args only
+		 */
+		int RHSCaseNumber;
+		String RHSFortranOperator;
+		String Operand1, Operand2, prefix="";
+		String ArgsListasString;
+		RHSCaseNumber = getRHSCaseNumber(node);
+		RHSFortranOperator = getRHSMappingFortranOperator(node);
+		//TODO
+		Operand1 = getOperand1(node);
+		Operand2 = getOperand2(node);
+		ArrayList<String> Args = new ArrayList<String>();
+		if(Operand2 != "" && Operand2 != null){prefix = ", ";}
+		switch(RHSCaseNumber){
+		case 1:
+			buf.append(Operand1+" "+RHSFortranOperator+" "+Operand2+" ;");
+			break;
+		case 2:
+			buf.append(RHSFortranOperator+""+Operand1+" ;"); //TODO test this
+			break;
+		case 3:
+			Args = GetArgs(node);
+			ArgsListasString = GetArgsListasString(Args);
+			buf.append(RHSFortranOperator+"("+ArgsListasString+");");
+			//buf.append("      " + RHS + ArgsListasString);
+			break;
+		case 4:
+			//TODO, add more similar "method"
+			break;
+		case 5:
+			buf.append(RHSFortranOperator+";");
+			break;
+		case 6:
+			Args = GetArgs(node);
+			ArgsListasString = GetArgsListasString(Args);
+			buf.append("      "+RHSFortranOperator+ArgsListasString);
+			break;
+		case 7:
+			/**
+			 * deal with user defined functions, apparently, there is no corresponding Fortran function for this.
+			 */
+			String RHSName;
+			RHSName = node.getRHS().getVarName();
+			String LHSName;
+			LHSName = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+			//XU, a little bit trick, go back to IR to get a better solution
+			funcNameRep.put(RHSName, LHSName);
+			Args = GetArgs(node);
+			ArgsListasString = GetArgsListasString(Args);
+			buf.append(RHSName+"("+ArgsListasString+");");
+			break;
+		default:
+			buf.append("//is it an error?");
+			break;
+		}
+	}
+	
+	private String getOperand1(TIRAbstractAssignStmt node){
+		if(node.getRHS().getChild(1).getNumChild() >= 1)
+			return node.getRHS().getChild(1).getChild(0).getNodeString();
+		else
+			return "";
+	}
+	
+	private String getOperand2(TIRAbstractAssignStmt node){
+		if(node.getRHS().getChild(1).getNumChild() >= 2)
+			return node.getRHS().getChild(1).getChild(1).getNodeString();
+		else
+			return "";
+	}
+	
+	private int getRHSCaseNumber(TIRAbstractAssignStmt node){
+		String RHSMatlabOperator;
+		RHSMatlabOperator = node.getRHS().getVarName();
+		if(true==FortranMap.isBinOperator(RHSMatlabOperator)){
+			return 1; //"binop";
+		}
+		else if(true==FortranMap.isUnOperator(RHSMatlabOperator)){
+		   return 2; //"unop";
+		}
+		else if(true==FortranMap.isFortranDirectBuiltin(RHSMatlabOperator)){
+			return 3; // "builtin";
+		}
+		else if(true == FortranMap.isMethod(RHSMatlabOperator)){
+			return 4; // "method";
+		}
+		else if(true==FortranMap.isBuiltinConst(RHSMatlabOperator)){
+			return 5; // "builtin";
+		}
+		else if(true==FortranMap.isIOOperation(RHSMatlabOperator)){
+			return 6; // "IO OPeration";
+		}
+		else{
+			return 7; // "user defined function";
+		}
+	}
+	
+	private String getRHSMappingFortranOperator(TIRAbstractAssignStmt node){
+		String RHSFortranOperator;
+		String RHSMatlabOperator;
+		RHSMatlabOperator = node.getRHS().getVarName();
+		if(true==FortranMap.isBinOperator(RHSMatlabOperator)){
+			RHSFortranOperator= FortranMap.getFortranBinOpMapping(RHSMatlabOperator);
+		}
+		else if(true==FortranMap.isUnOperator(RHSMatlabOperator)){
+			RHSFortranOperator= FortranMap.getFortranUnOpMapping(RHSMatlabOperator);
+		}
 		
+		else if(true==FortranMap.isFortranDirectBuiltin(RHSMatlabOperator)){
+			RHSFortranOperator= FortranMap.getFortranDirectBuiltinMapping(RHSMatlabOperator);
+		}
+		else if(true==FortranMap.isBuiltinConst(RHSMatlabOperator)){
+			RHSFortranOperator= FortranMap.getFortranBuiltinConstMapping(RHSMatlabOperator);
+		}
+		else if(true == FortranMap.isMethod(RHSMatlabOperator)){
+			RHSFortranOperator= FortranMap.getFortranMethodMapping(RHSMatlabOperator);
+		}
+		else if(true == FortranMap.isIOOperation(RHSMatlabOperator)){
+			RHSFortranOperator= FortranMap.getFortranIOOperationMapping(RHSMatlabOperator);
+		}
+		else{
+			RHSFortranOperator = "//cannot process it yet";
+		}
+		return RHSFortranOperator;
+	}
+	private ArrayList<String> GetArgs(TIRAbstractAssignStmt node){
+		ArrayList<String> Args = new ArrayList<String>();
+		int numArgs = node.getRHS().getChild(1).getNumChild();
+		for (int i=0;i<numArgs;i++){
+			Args.add(node.getRHS().getChild(1).getChild(i).getNodeString());
+		}
+		return Args;
 	}
 
-
-	
-	private String getArgumentType(ValueAnalysis<?> analysis, TIRFunction node, String paramID){
-		//System.out.println(analysis.getOutFlowSets().get(node).get(paramID).toString());
-
-		return analysis.getNodeList().get(index).getAnalysis().getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
-	}
-	
-	//get analysis value for Function node
-	private Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, TIRFunction node, String ID){
-		return analysis.getNodeList().get(index).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
-
-		//return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
-	}
-	
-	
-	//get analysis value for abstract assignment node
-	private Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, TIRAbstractAssignStmt node, String ID){
-		return analysis.getNodeList().get(index).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
-
-		//return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
+	private String GetArgsListasString(ArrayList<String> Args){
+		String prefix ="";
+		String ArgListasString="";
+		for(String arg : Args){
+			ArgListasString = ArgListasString+prefix+arg;
+			prefix=", ";
+		}
+		return ArgListasString;
 	}
 
-	private String makeFortranStringLiteral(String StrLit)
-	{
-		
-		if(StrLit.charAt(0)=='\'' && StrLit.charAt(StrLit.length()-1)=='\'')
-		{
-			
-			return "\""+(String) StrLit.subSequence(1, StrLit.length()-1)+"\"";
-			
+	private String makeFortranStringLiteral(String StrLit){		
+		if(StrLit.charAt(0)=='\'' && StrLit.charAt(StrLit.length()-1)=='\''){			
+			return "\""+(String) StrLit.subSequence(1, StrLit.length()-1)+"\"";		
 		}
 		else
 		return StrLit;
 	}
 	
-	
 	private void printStatements(ast.List<ast.Stmt> stmts){
-		for(ast.Stmt stmt : stmts) {
+		for(ast.Stmt stmt : stmts){
 			if(indentIf == true){
 				buf.append("  ");
 			}
@@ -768,7 +766,5 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			if (buf.length() > length) buf.append('\n');
 		}
 	}
-	
 }
-
 
