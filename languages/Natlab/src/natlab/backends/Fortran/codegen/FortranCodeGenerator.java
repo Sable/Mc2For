@@ -33,25 +33,29 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	private String majorName;
 	private ArrayList<String> inArgs;
 	private ArrayList<String> outRes;
-	private HashMap<String, String> funcNameRep;
+	private HashMap<String, String> funcNameRep;//the key of this hashmap is the user defined function name, and the value is the corresponding substitute variable name.
 	private boolean indentIf;
 	private boolean indentFW;
-	//the key of this hashmap is the user defined function name, and the value is the corresponding substitute variable name.
+	private boolean isSubroutine;//this boolean value help the compiler to distinguish subroutine with function.
 	static boolean Debug = false;
 	
-	private FortranCodeGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir) {
+	private FortranCodeGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
+		this.analysis = analysis;
 		this.buf = new StringBuffer();
 		this.buf2 = new StringBuffer();
 		this.FortranMap = new FortranMapping();
-		this.analysis = analysis;
 		this.forStmtParameter = new ArrayList<String>();
 		this.arrayIndexParameter = new ArrayList<String>();
 		this.callgraphSize = callgraphSize;
 		this.index = index;
 		this.fileDir = fileDir;
+		this.majorName = "";
 		this.inArgs = new ArrayList<String>();
 		this.outRes = new ArrayList<String>();
 		this.funcNameRep = new HashMap<String,String>();
+		this.indentIf = false;
+		this.indentFW = false;
+		this.isSubroutine = false;
 		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
 	}
 	
@@ -75,9 +79,10 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			outRes.add(result.getVarName());
 		}
 		/**
-		 *deal with main entry point, main program. 
+		 *deal with main entry point, main program, actually, sometimes, a subroutine can also be with 0 output...
+		 *TODO think of a better way to distinguish whether it is a main entry point or a 0-output subroutine... 
 		 */
-		if(index==0){
+		if(outRes.size()==0){
 			String indent = node.getIndent();
 			boolean first = true;;
 			//buf.append(indent + "public static def " );
@@ -272,9 +277,10 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			}
 		}
 		/**
-		 * deal with functions or sub-routines
+		 * deal with functions, not subroutine, because in Fortran, functions can essentially only return one value.
+		 * actually, I can also convert 1-output functions in Matlab to subroutines...
 		 */
-		else{
+		else if(outRes.size()==1){
 			String indent = node.getIndent();
 			boolean first = true;
 			
@@ -301,7 +307,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			
 			for(String variable : this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().keySet()){
 				/**
-				 * deal with for statement variables...Fortran must declare them integer
+				 * deal with for statement variables...Fortran must declare them integer.
 				 */
 				if(forStmtParameter.contains(variable)){
 					if (Debug) System.out.println("variable "+variable+" is a for stmt parameter.");
@@ -414,7 +420,161 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 
 			}
 		}
-		
+		/**
+		 * deal with subroutines, which output can be more than one.
+		 */
+		else{
+			isSubroutine = true;
+			if (Debug) System.out.println("this is a subroutine");
+			printStatements(node.getStmts());
+			buf.append("      return\n      end");
+			
+			buf2.append("      subroutine ");
+			buf2.append(majorName);
+			buf2.append("(");
+			boolean first = true;
+			for(Name param : node.getInputParams()){
+				if(!first) {
+					buf2.append(", ");
+				}
+				buf2.append(param.getVarName());
+				first = false;
+			}
+			buf2.append(", ");
+			first = true;
+			for(Name res : node.getOutputParams()){
+				if(!first) {
+					buf2.append(", ");
+				}
+				buf2.append(res.getVarName());
+				first = false;
+			}
+			buf2.append(")");
+			buf2.append("\n      implicit none");
+			
+			if (Debug) System.out.println(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().keySet()+"\n");
+			
+			for(String variable : this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().keySet()){
+				/**
+				 * first, deal with for-loop statement variables...Fortran must declare them as integer.
+				 */
+				
+				if (Debug) System.out.println("the parameters in for stmt: "+forStmtParameter);
+				
+				if(forStmtParameter.contains(variable)){
+					if (Debug) System.out.println("variable "+variable+" is a for stmt parameter.");
+					if (Debug) System.out.println(variable + " = " + this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable));
+					
+					//complex or not others, like real, integer or something else
+					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
+						if (Debug) System.out.println("COMPLEX here!");
+						buf.append("\n      complex");
+					}
+					else{
+						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					}*/
+					buf2.append("\n      " + FortranMap.getFortranTypeMapping("int8"));
+					//parameter
+					if(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+						if (Debug) System.out.println("add parameter here!");
+						buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
+					}
+					else{
+						buf2.append(" :: " + variable);
+					}
+				}
+				/**
+				 * general situations...
+				 */
+				else{
+					if (Debug) System.out.println(variable + " = " + this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable));
+					
+					//complex or not others, like real, integer or something else
+					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
+						if (Debug) System.out.println("COMPLEX here!");
+						buf.append("\n      complex");
+					}
+					else{
+						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					}*/
+					buf2.append("\n      " + FortranMap.getFortranTypeMapping(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					//parameter
+					if(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()&&(inArgs.contains(variable)==false)&&(outRes.contains(variable)==false)){
+						if (Debug) System.out.println("add parameter here!");
+						buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
+					}
+					else{
+						//dimension
+						if(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
+							if (Debug) System.out.println("add dimension here!");
+							buf2.append(" , dimension(");
+							ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
+							if (Debug) System.out.println(dim);
+							boolean conter = false;
+							/**
+							 * if one of the dimension is unknown, which value is null, goes to catch.
+							 */
+							try{
+								for(Integer intgr : dim){
+									String test = intgr.toString();
+								}
+							}
+							catch(Exception e){
+								for(int i=1; i<=dim.size(); i++){
+									if(conter){
+										buf2.append(",");
+									}
+									buf2.append(":");
+									conter = true;
+								}
+								buf2.append(") , allocatable :: " + variable);
+								break;
+							}
+							/**
+							 * if all the dimension is exactly known, which values are all integer, goes to here.
+							 */
+							for(Integer inte : dim){
+								if(conter){
+									buf2.append(",");
+								}
+								buf2.append(inte.toString());
+								conter = true;
+							}
+							buf2.append(")");
+							if(outRes.contains(variable)){
+								buf2.append(" :: " + majorName);
+							}
+							else{
+								buf2.append(" :: " + variable);
+							}
+						}
+						else{
+							/**
+							 * for subroutines, it's different from which in functions.
+							 */
+							if(inArgs.contains(variable)){
+								buf2.append(" , intent(in)");
+							}
+							else if(outRes.contains(variable)){
+								buf2.append(" , intent(out)");
+							}
+							buf2.append(" :: " + variable);
+						}
+					}
+				}
+			}
+			buf2.append("\n");
+			buf2.append(buf);
+			try{
+				BufferedWriter out = new BufferedWriter(new FileWriter(fileDir+node.getName()+".f"));
+				out.write(buf2.toString());
+				out.close();
+			}
+			catch(IOException e){
+				System.out.println("Exception ");
+
+			}
+		}
 	}
 	
 	@Override
@@ -474,13 +634,32 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			for(ast.Name name : node.getTargets().asNameList()){
 				vars.add(name.getID());
 			}
-			if(1==vars.size()){ //only one variable on LHS
+			/**
+			 * deal with difference number of output.
+			 */
+			if(vars.size()>1){
+				/**
+				 * this should be a call statement to call a subroutine.
+				 */
+				ArrayList<String> Args = new ArrayList<String>();
+				String ArgsListasString, OutputsListasString;
+				Args = GetArgs(node);
+				ArgsListasString = GetArgsListasString(Args);
+				OutputsListasString = GetArgsListasString(vars);
+				buf.append("      call "+node.getRHS().getVarName()+"("+ArgsListasString+", "+OutputsListasString+")");
+			}
+			else if(1==vars.size()){
 				LHS = vars.get(0);
-				if(outRes.contains(LHS)){
-					buf.append("      "+majorName + " = ");
+				if(isSubroutine==true){//which means this statement is in an subroutine
+					buf.append("      "+LHS+" = ");
 				}
 				else{
-					buf.append("      "+LHS+" = ");
+					if(outRes.contains(LHS)){
+						buf.append("      "+majorName + " = ");
+					}
+					else{
+						buf.append("      "+LHS+" = ");
+					}
 				}
 				//use varname to get the name of the method/operator/Var
 				makeExpression(node);
@@ -571,9 +750,28 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
 		if (Debug) System.out.println("in an arrayget statement!");
-		buf.append("      "+node.getLHS().getNodeString().replace("[", "").replace("]", "")+" = "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")");
-		for(Name index : node.getIndizes().asNameList()){
-			arrayIndexParameter.add(index.getVarName());
+		String indexList = node.getIndizes().toString();
+		String[] tokens = indexList.replace("[", "").replace("]", "").split("[,]");
+		ArrayList<String> tokensAsArray = new ArrayList<String>();
+		for(String indexName : tokens){
+			tokensAsArray.add(indexName);
+		}
+		if(tokensAsArray.contains(":")){
+			buf.append("      "+node.getLHS().getNodeString().replace("[", "").replace("]", "")+
+					"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")"+
+					" = "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")");
+		}
+		else{
+			buf.append("      "+node.getLHS().getNodeString().replace("[", "").replace("]", "")+
+					" = "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")");
+		}
+		for(String indexName : tokens){
+			if(indexName.equals(":")){
+				//ignore this
+			}
+			else{
+				arrayIndexParameter.add(indexName);
+			}
 		}
 	}
 	
@@ -590,18 +788,18 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	public void caseTIRCommentStmt(TIRCommentStmt node){
 		if (Debug) System.out.println("in a comment statement");
 		/**
-		 * for Natlab, it consider blank line is also a comment statement
+		 * for Natlab, it consider blank line is also a comment statement.
 		 */
 		if(node.getNodeString().contains("%")){
-			buf.append("c "+node.getNodeString().replace("%", ""));			
+			buf.append("c     "+node.getNodeString().replace("%", ""));			
 		}
 	}
 
 	/**********************HELPER METHODS***********************************/
 	private void makeExpression(TIRAbstractAssignStmt node){
 		/** 
-		 * Change for built-ins with n args
-		 * Currently it handles general case built-ins with one or two args only
+		 * Change for built-ins with n args.
+		 * Currently it handles general case built-ins with one or two args only.
 		 */
 		int RHSCaseNumber;
 		String RHSFortranOperator;
