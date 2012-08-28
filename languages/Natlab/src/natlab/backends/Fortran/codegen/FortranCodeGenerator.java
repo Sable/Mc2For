@@ -37,6 +37,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	public boolean indentIf;
 	public boolean indentFW;
 	public boolean isSubroutine;//this boolean value help the compiler to distinguish subroutine with function.
+	public ArrayList<String> runtimeCheckTmpVariables;
 	static boolean Debug = false;
 	
 	public FortranCodeGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
@@ -56,6 +57,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		this.indentIf = false;
 		this.indentFW = false;
 		this.isSubroutine = false;
+		this.runtimeCheckTmpVariables = new ArrayList<String>();
 		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
 	}
 	
@@ -159,7 +161,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			Args = GetArgs(node);
 			ArgsListasString = GetArgsListasString(Args);
 			buf.append(RHSFortranOperator+"("+ArgsListasString+");");
-			//buf.append("      " + RHS + ArgsListasString);
+			//buf.append("" + RHS + ArgsListasString);
 			break;
 		case 4:
 			//TODO, add more similar "method"
@@ -170,7 +172,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		case 6:
 			Args = GetArgs(node);
 			ArgsListasString = GetArgsListasString(Args);
-			buf.append("      "+RHSFortranOperator+ArgsListasString);
+			buf.append(""+RHSFortranOperator+ArgsListasString);
 			break;
 		case 7:
 			/**

@@ -38,9 +38,9 @@ public class HandleCaseTIRAssignLiteralStmt {
 				}
 			}
 			catch(Exception e){
-				fcg.buf.append("      allocate("+LHS+"(1, 1));\n  ");
+				fcg.buf.append("allocate("+LHS+"(1, 1));\n  ");
 			}
-			fcg.buf.append("      "+LHS+" = "+RHS+";");
+			fcg.buf.append(LHS+" = "+RHS+";");
 		}
 		return fcg;
 	}

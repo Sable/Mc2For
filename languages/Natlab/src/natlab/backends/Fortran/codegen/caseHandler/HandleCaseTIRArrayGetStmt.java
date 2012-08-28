@@ -22,12 +22,12 @@ public class HandleCaseTIRArrayGetStmt {
 			tokensAsArray.add(indexName);
 		}
 		if(tokensAsArray.contains(":")){
-			fcg.buf.append("      "+node.getLHS().getNodeString().replace("[", "").replace("]", "")+
+			fcg.buf.append(node.getLHS().getNodeString().replace("[", "").replace("]", "")+
 					"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")"+
 					" = "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")");
 		}
 		else{
-			fcg.buf.append("      "+node.getLHS().getNodeString().replace("[", "").replace("]", "")+
+			fcg.buf.append(node.getLHS().getNodeString().replace("[", "").replace("]", "")+
 					" = "+node.getArrayName().getVarName()+"("+node.getIndizes().toString().replace("[", "").replace("]", "")+")");
 		}
 		for(String indexName : tokens){

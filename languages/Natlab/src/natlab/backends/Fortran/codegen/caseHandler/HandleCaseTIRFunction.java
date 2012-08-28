@@ -36,18 +36,17 @@ public class HandleCaseTIRFunction {
 			fcg.printStatements(node.getStmts());
 			//Write code for nested functions here
 			//buf.append(indent + "}//end of function\n}//end of class\n");
-			fcg.buf.append(indent + "      stop\n      end");
+			fcg.buf.append(indent + "stop\nend");
 			
 			if (Debug) System.out.println("the parameters in for stmt: "+fcg.forStmtParameter);
 			
-			fcg.buf2.append(indent + "      program ");
+			fcg.buf2.append(indent + "program ");
 			// TODO - CHANGE IT TO DETERMINE RETURN TYPE		
 			fcg.buf2.append(fcg.majorName);
-			fcg.buf2.append("\n      implicit none");
+			fcg.buf2.append("\nimplicit none");
 			
 			//System.out.println(this.analysis.getNodeList().get(index).getAnalysis().getOutFlowSets());
 			if (Debug) System.out.println(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()+"\n");
-			
 			for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
 				if(fcg.forStmtParameter.contains(variable)||fcg.arrayIndexParameter.contains(variable)){
 					if (Debug) System.out.println("variable "+variable+" is a for stmt parameter.");
@@ -56,12 +55,12 @@ public class HandleCaseTIRFunction {
 					//complex or not others, like real, integer or something else
 					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
 						if (Debug) System.out.println("COMPLEX here!");
-						buf.append("\n      complex");
+						buf.append("\ncomplex");
 					}
 					else{
-						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n      " + fcg.FortranMap.getFortranTypeMapping("int8"));
+					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping("int8"));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
@@ -77,12 +76,12 @@ public class HandleCaseTIRFunction {
 					//complex or not others, like real, integer or something else
 					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
 						if (Debug) System.out.println("COMPLEX here!");
-						buf.append("\n      complex");
+						buf.append("\ncomplex");
 					}
 					else{
-						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n      " + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
@@ -95,15 +94,17 @@ public class HandleCaseTIRFunction {
 							fcg.buf2.append(" , dimension(");
 							ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 							boolean conter = false;
-							/**
-							 * if one of the dimension is unknown, which value is null, goes to catch.
-							 */
-							try{
-								for(Integer intgr : dim){
-									String test = intgr.toString();
+							boolean variableShapeIsKnown = true;
+							for(Integer intgr : dim){
+								if(intgr==null){
+									if (Debug) System.out.println("The shape of "+variable+" is not exactly known, we need allocate it first");
+									variableShapeIsKnown = false;
 								}
 							}
-							catch(Exception e){
+							/**
+							 * if one of the dimension is unknown, which value is null, goes to if block.
+							 */
+							if(variableShapeIsKnown==false){
 								for(int i=1; i<=dim.size(); i++){
 									if(conter){
 										fcg.buf2.append(",");
@@ -112,20 +113,27 @@ public class HandleCaseTIRFunction {
 									conter = true;
 								}
 								fcg.buf2.append(") , allocatable :: " + variable);
-								break;
 							}
+							
 							/**
-							 * if all the dimension is exactly known, which values are all integer, goes to here.
+							 * if all the dimension is exactly known, which values are all integer, goes to else block.
 							 */
-							for(Integer intgr : dim){
-								if(conter){
-									fcg.buf2.append(",");
+							else{
+								for(Integer inte : dim){
+									if(conter){
+										fcg.buf2.append(",");
+									}
+									fcg.buf2.append(inte.toString());
+									conter = true;
 								}
-								fcg.buf2.append(intgr.toString());
-								conter = true;
+								fcg.buf2.append(")");
+								if(fcg.outRes.contains(variable)){
+									fcg.buf2.append(" :: " + fcg.majorName);
+								}
+								else{
+									fcg.buf2.append(" :: " + variable);
+								}
 							}
-							fcg.buf2.append(")");
-							fcg.buf2.append(" :: " + variable);
 						}
 						else{
 							fcg.buf2.append(" :: " + variable);
@@ -134,22 +142,28 @@ public class HandleCaseTIRFunction {
 				}
 			}
 			/**
+			 * declare those variables generated during the code generation,
+			 * like extra variables for runtime shape check
+			 */
+			for(String runtimeCheckTmpVar : fcg.runtimeCheckTmpVariables){
+				fcg.buf2.append("\ninteger , dimension(2) :: "+runtimeCheckTmpVar);
+			}
+			/**
 			 * at the end of declaration, declare those user defined function.
 			 */
 			for(String key : fcg.funcNameRep.keySet()){
-				System.out.println(key);
 				String variable = fcg.funcNameRep.get(key);
 				if (Debug) System.out.println(variable + " = " + fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable));
 				
 				//complex or not others, like real, integer or something else
 				/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
 					if (Debug) System.out.println("COMPLEX here!");
-					buf.append("\n      complex");
+					buf.append("\ncomplex");
 				}
 				else{
-					buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				}*/
-				fcg.buf2.append("\n      " + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+				fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				//parameter
 				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 					if (Debug) System.out.println("add parameter here!");
@@ -163,15 +177,17 @@ public class HandleCaseTIRFunction {
 						ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 						if (Debug) System.out.println(dim);
 						boolean conter = false;
-						/**
-						 * if one of the dimension is unknown, which value is null, goes to catch.
-						 */
-						try{
-							for(Integer intgr : dim){
-								String test = intgr.toString();
+						boolean variableShapeIsKnown = true;
+						for(Integer intgr : dim){
+							if(intgr==null){
+								if (Debug) System.out.println("The shape of "+variable+" is not exactly known, we need allocate it first");
+								variableShapeIsKnown = false;
 							}
 						}
-						catch(Exception e){
+						/**
+						 * if one of the dimension is unknown, which value is null, goes to if block.
+						 */
+						if(variableShapeIsKnown==false){
 							for(int i=1; i<=dim.size(); i++){
 								if(conter){
 									fcg.buf2.append(",");
@@ -180,20 +196,27 @@ public class HandleCaseTIRFunction {
 								conter = true;
 							}
 							fcg.buf2.append(") , allocatable :: " + variable);
-							break;
 						}
+						
 						/**
-						 * if all the dimension is exactly known, which values are all integer, goes to here.
+						 * if all the dimension is exactly known, which values are all integer, goes to else block.
 						 */
-						for(Integer inte : dim){
-							if(conter){
-								fcg.buf2.append(",");
+						else{
+							for(Integer inte : dim){
+								if(conter){
+									fcg.buf2.append(",");
+								}
+								fcg.buf2.append(inte.toString());
+								conter = true;
 							}
-							fcg.buf2.append(inte.toString());
-							conter = true;
+							fcg.buf2.append(")");
+							if(fcg.outRes.contains(variable)){
+								fcg.buf2.append(" :: " + fcg.majorName);
+							}
+							else{
+								fcg.buf2.append(" :: " + variable);
+							}
 						}
-						fcg.buf2.append(")");
-						fcg.buf2.append(" :: " + key);
 					}
 					else{
 						fcg.buf2.append(" :: " + key);
@@ -204,12 +227,12 @@ public class HandleCaseTIRFunction {
 			fcg.buf2.append("\n");
 			fcg.buf2.append(fcg.buf);
 			try{
-				BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+fcg.majorName+".f"));
+				BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+fcg.majorName+".f95"));
 				out.write(fcg.buf2.toString());
 				out.close();
 			}
 			catch(IOException e){
-				System.out.println("Exception ");
+				System.err.println("Exception ");
 
 			}
 		}
@@ -222,11 +245,11 @@ public class HandleCaseTIRFunction {
 			boolean first = true;
 			
 			fcg.printStatements(node.getStmts());
-			fcg.buf.append(indent + "      return\n      end");
+			fcg.buf.append(indent + "return\nend");
 			
 			if (Debug) System.out.println("the parameters in for stmt: "+fcg.forStmtParameter);
 			
-			fcg.buf2.append(indent + "      function ");
+			fcg.buf2.append(indent + "function ");
 			fcg.buf2.append(fcg.majorName);
 			fcg.buf2.append("(");
 			first = true;
@@ -238,7 +261,7 @@ public class HandleCaseTIRFunction {
 				first = false;
 			}
 			fcg.buf2.append(")");
-			fcg.buf2.append("\n      implicit none");
+			fcg.buf2.append("\nimplicit none");
 			
 			if (Debug) System.out.println(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()+"\n");
 			
@@ -253,12 +276,12 @@ public class HandleCaseTIRFunction {
 					//complex or not others, like real, integer or something else
 					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
 						if (Debug) System.out.println("COMPLEX here!");
-						buf.append("\n      complex");
+						buf.append("\ncomplex");
 					}
 					else{
-						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n      " + fcg.FortranMap.getFortranTypeMapping("int8"));
+					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping("int8"));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
@@ -277,12 +300,12 @@ public class HandleCaseTIRFunction {
 					//complex or not others, like real, integer or something else
 					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
 						if (Debug) System.out.println("COMPLEX here!");
-						buf.append("\n      complex");
+						buf.append("\ncomplex");
 					}
 					else{
-						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n      " + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()&&(fcg.inArgs.contains(variable)==false)&&(fcg.outRes.contains(variable)==false)){
 						if (Debug) System.out.println("add parameter here!");
@@ -296,15 +319,17 @@ public class HandleCaseTIRFunction {
 							ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 							if (Debug) System.out.println(dim);
 							boolean conter = false;
-							/**
-							 * if one of the dimension is unknown, which value is null, goes to catch.
-							 */
-							try{
-								for(Integer intgr : dim){
-									String test = intgr.toString();
+							boolean variableShapeIsKnown = true;
+							for(Integer intgr : dim){
+								if(intgr==null){
+									if (Debug) System.out.println("The shape of "+variable+" is not exactly known, we need allocate it first");
+									variableShapeIsKnown = false;
 								}
 							}
-							catch(Exception e){
+							/**
+							 * if one of the dimension is unknown, which value is null, goes to if block.
+							 */
+							if(variableShapeIsKnown==false){
 								for(int i=1; i<=dim.size(); i++){
 									if(conter){
 										fcg.buf2.append(",");
@@ -313,24 +338,26 @@ public class HandleCaseTIRFunction {
 									conter = true;
 								}
 								fcg.buf2.append(") , allocatable :: " + variable);
-								break;
 							}
+							
 							/**
-							 * if all the dimension is exactly known, which values are all integer, goes to here.
+							 * if all the dimension is exactly known, which values are all integer, goes to else block.
 							 */
-							for(Integer inte : dim){
-								if(conter){
-									fcg.buf2.append(",");
-								}
-								fcg.buf2.append(inte.toString());
-								conter = true;
-							}
-							fcg.buf2.append(")");
-							if(fcg.outRes.contains(variable)){
-								fcg.buf2.append(" :: " + fcg.majorName);
-							}
 							else{
-								fcg.buf2.append(" :: " + variable);
+								for(Integer inte : dim){
+									if(conter){
+										fcg.buf2.append(",");
+									}
+									fcg.buf2.append(inte.toString());
+									conter = true;
+								}
+								fcg.buf2.append(")");
+								if(fcg.outRes.contains(variable)){
+									fcg.buf2.append(" :: " + fcg.majorName);
+								}
+								else{
+									fcg.buf2.append(" :: " + variable);
+								}
 							}
 						}
 						else{
@@ -348,12 +375,12 @@ public class HandleCaseTIRFunction {
 			fcg.buf2.append("\n");
 			fcg.buf2.append(fcg.buf);
 			try{
-				BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+node.getName()+".f"));
+				BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+node.getName()+".f95"));
 				out.write(fcg.buf2.toString());
 				out.close();
 			}
 			catch(IOException e){
-				System.out.println("Exception ");
+				System.err.println("Exception ");
 
 			}
 		}
@@ -364,9 +391,9 @@ public class HandleCaseTIRFunction {
 			fcg.isSubroutine = true;
 			if (Debug) System.out.println("this is a subroutine");
 			fcg.printStatements(node.getStmts());
-			fcg.buf.append("      return\n      end");
+			fcg.buf.append("return\nend");
 			
-			fcg.buf2.append("      subroutine ");
+			fcg.buf2.append("subroutine ");
 			fcg.buf2.append(fcg.majorName);
 			fcg.buf2.append("(");
 			boolean first = true;
@@ -387,7 +414,7 @@ public class HandleCaseTIRFunction {
 				first = false;
 			}
 			fcg.buf2.append(")");
-			fcg.buf2.append("\n      implicit none");
+			fcg.buf2.append("\nimplicit none");
 			
 			if (Debug) System.out.println(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()+"\n");
 			
@@ -405,12 +432,12 @@ public class HandleCaseTIRFunction {
 					//complex or not others, like real, integer or something else
 					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
 						if (Debug) System.out.println("COMPLEX here!");
-						buf.append("\n      complex");
+						buf.append("\ncomplex");
 					}
 					else{
-						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n      " + fcg.FortranMap.getFortranTypeMapping("int8"));
+					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping("int8"));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
@@ -429,12 +456,12 @@ public class HandleCaseTIRFunction {
 					//complex or not others, like real, integer or something else
 					/*if(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getisComplexInfo().geticType().equals("COMPLEX")){
 						if (Debug) System.out.println("COMPLEX here!");
-						buf.append("\n      complex");
+						buf.append("\ncomplex");
 					}
 					else{
-						buf.append("\n      " + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n      " + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()&&(fcg.inArgs.contains(variable)==false)&&(fcg.outRes.contains(variable)==false)){
 						if (Debug) System.out.println("add parameter here!");
@@ -448,15 +475,17 @@ public class HandleCaseTIRFunction {
 							ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 							if (Debug) System.out.println(dim);
 							boolean conter = false;
-							/**
-							 * if one of the dimension is unknown, which value is null, goes to catch.
-							 */
-							try{
-								for(Integer intgr : dim){
-									String test = intgr.toString();
+							boolean variableShapeIsKnown = true;
+							for(Integer intgr : dim){
+								if(intgr==null){
+									if (Debug) System.out.println("The shape of "+variable+" is not exactly known, we need allocate it first");
+									variableShapeIsKnown = false;
 								}
 							}
-							catch(Exception e){
+							/**
+							 * if one of the dimension is unknown, which value is null, goes to if block.
+							 */
+							if(variableShapeIsKnown==false){
 								for(int i=1; i<=dim.size(); i++){
 									if(conter){
 										fcg.buf2.append(",");
@@ -465,24 +494,26 @@ public class HandleCaseTIRFunction {
 									conter = true;
 								}
 								fcg.buf2.append(") , allocatable :: " + variable);
-								break;
 							}
+							
 							/**
-							 * if all the dimension is exactly known, which values are all integer, goes to here.
+							 * if all the dimension is exactly known, which values are all integer, goes to else block.
 							 */
-							for(Integer inte : dim){
-								if(conter){
-									fcg.buf2.append(",");
-								}
-								fcg.buf2.append(inte.toString());
-								conter = true;
-							}
-							fcg.buf2.append(")");
-							if(fcg.outRes.contains(variable)){
-								fcg.buf2.append(" :: " + fcg.majorName);
-							}
 							else{
-								fcg.buf2.append(" :: " + variable);
+								for(Integer inte : dim){
+									if(conter){
+										fcg.buf2.append(",");
+									}
+									fcg.buf2.append(inte.toString());
+									conter = true;
+								}
+								fcg.buf2.append(")");
+								if(fcg.outRes.contains(variable)){
+									fcg.buf2.append(" :: " + fcg.majorName);
+								}
+								else{
+									fcg.buf2.append(" :: " + variable);
+								}
 							}
 						}
 						else{
@@ -503,12 +534,12 @@ public class HandleCaseTIRFunction {
 			fcg.buf2.append("\n");
 			fcg.buf2.append(fcg.buf);
 			try{
-				BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+node.getName()+".f"));
+				BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+node.getName()+".f95"));
 				out.write(fcg.buf2.toString());
 				out.close();
 			}
 			catch(IOException e){
-				System.out.println("Exception ");
+				System.err.println("Exception ");
 
 			}
 		}

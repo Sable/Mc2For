@@ -26,7 +26,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				int i=1;
 				int length = Args.size();
 				for(String Arg : Args){
-					fcg.buf.append("      "+LHS+"(1,"+i+") = "+Arg+";");
+					fcg.buf.append(LHS+"(1,"+i+") = "+Arg+";");
 					i = i+1;
 					if(i<=length){
 						fcg.buf.append("\n");	
@@ -53,19 +53,19 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				Args = fcg.GetArgs(node);
 				ArgsListasString = fcg.GetArgsListasString(Args);
 				OutputsListasString = fcg.GetArgsListasString(vars);
-				fcg.buf.append("      call "+node.getRHS().getVarName()+"("+ArgsListasString+", "+OutputsListasString+")");
+				fcg.buf.append("call "+node.getRHS().getVarName()+"("+ArgsListasString+", "+OutputsListasString+")");
 			}
 			else if(1==vars.size()){
 				LHS = vars.get(0);
 				if(fcg.isSubroutine==true){//which means this statement is in an subroutine
-					fcg.buf.append("      "+LHS+" = ");
+					fcg.buf.append(LHS+" = ");
 				}
 				else{
 					if(fcg.outRes.contains(LHS)){
-						fcg.buf.append("      "+fcg.majorName + " = ");
+						fcg.buf.append(fcg.majorName + " = ");
 					}
 					else{
-						fcg.buf.append("      "+LHS+" = ");
+						fcg.buf.append(LHS+" = ");
 					}
 				}
 				//use varname to get the name of the method/operator/Var
