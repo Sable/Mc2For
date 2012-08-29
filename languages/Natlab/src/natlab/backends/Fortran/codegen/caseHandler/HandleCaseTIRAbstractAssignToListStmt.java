@@ -18,21 +18,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		if (Debug) System.out.println("in an abstractAssignToList  statement");
 		if(fcg.FortranMap.isFortranNoDirectBuiltin(node.getRHS().getVarName())){
 			if (Debug) System.out.println("the function \""+node.getRHS().getVarName()+"\" has no corresponding builtin function in Fortran...");
-			if(node.getRHS().getVarName().equals("horzcat")){
-				String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-				ArrayList<String> Args = new ArrayList<String>();
-				Args = fcg.GetArgs(node);
-				ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).getShape().getDimensions());
-				int i=1;
-				int length = Args.size();
-				for(String Arg : Args){
-					fcg.buf.append(LHS+"(1,"+i+") = "+Arg+";");
-					i = i+1;
-					if(i<=length){
-						fcg.buf.append("\n");	
-					}
-				}
-			}
+			FortranCodeInliner fci = new FortranCodeInliner();
+			fci.inline(fcg, node);
 			//TODO add more no direct mapping built-ins
 		}
 		else{
@@ -50,9 +37,9 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				 */
 				ArrayList<String> Args = new ArrayList<String>();
 				String ArgsListasString, OutputsListasString;
-				Args = fcg.GetArgs(node);
-				ArgsListasString = fcg.GetArgsListasString(Args);
-				OutputsListasString = fcg.GetArgsListasString(vars);
+				Args = fcg.getArgsList(node);
+				ArgsListasString = fcg.getArgsListAsString(Args);
+				OutputsListasString = fcg.getArgsListAsString(vars);
 				fcg.buf.append("call "+node.getRHS().getVarName()+"("+ArgsListasString+", "+OutputsListasString+")");
 			}
 			else if(1==vars.size()){

@@ -4,7 +4,11 @@ import java.util.ArrayList;
 
 import natlab.backends.Fortran.codegen.*;
 import natlab.tame.tir.*;
+import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
+import natlab.tame.valueanalysis.components.shape.Shape;
+import natlab.tame.valueanalysis.components.shape.ShapeFactory;
+import natlab.tame.classes.reference.*;
 
 public class HandleCaseTIRAbstractAssignToVarStmt {
 
@@ -47,7 +51,11 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 				if((lhsShapeIsknown == false)&&(rhsShapeIsKnown == false)){
 					fcg.buf.append(LHS+"_shapeTmp = shape("+RHS+");\n");
 					fcg.buf.append("allocate("+LHS+"("+LHS+"_shapeTmp(1),"+LHS+"_shapeTmp(2)));\n");
-					fcg.runtimeCheckTmpVariables.add(LHS+"_shapeTmp");
+					ArrayList<Integer> shape = new ArrayList<Integer>();
+					shape.add(2);
+					BasicMatrixValue tmp = 
+							new BasicMatrixValue(new BasicMatrixValue(PrimitiveClassReference.INT8),(new ShapeFactory()).newShapeFromIntegers(shape));
+					fcg.tmpVariables.put(LHS+"_shapeTmp",tmp);
 				}
 				else if(lhsShapeIsknown == false){
 					fcg.buf.append("allocate("+LHS+"("+rhsVariableDimension.toString().replace("[", "").replace("]", "")+"));\n  ");

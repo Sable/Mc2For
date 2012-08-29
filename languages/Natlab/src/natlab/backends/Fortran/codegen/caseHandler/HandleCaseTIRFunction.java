@@ -145,8 +145,10 @@ public class HandleCaseTIRFunction {
 			 * declare those variables generated during the code generation,
 			 * like extra variables for runtime shape check
 			 */
-			for(String runtimeCheckTmpVar : fcg.runtimeCheckTmpVariables){
-				fcg.buf2.append("\ninteger , dimension(2) :: "+runtimeCheckTmpVar);
+			for(String tmpVariable : fcg.tmpVariables.keySet()){
+				
+				fcg.buf2.append("\n"+fcg.FortranMap.getFortranTypeMapping(fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString())
+						+" , dimension("+fcg.tmpVariables.get(tmpVariable).getShape().toString().replace(" ", "").replace("[", "").replace("]", "")+") :: "+tmpVariable);
 			}
 			/**
 			 * at the end of declaration, declare those user defined function.

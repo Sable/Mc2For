@@ -33,11 +33,13 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	public String majorName;
 	public ArrayList<String> inArgs;
 	public ArrayList<String> outRes;
-	public HashMap<String, String> funcNameRep;//the key of this hashmap is the user defined function name, and the value is the corresponding substitute variable name.
+	public HashMap<String, String> funcNameRep;//the key of this hashmap is the user defined function name, 
+	                                           //and the value is the corresponding substitute variable name.
 	public boolean indentIf;
 	public boolean indentFW;
 	public boolean isSubroutine;//this boolean value help the compiler to distinguish subroutine with function.
-	public ArrayList<String> runtimeCheckTmpVariables;
+	public HashMap<String, BasicMatrixValue> tmpVariables;//to store those temporary variables which are used in Fortran code generation.
+	                                                        //The key is name, and the value is its shape.
 	static boolean Debug = false;
 	
 	public FortranCodeGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
@@ -57,7 +59,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		this.indentIf = false;
 		this.indentFW = false;
 		this.isSubroutine = false;
-		this.runtimeCheckTmpVariables = new ArrayList<String>();
+		this.tmpVariables = new HashMap<String,BasicMatrixValue>();
 		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
 	}
 	
@@ -158,8 +160,8 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			buf.append(RHSFortranOperator+""+Operand1+" ;"); //TODO test this
 			break;
 		case 3:
-			Args = GetArgs(node);
-			ArgsListasString = GetArgsListasString(Args);
+			Args = getArgsList(node);
+			ArgsListasString = getArgsListAsString(Args);
 			buf.append(RHSFortranOperator+"("+ArgsListasString+");");
 			//buf.append("" + RHS + ArgsListasString);
 			break;
@@ -170,8 +172,8 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			buf.append(RHSFortranOperator+";");
 			break;
 		case 6:
-			Args = GetArgs(node);
-			ArgsListasString = GetArgsListasString(Args);
+			Args = getArgsList(node);
+			ArgsListasString = getArgsListAsString(Args);
 			buf.append(""+RHSFortranOperator+ArgsListasString);
 			break;
 		case 7:
@@ -184,8 +186,8 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 			LHSName = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 			//XU, a little bit trick, go back to IR to get a better solution
 			funcNameRep.put(RHSName, LHSName);
-			Args = GetArgs(node);
-			ArgsListasString = GetArgsListasString(Args);
+			Args = getArgsList(node);
+			ArgsListasString = getArgsListAsString(Args);
 			buf.append(RHSName+"("+ArgsListasString+");");
 			break;
 		default:
@@ -262,7 +264,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		}
 		return RHSFortranOperator;
 	}
-	public ArrayList<String> GetArgs(TIRAbstractAssignStmt node){
+	public ArrayList<String> getArgsList(TIRAbstractAssignStmt node){
 		ArrayList<String> Args = new ArrayList<String>();
 		int numArgs = node.getRHS().getChild(1).getNumChild();
 		for (int i=0;i<numArgs;i++){
@@ -271,14 +273,14 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 		return Args;
 	}
 
-	public String GetArgsListasString(ArrayList<String> Args){
+	public String getArgsListAsString(ArrayList<String> Args){
 		String prefix ="";
-		String ArgListasString="";
+		String argListasString="";
 		for(String arg : Args){
-			ArgListasString = ArgListasString+prefix+arg;
+			argListasString = argListasString+prefix+arg;
 			prefix=", ";
 		}
-		return ArgListasString;
+		return argListasString;
 	}
 
 	public String makeFortranStringLiteral(String StrLit){		

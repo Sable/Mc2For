@@ -85,6 +85,8 @@ public class FortranMapping {
 	
 	private void makeFortranNoDirectBuiltinSet(){
 		FortranNoDirectBuiltinSet.add("horzcat");
+		FortranNoDirectBuiltinSet.add("vertcat");
+		FortranNoDirectBuiltinSet.add("ones");
 	}
 	
 	private void makeFortranBuiltinConstMap(){
