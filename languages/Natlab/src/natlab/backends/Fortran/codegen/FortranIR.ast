@@ -1,0 +1,20 @@
+abstract Program;
+MainProgram: Program ::= DeclarationSection StatementSection;
+UserDefinedFunc: Program ::= DeclarationSection StatementSection;
+UserDefinedSubroutine: Program ::= DeclarationSection StatementSection;
+
+DeclarationSection ::= DeclStmt*;
+DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList;
+KeywordList ::= Keyword*;
+VariableList ::= Variable*;
+Keyword ::= <Name: String>;
+Variable ::= <Name: String>;
+ShapeInfo ::= <Name: String>;
+
+StatementSection ::= Statement*;
+abstract Statement;
+AssignStmt: Statement ::= Variable Exp;
+abstract Exp;
+BinaryOperation: Exp ::= LHSVariable <Operation: String> RHSVariable;
+LHSVariable: Variable;
+RHSVariable: Variable;
