@@ -20,7 +20,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		
 	}
 	
-	public FortranCodeGenerator getFortran(FortranCodeGenerator fcg, TIRAbstractAssignToVarStmt node){
+	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRAbstractAssignToVarStmt node){
 		if (Debug) System.out.println("in an abstractAssignToVar statement");
 		String LHS, RHS;
 		//ArrayList<String> vars = new ArrayList<String>();

@@ -20,7 +20,7 @@ import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.backends.Fortran.codegen.caseHandler.*;
 
-public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
+public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 	public ValueAnalysis<AggrValue<BasicMatrixValue>> analysis;
 	public StringBuffer buf;
 	public StringBuffer buf2;
@@ -42,7 +42,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	                                                        //The key is name, and the value is its shape.
 	static boolean Debug = false;
 	
-	public FortranCodeGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
+	public FortranCodePrettyPrinter(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
 		this.analysis = analysis;
 		this.buf = new StringBuffer();
 		this.buf2 = new StringBuffer();
@@ -66,7 +66,7 @@ public class FortranCodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	public static String FortranCodePrinter(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
-		return new FortranCodeGenerator(analysis, callgraphSize, index, fileDir).buf2.toString();
+		return new FortranCodePrettyPrinter(analysis, callgraphSize, index, fileDir).buf2.toString();
 	}
 	
 	

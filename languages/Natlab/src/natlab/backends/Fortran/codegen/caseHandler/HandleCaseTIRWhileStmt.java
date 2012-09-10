@@ -11,7 +11,7 @@ public class HandleCaseTIRWhileStmt {
 		
 	}
 	
-	public FortranCodeGenerator getFortran(FortranCodeGenerator fcg, TIRWhileStmt node){
+	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRWhileStmt node){
 		if (Debug) System.out.println("in while statement.");
 		if (Debug) System.out.println(node.getCondition().getVarName());
 		fcg.buf.append("do while ("+node.getCondition().getVarName()+")\n");

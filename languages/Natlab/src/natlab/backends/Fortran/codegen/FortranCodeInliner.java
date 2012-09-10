@@ -14,7 +14,7 @@ public class FortranCodeInliner {
 		
 	}
 	
-	public FortranCodeGenerator inline(FortranCodeGenerator fcg, TIRAbstractAssignToListStmt node){
+	public FortranCodePrettyPrinter inline(FortranCodePrettyPrinter fcg, TIRAbstractAssignToListStmt node){
 		if(node.getRHS().getVarName().equals("horzcat")){
 			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 			ArrayList<String> args = new ArrayList<String>();

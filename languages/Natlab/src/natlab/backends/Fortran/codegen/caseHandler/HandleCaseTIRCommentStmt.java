@@ -11,7 +11,7 @@ public class HandleCaseTIRCommentStmt {
 		
 	}
 	
-	public FortranCodeGenerator getFortran(FortranCodeGenerator fcg, TIRCommentStmt node){
+	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRCommentStmt node){
 		if (Debug) System.out.println("in a comment statement");
 		/**
 		 * for Natlab, it consider blank line is also a comment statement.

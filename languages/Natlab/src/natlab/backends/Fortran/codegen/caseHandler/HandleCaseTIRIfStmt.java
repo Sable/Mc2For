@@ -11,7 +11,7 @@ public class HandleCaseTIRIfStmt {
 		
 	}
 	
-	public FortranCodeGenerator getFortran(FortranCodeGenerator fcg, TIRIfStmt node){
+	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRIfStmt node){
 		if (Debug) System.out.println("in if statement.");
 		if (Debug) System.out.println(node.getConditionVarName().getID());
 		fcg.buf.append("if ("+node.getConditionVarName().getID()+") then\n");

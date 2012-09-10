@@ -11,7 +11,7 @@ public class HandleCaseTIRForStmt {
 		
 	}
 	
-	public FortranCodeGenerator getFortran(FortranCodeGenerator fcg, TIRForStmt node){
+	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRForStmt node){
 		if (Debug) System.out.println("in for statement.");
 		if (Debug) System.out.println(node.getLoopVarName().getVarName());
 		fcg.buf.append("do "+node.getLoopVarName().getVarName()+" = "+node.getLowerName().getVarName()+" , "+node.getUpperName().getVarName()+"\n");

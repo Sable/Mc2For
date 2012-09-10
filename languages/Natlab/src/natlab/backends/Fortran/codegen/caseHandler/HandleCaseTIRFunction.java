@@ -17,7 +17,7 @@ public class HandleCaseTIRFunction {
 		
 	}
 	
-	public FortranCodeGenerator getFortran(FortranCodeGenerator fcg, TIRFunction node){
+	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRFunction node){
 		fcg.majorName = node.getName();
 		for(Name param : node.getInputParams()){
 			fcg.inArgs.add(param.getVarName());
