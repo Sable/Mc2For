@@ -1,25 +1,25 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public class StatementSection extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 18
+public class ProgramParameterList extends ASTNode implements Cloneable {
+    // Declared in FortranIR.ast line 7
 
-    public StatementSection() {
+    public ProgramParameterList() {
         super();
 
         setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 18
-    public StatementSection(List p0) {
+    // Declared in FortranIR.ast line 7
+    public ProgramParameterList(List p0) {
         setChild(p0, 0);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        StatementSection node = (StatementSection)super.clone();
+        ProgramParameterList node = (ProgramParameterList)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          StatementSection node = (StatementSection)clone();
+          ProgramParameterList node = (ProgramParameterList)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -28,7 +28,7 @@ public class StatementSection extends ASTNode implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        StatementSection res = (StatementSection)copy();
+        ProgramParameterList res = (ProgramParameterList)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();
@@ -42,33 +42,33 @@ public class StatementSection extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 1;
   }
-    // Declared in FortranIR.ast line 18
-    public void setStatementList(List list) {
+    // Declared in FortranIR.ast line 7
+    public void setParameterList(List list) {
         setChild(list, 0);
     }
 
-    public int getNumStatement() {
-        return getStatementList().getNumChild();
+    public int getNumParameter() {
+        return getParameterList().getNumChild();
     }
 
-    public Statement getStatement(int i) {
-        return (Statement)getStatementList().getChild(i);
+    public Parameter getParameter(int i) {
+        return (Parameter)getParameterList().getChild(i);
     }
 
-    public void addStatement(Statement node) {
-        List list = getStatementList();
+    public void addParameter(Parameter node) {
+        List list = getParameterList();
         list.setChild(node, list.getNumChild());
     }
 
-    public void setStatement(Statement node, int i) {
-        List list = getStatementList();
+    public void setParameter(Parameter node, int i) {
+        List list = getParameterList();
         list.setChild(node, i);
     }
-    public List getStatementList() {
+    public List getParameterList() {
         return (List)getChild(0);
     }
 
-    public List getStatementListNoTransform() {
+    public List getParameterListNoTransform() {
         return (List)getChildNoTransform(0);
     }
 

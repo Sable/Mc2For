@@ -1,7 +1,11 @@
-abstract Program;
-ProgramMain: Program ::= DeclarationSection StatementSection;
-ProgramUserDefFunc: Program ::= DeclarationSection StatementSection;
-ProgramUserDefSubroutine: Program ::= DeclarationSection StatementSection;
+Program ::= ProgramMain ProgramUserDefFunc ProgramUserDefSubroutine;
+ProgramMain ::= ProgramTitle DeclarationSection StatementSection;
+ProgramUserDefFunc ::= ProgramTitle DeclarationSection StatementSection;
+ProgramUserDefSubroutine ::= ProgramTitle DeclarationSection StatementSection;
+
+ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList];
+ProgramParameterList ::= Parameter*;
+Parameter ::= <Name: String>;
 
 DeclarationSection ::= DeclStmt*;
 DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList;

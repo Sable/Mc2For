@@ -1,5 +1,5 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public class ProgramMain extends Program implements Cloneable {
+public class ProgramMain extends ASTNode implements Cloneable {
     // Declared in FortranIR.ast line 2
 
     public ProgramMain() {
@@ -7,12 +7,14 @@ public class ProgramMain extends Program implements Cloneable {
 
         setChild(null, 0);
         setChild(null, 1);
+        setChild(null, 2);
     }
 
     // Declared in FortranIR.ast line 2
-    public ProgramMain(DeclarationSection p0, StatementSection p1) {
+    public ProgramMain(ProgramTitle p0, DeclarationSection p1, StatementSection p2) {
         setChild(p0, 0);
         setChild(p1, 1);
+        setChild(p2, 2);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -42,31 +44,44 @@ public class ProgramMain extends Program implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 2;
+    return 3;
   }
     // Declared in FortranIR.ast line 2
-    public void setDeclarationSection(DeclarationSection node) {
+    public void setProgramTitle(ProgramTitle node) {
         setChild(node, 0);
     }
+    public ProgramTitle getProgramTitle() {
+        return (ProgramTitle)getChild(0);
+    }
+
+    public ProgramTitle getProgramTitleNoTransform() {
+        return (ProgramTitle)getChildNoTransform(0);
+    }
+
+
+    // Declared in FortranIR.ast line 2
+    public void setDeclarationSection(DeclarationSection node) {
+        setChild(node, 1);
+    }
     public DeclarationSection getDeclarationSection() {
-        return (DeclarationSection)getChild(0);
+        return (DeclarationSection)getChild(1);
     }
 
     public DeclarationSection getDeclarationSectionNoTransform() {
-        return (DeclarationSection)getChildNoTransform(0);
+        return (DeclarationSection)getChildNoTransform(1);
     }
 
 
     // Declared in FortranIR.ast line 2
     public void setStatementSection(StatementSection node) {
-        setChild(node, 1);
+        setChild(node, 2);
     }
     public StatementSection getStatementSection() {
-        return (StatementSection)getChild(1);
+        return (StatementSection)getChild(2);
     }
 
     public StatementSection getStatementSectionNoTransform() {
-        return (StatementSection)getChildNoTransform(1);
+        return (StatementSection)getChildNoTransform(2);
     }
 
 

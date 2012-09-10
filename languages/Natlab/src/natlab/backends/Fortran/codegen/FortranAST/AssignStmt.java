@@ -1,6 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 public class AssignStmt extends Statement implements Cloneable {
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 20
 
     public AssignStmt() {
         super();
@@ -9,7 +9,7 @@ public class AssignStmt extends Statement implements Cloneable {
         setChild(null, 1);
     }
 
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 20
     public AssignStmt(Variable p0, Exp p1) {
         setChild(p0, 0);
         setChild(p1, 1);
@@ -44,7 +44,7 @@ public class AssignStmt extends Statement implements Cloneable {
   protected int numChildren() {
     return 2;
   }
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 20
     public void setVariable(Variable node) {
         setChild(node, 0);
     }
@@ -57,7 +57,7 @@ public class AssignStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 20
     public void setExp(Exp node) {
         setChild(node, 1);
     }

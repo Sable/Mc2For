@@ -1,13 +1,13 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 public class ShapeInfo extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 16
 
     public ShapeInfo() {
         super();
 
     }
 
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 16
     public ShapeInfo(String p0) {
         setName(p0);
     }
@@ -41,7 +41,7 @@ public class ShapeInfo extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 0;
   }
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 16
     private String tokenString_Name;
     public void setName(String value) {
         tokenString_Name = value;
