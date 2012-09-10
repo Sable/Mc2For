@@ -1,27 +1,27 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public class UserDefinedFunc extends Program implements Cloneable {
-    // Declared in FortranIR.ast line 3
+public class ProgramUserDefSubroutine extends Program implements Cloneable {
+    // Declared in FortranIR.ast line 4
 
-    public UserDefinedFunc() {
+    public ProgramUserDefSubroutine() {
         super();
 
         setChild(null, 0);
         setChild(null, 1);
     }
 
-    // Declared in FortranIR.ast line 3
-    public UserDefinedFunc(DeclarationSection p0, StatementSection p1) {
+    // Declared in FortranIR.ast line 4
+    public ProgramUserDefSubroutine(DeclarationSection p0, StatementSection p1) {
         setChild(p0, 0);
         setChild(p1, 1);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        UserDefinedFunc node = (UserDefinedFunc)super.clone();
+        ProgramUserDefSubroutine node = (ProgramUserDefSubroutine)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          UserDefinedFunc node = (UserDefinedFunc)clone();
+          ProgramUserDefSubroutine node = (ProgramUserDefSubroutine)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -30,7 +30,7 @@ public class UserDefinedFunc extends Program implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        UserDefinedFunc res = (UserDefinedFunc)copy();
+        ProgramUserDefSubroutine res = (ProgramUserDefSubroutine)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();
@@ -44,7 +44,7 @@ public class UserDefinedFunc extends Program implements Cloneable {
   protected int numChildren() {
     return 2;
   }
-    // Declared in FortranIR.ast line 3
+    // Declared in FortranIR.ast line 4
     public void setDeclarationSection(DeclarationSection node) {
         setChild(node, 0);
     }
@@ -57,7 +57,7 @@ public class UserDefinedFunc extends Program implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 3
+    // Declared in FortranIR.ast line 4
     public void setStatementSection(StatementSection node) {
         setChild(node, 1);
     }

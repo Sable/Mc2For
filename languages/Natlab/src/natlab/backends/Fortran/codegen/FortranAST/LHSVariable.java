@@ -1,4 +1,4 @@
-package FortranAST;
+package natlab.backends.Fortran.codegen.FortranAST;
 public class LHSVariable extends Variable implements Cloneable {
     // Declared in FortranIR.ast line 19
 

@@ -1,4 +1,4 @@
-package FortranAST;
+package natlab.backends.Fortran.codegen.FortranAST;
 public class Keyword extends ASTNode implements Cloneable {
     // Declared in FortranIR.ast line 10
 

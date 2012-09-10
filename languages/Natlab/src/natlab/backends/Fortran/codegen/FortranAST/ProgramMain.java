@@ -1,8 +1,8 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public class MainProgram extends Program implements Cloneable {
+public class ProgramMain extends Program implements Cloneable {
     // Declared in FortranIR.ast line 2
 
-    public MainProgram() {
+    public ProgramMain() {
         super();
 
         setChild(null, 0);
@@ -10,18 +10,18 @@ public class MainProgram extends Program implements Cloneable {
     }
 
     // Declared in FortranIR.ast line 2
-    public MainProgram(DeclarationSection p0, StatementSection p1) {
+    public ProgramMain(DeclarationSection p0, StatementSection p1) {
         setChild(p0, 0);
         setChild(p1, 1);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        MainProgram node = (MainProgram)super.clone();
+        ProgramMain node = (ProgramMain)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          MainProgram node = (MainProgram)clone();
+          ProgramMain node = (ProgramMain)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -30,7 +30,7 @@ public class MainProgram extends Program implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        MainProgram res = (MainProgram)copy();
+        ProgramMain res = (ProgramMain)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();

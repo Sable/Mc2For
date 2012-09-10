@@ -1,4 +1,4 @@
-package FortranAST;
+package natlab.backends.Fortran.codegen.FortranAST;
 
 // Generated with JastAdd II (http://jastadd.cs.lth.se) version R20060915
 

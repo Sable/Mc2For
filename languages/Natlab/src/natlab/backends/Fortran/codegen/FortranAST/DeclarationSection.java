@@ -1,4 +1,4 @@
-package FortranAST;
+package natlab.backends.Fortran.codegen.FortranAST;
 public class DeclarationSection extends ASTNode implements Cloneable {
     // Declared in FortranIR.ast line 6
 
