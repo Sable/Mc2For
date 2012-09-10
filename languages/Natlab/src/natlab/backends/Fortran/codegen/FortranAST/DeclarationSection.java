@@ -1,6 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 public class DeclarationSection extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 10
+    // Declared in FortranIR.ast line 11
 
     public DeclarationSection() {
         super();
@@ -8,7 +8,7 @@ public class DeclarationSection extends ASTNode implements Cloneable {
         setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 10
+    // Declared in FortranIR.ast line 11
     public DeclarationSection(List p0) {
         setChild(p0, 0);
     }
@@ -42,7 +42,7 @@ public class DeclarationSection extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 1;
   }
-    // Declared in FortranIR.ast line 10
+    // Declared in FortranIR.ast line 11
     public void setDeclStmtList(List list) {
         setChild(list, 0);
     }

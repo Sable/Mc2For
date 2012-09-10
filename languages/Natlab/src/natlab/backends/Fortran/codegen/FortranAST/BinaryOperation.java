@@ -1,6 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 public class BinaryOperation extends Exp implements Cloneable {
-    // Declared in FortranIR.ast line 22
+    // Declared in FortranIR.ast line 23
 
     public BinaryOperation() {
         super();
@@ -9,7 +9,7 @@ public class BinaryOperation extends Exp implements Cloneable {
         setChild(null, 1);
     }
 
-    // Declared in FortranIR.ast line 22
+    // Declared in FortranIR.ast line 23
     public BinaryOperation(LHSVariable p0, String p1, RHSVariable p2) {
         setChild(p0, 0);
         setOperation(p1);
@@ -45,7 +45,7 @@ public class BinaryOperation extends Exp implements Cloneable {
   protected int numChildren() {
     return 2;
   }
-    // Declared in FortranIR.ast line 22
+    // Declared in FortranIR.ast line 23
     public void setLHSVariable(LHSVariable node) {
         setChild(node, 0);
     }
@@ -58,7 +58,7 @@ public class BinaryOperation extends Exp implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 22
+    // Declared in FortranIR.ast line 23
     private String tokenString_Operation;
     public void setOperation(String value) {
         tokenString_Operation = value;
@@ -68,7 +68,7 @@ public class BinaryOperation extends Exp implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 22
+    // Declared in FortranIR.ast line 23
     public void setRHSVariable(RHSVariable node) {
         setChild(node, 1);
     }

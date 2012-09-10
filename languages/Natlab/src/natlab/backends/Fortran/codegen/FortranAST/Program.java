@@ -5,16 +5,12 @@ public class Program extends ASTNode implements Cloneable {
     public Program() {
         super();
 
-        setChild(null, 0);
-        setChild(null, 1);
-        setChild(null, 2);
+        setChild(new List(), 0);
     }
 
     // Declared in FortranIR.ast line 1
-    public Program(ProgramMain p0, ProgramUserDefFunc p1, ProgramUserDefSubroutine p2) {
+    public Program(List p0) {
         setChild(p0, 0);
-        setChild(p1, 1);
-        setChild(p2, 2);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -44,44 +40,36 @@ public class Program extends ASTNode implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 3;
+    return 1;
   }
     // Declared in FortranIR.ast line 1
-    public void setProgramMain(ProgramMain node) {
-        setChild(node, 0);
-    }
-    public ProgramMain getProgramMain() {
-        return (ProgramMain)getChild(0);
+    public void setsubProgramList(List list) {
+        setChild(list, 0);
     }
 
-    public ProgramMain getProgramMainNoTransform() {
-        return (ProgramMain)getChildNoTransform(0);
+    public int getNumsubProgram() {
+        return getsubProgramList().getNumChild();
     }
 
-
-    // Declared in FortranIR.ast line 1
-    public void setProgramUserDefFunc(ProgramUserDefFunc node) {
-        setChild(node, 1);
-    }
-    public ProgramUserDefFunc getProgramUserDefFunc() {
-        return (ProgramUserDefFunc)getChild(1);
+    public subProgram getsubProgram(int i) {
+        return (subProgram)getsubProgramList().getChild(i);
     }
 
-    public ProgramUserDefFunc getProgramUserDefFuncNoTransform() {
-        return (ProgramUserDefFunc)getChildNoTransform(1);
+    public void addsubProgram(subProgram node) {
+        List list = getsubProgramList();
+        list.setChild(node, list.getNumChild());
     }
 
-
-    // Declared in FortranIR.ast line 1
-    public void setProgramUserDefSubroutine(ProgramUserDefSubroutine node) {
-        setChild(node, 2);
+    public void setsubProgram(subProgram node, int i) {
+        List list = getsubProgramList();
+        list.setChild(node, i);
     }
-    public ProgramUserDefSubroutine getProgramUserDefSubroutine() {
-        return (ProgramUserDefSubroutine)getChild(2);
+    public List getsubProgramList() {
+        return (List)getChild(0);
     }
 
-    public ProgramUserDefSubroutine getProgramUserDefSubroutineNoTransform() {
-        return (ProgramUserDefSubroutine)getChildNoTransform(2);
+    public List getsubProgramListNoTransform() {
+        return (List)getChildNoTransform(0);
     }
 
 

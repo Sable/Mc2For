@@ -1,14 +1,14 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public abstract class Statement extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 20
+public abstract class subProgram extends ASTNode implements Cloneable {
+    // Declared in FortranIR.ast line 2
 
-    public Statement() {
+    public subProgram() {
         super();
 
     }
 
     public Object clone() throws CloneNotSupportedException {
-        Statement node = (Statement)super.clone();
+        subProgram node = (subProgram)super.clone();
     return node;
     }
     public void flushCache() {

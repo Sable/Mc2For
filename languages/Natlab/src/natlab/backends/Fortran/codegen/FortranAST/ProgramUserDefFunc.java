@@ -1,6 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public class ProgramUserDefFunc extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 3
+public class ProgramUserDefFunc extends subProgram implements Cloneable {
+    // Declared in FortranIR.ast line 4
 
     public ProgramUserDefFunc() {
         super();
@@ -10,7 +10,7 @@ public class ProgramUserDefFunc extends ASTNode implements Cloneable {
         setChild(null, 2);
     }
 
-    // Declared in FortranIR.ast line 3
+    // Declared in FortranIR.ast line 4
     public ProgramUserDefFunc(ProgramTitle p0, DeclarationSection p1, StatementSection p2) {
         setChild(p0, 0);
         setChild(p1, 1);
@@ -46,7 +46,7 @@ public class ProgramUserDefFunc extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 3;
   }
-    // Declared in FortranIR.ast line 3
+    // Declared in FortranIR.ast line 4
     public void setProgramTitle(ProgramTitle node) {
         setChild(node, 0);
     }
@@ -59,7 +59,7 @@ public class ProgramUserDefFunc extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 3
+    // Declared in FortranIR.ast line 4
     public void setDeclarationSection(DeclarationSection node) {
         setChild(node, 1);
     }
@@ -72,7 +72,7 @@ public class ProgramUserDefFunc extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 3
+    // Declared in FortranIR.ast line 4
     public void setStatementSection(StatementSection node) {
         setChild(node, 2);
     }

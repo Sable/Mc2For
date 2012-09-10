@@ -1,6 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 public class ProgramTitle extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 6
+    // Declared in FortranIR.ast line 7
 
     public ProgramTitle() {
         super();
@@ -8,7 +8,7 @@ public class ProgramTitle extends ASTNode implements Cloneable {
         setChild(new Opt(), 0);
     }
 
-    // Declared in FortranIR.ast line 6
+    // Declared in FortranIR.ast line 7
     public ProgramTitle(String p0, String p1, Opt p2) {
         setProgramType(p0);
         setProgramName(p1);
@@ -44,7 +44,7 @@ public class ProgramTitle extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 1;
   }
-    // Declared in FortranIR.ast line 6
+    // Declared in FortranIR.ast line 7
     private String tokenString_ProgramType;
     public void setProgramType(String value) {
         tokenString_ProgramType = value;
@@ -54,7 +54,7 @@ public class ProgramTitle extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 6
+    // Declared in FortranIR.ast line 7
     private String tokenString_ProgramName;
     public void setProgramName(String value) {
         tokenString_ProgramName = value;
@@ -64,7 +64,7 @@ public class ProgramTitle extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 6
+    // Declared in FortranIR.ast line 7
     public void setProgramParameterListOpt(Opt opt) {
         setChild(opt, 0);
     }
