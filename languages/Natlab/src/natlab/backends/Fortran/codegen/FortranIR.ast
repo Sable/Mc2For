@@ -1,7 +1,8 @@
-Program ::= ProgramMain ProgramUserDefFunc ProgramUserDefSubroutine;
-ProgramMain ::= ProgramTitle DeclarationSection StatementSection;
-ProgramUserDefFunc ::= ProgramTitle DeclarationSection StatementSection;
-ProgramUserDefSubroutine ::= ProgramTitle DeclarationSection StatementSection;
+Program ::= SubProgram*;
+abstract SubProgram;
+ProgramMain: SubProgram ::= ProgramTitle DeclarationSection StatementSection;
+ProgramUserDefFunc: SubProgram ::= ProgramTitle DeclarationSection StatementSection;
+ProgramUserDefSubroutine: SubProgram ::= ProgramTitle DeclarationSection StatementSection;
 
 ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList];
 ProgramParameterList ::= Parameter*;

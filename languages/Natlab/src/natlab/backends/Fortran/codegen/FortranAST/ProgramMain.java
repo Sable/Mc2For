@@ -1,5 +1,5 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public class ProgramMain extends subProgram implements Cloneable {
+public class ProgramMain extends SubProgram implements Cloneable {
     // Declared in FortranIR.ast line 3
 
     public ProgramMain() {

@@ -18,11 +18,11 @@ public class Main {
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		BasicTamerTool tool = new BasicTamerTool();
 		ValueAnalysis<AggrValue<BasicMatrixValue>>  analysis = tool.analyze(args, env);
+		int size = analysis.getNodeList().size();
 	    /**
 	     * pretty print the generated code.
 	     */
 		String fortranCode;
-		int size = analysis.getNodeList().size();
 		for(int i=0;i<=size-1;i++){
 			System.out.println("\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
 			fortranCode = FortranCodePrettyPrinter.FortranCodePrinter(analysis, size, i, fileDir);
@@ -33,6 +33,6 @@ public class Main {
 		/**
 		 * generate the Fortran AST and then let the AST toString itself.
 		 */
-		Program program = new Program();
+		Program FotranProgram = new Program();
 	}
 }

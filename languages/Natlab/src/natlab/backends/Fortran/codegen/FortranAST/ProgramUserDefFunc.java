@@ -1,5 +1,5 @@
 package natlab.backends.Fortran.codegen.FortranAST;
-public class ProgramUserDefFunc extends subProgram implements Cloneable {
+public class ProgramUserDefFunc extends SubProgram implements Cloneable {
     // Declared in FortranIR.ast line 4
 
     public ProgramUserDefFunc() {

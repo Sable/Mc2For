@@ -43,32 +43,32 @@ public class Program extends ASTNode implements Cloneable {
     return 1;
   }
     // Declared in FortranIR.ast line 1
-    public void setsubProgramList(List list) {
+    public void setSubProgramList(List list) {
         setChild(list, 0);
     }
 
-    public int getNumsubProgram() {
-        return getsubProgramList().getNumChild();
+    public int getNumSubProgram() {
+        return getSubProgramList().getNumChild();
     }
 
-    public subProgram getsubProgram(int i) {
-        return (subProgram)getsubProgramList().getChild(i);
+    public SubProgram getSubProgram(int i) {
+        return (SubProgram)getSubProgramList().getChild(i);
     }
 
-    public void addsubProgram(subProgram node) {
-        List list = getsubProgramList();
+    public void addSubProgram(SubProgram node) {
+        List list = getSubProgramList();
         list.setChild(node, list.getNumChild());
     }
 
-    public void setsubProgram(subProgram node, int i) {
-        List list = getsubProgramList();
+    public void setSubProgram(SubProgram node, int i) {
+        List list = getSubProgramList();
         list.setChild(node, i);
     }
-    public List getsubProgramList() {
+    public List getSubProgramList() {
         return (List)getChild(0);
     }
 
-    public List getsubProgramListNoTransform() {
+    public List getSubProgramListNoTransform() {
         return (List)getChildNoTransform(0);
     }
 
