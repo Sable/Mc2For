@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen.FortranAST;
+package FortranAST;
 public class VariableList extends ASTNode implements Cloneable {
     // Declared in FortranIR.ast line 9
 

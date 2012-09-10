@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen.FortranAST;
+package FortranAST;
 public class AssignStmt extends Statement implements Cloneable {
     // Declared in FortranIR.ast line 16
 

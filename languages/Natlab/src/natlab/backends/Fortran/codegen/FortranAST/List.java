@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen.FortranAST;
+package FortranAST;
 public class List extends ASTNode implements Cloneable {
     // Declared in null line 0
 

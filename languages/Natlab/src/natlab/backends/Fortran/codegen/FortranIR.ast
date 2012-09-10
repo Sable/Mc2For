@@ -1,7 +1,7 @@
 abstract Program;
-MainProgram: Program ::= DeclarationSection StatementSection;
-UserDefinedFunc: Program ::= DeclarationSection StatementSection;
-UserDefinedSubroutine: Program ::= DeclarationSection StatementSection;
+ProgramMain: Program ::= DeclarationSection StatementSection;
+ProgramUserDefFunc: Program ::= DeclarationSection StatementSection;
+ProgramUserDefSubroutine: Program ::= DeclarationSection StatementSection;
 
 DeclarationSection ::= DeclStmt*;
 DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList;
