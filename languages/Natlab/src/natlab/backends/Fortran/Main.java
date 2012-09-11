@@ -7,7 +7,7 @@ import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.toolkits.filehandling.genericFile.GenericFile;
 import natlab.toolkits.path.FileEnvironment;
 import natlab.backends.Fortran.codegen.*;
-import natlab.backends.Fortran.codegen.FortranAST.Program;
+import natlab.backends.Fortran.codegen.FortranAST.*;
 
 public class Main {
 	
@@ -33,6 +33,12 @@ public class Main {
 		/**
 		 * generate the Fortran AST and then let the AST toString itself.
 		 */
-		Program FotranProgram = new Program();
+		Program prg = new Program();
+		for(int i=0;i<size-1;i++){
+			System.out.println("\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
+			prg.setSubProgram(FortranCodeASTGenerator.FortranProgramGen(analysis, size, i, fileDir), i);
+			System.out.println("\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+			System.out.println(prg.getSubProgram(i).toString());
+		}
 	}
 }

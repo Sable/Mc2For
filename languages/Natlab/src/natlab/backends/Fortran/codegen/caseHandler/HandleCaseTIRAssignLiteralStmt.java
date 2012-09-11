@@ -16,7 +16,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 		
 	}
 	
-	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRAssignLiteralStmt node){
+	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAssignLiteralStmt node){
 		if (Debug) System.out.println("in an assignLiteral statement");
 		String LHS;
 		LHS = node.getTargetName().getVarName();

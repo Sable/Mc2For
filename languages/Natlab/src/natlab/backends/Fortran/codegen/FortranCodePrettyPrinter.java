@@ -75,7 +75,7 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 		
 	}
 	
-	@Override
+	/*@Override
 	public void caseTIRFunction(TIRFunction node){
 		HandleCaseTIRFunction functionStmt = new HandleCaseTIRFunction();
 		functionStmt.getFortran(this, node);
@@ -85,7 +85,7 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
 		HandleCaseTIRAssignLiteralStmt assignLiteralStmt = new HandleCaseTIRAssignLiteralStmt();
 		assignLiteralStmt.getFortran(this, node);
-	}
+	}*/
 	
 	@Override
 	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
