@@ -18,7 +18,7 @@ import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.ValueAnalysisPrinter;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
-import natlab.backends.Fortran.codegen.caseHandler.*;
+import natlab.backends.Fortran.codegen.PPcaseHandler.*;
 
 public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 	public ValueAnalysis<AggrValue<BasicMatrixValue>> analysis;
@@ -75,63 +75,63 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 		
 	}
 	
-	/*@Override
+	@Override
 	public void caseTIRFunction(TIRFunction node){
-		HandleCaseTIRFunction functionStmt = new HandleCaseTIRFunction();
+		PPHandleCaseTIRFunction functionStmt = new PPHandleCaseTIRFunction();
 		functionStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
-		HandleCaseTIRAssignLiteralStmt assignLiteralStmt = new HandleCaseTIRAssignLiteralStmt();
+		PPHandleCaseTIRAssignLiteralStmt assignLiteralStmt = new PPHandleCaseTIRAssignLiteralStmt();
 		assignLiteralStmt.getFortran(this, node);
-	}*/
+	}
 	
 	@Override
 	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
-		HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new HandleCaseTIRAbstractAssignToListStmt();
+		PPHandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new PPHandleCaseTIRAbstractAssignToListStmt();
 		abstractAssignToListStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRAbstractAssignToVarStmt(TIRAbstractAssignToVarStmt node){
-		HandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = new HandleCaseTIRAbstractAssignToVarStmt();
+		PPHandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = new PPHandleCaseTIRAbstractAssignToVarStmt();
 		abstractAssignToVarStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRIfStmt(TIRIfStmt node){
-		HandleCaseTIRIfStmt ifStmt = new HandleCaseTIRIfStmt();
+		PPHandleCaseTIRIfStmt ifStmt = new PPHandleCaseTIRIfStmt();
 		ifStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRWhileStmt(TIRWhileStmt node){
-		HandleCaseTIRWhileStmt whileStmt = new HandleCaseTIRWhileStmt();
+		PPHandleCaseTIRWhileStmt whileStmt = new PPHandleCaseTIRWhileStmt();
 		whileStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRForStmt(TIRForStmt node){
-		HandleCaseTIRForStmt forStmt = new HandleCaseTIRForStmt();
+		PPHandleCaseTIRForStmt forStmt = new PPHandleCaseTIRForStmt();
 		forStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
-		HandleCaseTIRArrayGetStmt arrayGetStmt= new HandleCaseTIRArrayGetStmt();
+		PPHandleCaseTIRArrayGetStmt arrayGetStmt= new PPHandleCaseTIRArrayGetStmt();
 		arrayGetStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRArraySetStmt(TIRArraySetStmt node){
-		HandleCaseTIRArraySetStmt arraySetStmt = new HandleCaseTIRArraySetStmt();
+		PPHandleCaseTIRArraySetStmt arraySetStmt = new PPHandleCaseTIRArraySetStmt();
 		arraySetStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRCommentStmt(TIRCommentStmt node){
-		HandleCaseTIRCommentStmt commentStmt = new HandleCaseTIRCommentStmt();
+		PPHandleCaseTIRCommentStmt commentStmt = new PPHandleCaseTIRCommentStmt();
 		commentStmt.getFortran(this, node);
 	}
 

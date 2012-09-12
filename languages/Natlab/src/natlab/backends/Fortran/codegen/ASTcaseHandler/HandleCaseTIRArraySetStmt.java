@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen.caseHandler;
+package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
 import ast.Name;
 import natlab.backends.Fortran.codegen.*;

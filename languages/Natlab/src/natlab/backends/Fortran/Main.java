@@ -34,7 +34,7 @@ public class Main {
 		 * generate the Fortran AST and then let the AST toString itself.
 		 */
 		Program prg = new Program();
-		for(int i=0;i<size-1;i++){
+		for(int i=0;i<=size-1;i++){
 			System.out.println("\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
 			prg.setSubProgram(FortranCodeASTGenerator.FortranProgramGen(analysis, size, i, fileDir), i);
 			System.out.println("\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");

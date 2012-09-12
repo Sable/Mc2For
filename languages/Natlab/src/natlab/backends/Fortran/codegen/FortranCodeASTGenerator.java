@@ -13,8 +13,8 @@ import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.backends.Fortran.codegen.FortranAST.*;
-import natlab.backends.Fortran.codegen.caseHandler.HandleCaseTIRAssignLiteralStmt;
-import natlab.backends.Fortran.codegen.caseHandler.HandleCaseTIRFunction;
+import natlab.backends.Fortran.codegen.ASTcaseHandler.HandleCaseTIRAssignLiteralStmt;
+import natlab.backends.Fortran.codegen.ASTcaseHandler.HandleCaseTIRFunction;
 
 public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public ValueAnalysis<AggrValue<BasicMatrixValue>> analysis;
