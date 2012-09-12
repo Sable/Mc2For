@@ -1,0 +1,4 @@
+aspect PrettyPrinter{
+   void ASTNode.pp() {}
+   void Program.pp() {}
+}

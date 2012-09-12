@@ -6,11 +6,11 @@ import natlab.backends.Fortran.codegen.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 
-public class HandleCaseTIRAbstractAssignToListStmt {
+public class ASTHandleCaseTIRAbstractAssignToListStmt {
 
 	static boolean Debug = false;
 	
-	public HandleCaseTIRAbstractAssignToListStmt(){
+	public ASTHandleCaseTIRAbstractAssignToListStmt(){
 		
 	}
 	

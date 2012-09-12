@@ -10,13 +10,13 @@ import natlab.tame.valueanalysis.components.shape.Shape;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
 import natlab.tame.classes.reference.*;
 
-public class HandleCaseTIRAbstractAssignToVarStmt {
+public class ASTHandleCaseTIRAbstractAssignToVarStmt {
 
 	static boolean Debug = false;
 	static boolean lhsShapeIsknown = true;
 	static boolean rhsShapeIsKnown = true;
 	
-	public HandleCaseTIRAbstractAssignToVarStmt(){
+	public ASTHandleCaseTIRAbstractAssignToVarStmt(){
 		
 	}
 	

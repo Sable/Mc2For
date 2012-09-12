@@ -1,5 +1,7 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 
+
+
 // Generated with JastAdd II (http://jastadd.cs.lth.se) version R20060915
 
 public class ASTNode implements Cloneable {
@@ -152,4 +154,8 @@ public class ASTNode implements Cloneable {
   public void setParent(ASTNode node) {
     parent = node;
   }
+    // Declared in PrettyPrinter.jadd at line 2
+
+   void pp() {}
+
 }

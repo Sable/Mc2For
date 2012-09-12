@@ -1,4 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
+
+
 public class Program extends ASTNode implements Cloneable {
     // Declared in FortranIR.ast line 1
 
@@ -72,5 +74,9 @@ public class Program extends ASTNode implements Cloneable {
         return (List)getChildNoTransform(0);
     }
 
+
+    // Declared in PrettyPrinter.jadd at line 3
+
+   void pp() {}
 
 }

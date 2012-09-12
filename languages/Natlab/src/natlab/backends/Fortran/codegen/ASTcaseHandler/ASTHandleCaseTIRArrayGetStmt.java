@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import natlab.backends.Fortran.codegen.*;
 import natlab.tame.tir.*;
 
-public class HandleCaseTIRArrayGetStmt {
+public class ASTHandleCaseTIRArrayGetStmt {
 
 	static boolean Debug = false;
 	
-	public HandleCaseTIRArrayGetStmt(){
+	public ASTHandleCaseTIRArrayGetStmt(){
 		
 	}
 	

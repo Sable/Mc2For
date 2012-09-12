@@ -3,11 +3,11 @@ package natlab.backends.Fortran.codegen.ASTcaseHandler;
 import natlab.backends.Fortran.codegen.*;
 import natlab.tame.tir.*;
 
-public class HandleCaseTIRCommentStmt {
+public class ASTHandleCaseTIRCommentStmt {
 
 	static boolean Debug = false;
 	
-	public HandleCaseTIRCommentStmt(){
+	public ASTHandleCaseTIRCommentStmt(){
 		
 	}
 	

@@ -1,4 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
+
+
 public class BinaryOperation extends Exp implements Cloneable {
     // Declared in FortranIR.ast line 23
 

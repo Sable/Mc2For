@@ -4,11 +4,11 @@ import ast.Name;
 import natlab.backends.Fortran.codegen.*;
 import natlab.tame.tir.*;
 
-public class HandleCaseTIRArraySetStmt {
+public class ASTHandleCaseTIRArraySetStmt {
 
 	static boolean Debug = false;
 	
-	public HandleCaseTIRArraySetStmt(){
+	public ASTHandleCaseTIRArraySetStmt(){
 		
 	}
 	

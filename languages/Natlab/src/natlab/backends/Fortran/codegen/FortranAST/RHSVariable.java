@@ -1,4 +1,6 @@
 package natlab.backends.Fortran.codegen.FortranAST;
+
+
 public class RHSVariable extends Variable implements Cloneable {
     // Declared in FortranIR.ast line 25
 

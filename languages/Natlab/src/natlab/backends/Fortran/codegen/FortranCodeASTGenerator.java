@@ -13,8 +13,8 @@ import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.backends.Fortran.codegen.FortranAST.*;
-import natlab.backends.Fortran.codegen.ASTcaseHandler.HandleCaseTIRAssignLiteralStmt;
-import natlab.backends.Fortran.codegen.ASTcaseHandler.HandleCaseTIRFunction;
+import natlab.backends.Fortran.codegen.ASTcaseHandler.ASTHandleCaseTIRAssignLiteralStmt;
+import natlab.backends.Fortran.codegen.ASTcaseHandler.ASTHandleCaseTIRFunction;
 
 public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public ValueAnalysis<AggrValue<BasicMatrixValue>> analysis;
@@ -72,13 +72,13 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRFunction(TIRFunction node){
-		HandleCaseTIRFunction functionStmt = new HandleCaseTIRFunction();
+		ASTHandleCaseTIRFunction functionStmt = new ASTHandleCaseTIRFunction();
 		functionStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
-		HandleCaseTIRAssignLiteralStmt assignLiteralStmt = new HandleCaseTIRAssignLiteralStmt();
+		ASTHandleCaseTIRAssignLiteralStmt assignLiteralStmt = new ASTHandleCaseTIRAssignLiteralStmt();
 		assignLiteralStmt.getFortran(this, node);
 	}
 	

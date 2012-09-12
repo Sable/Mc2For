@@ -11,10 +11,10 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 
-public class HandleCaseTIRFunction {
+public class ASTHandleCaseTIRFunction {
 	static boolean Debug =false;
 	
-	public HandleCaseTIRFunction(){
+	public ASTHandleCaseTIRFunction(){
 		
 	}
 	
@@ -31,23 +31,21 @@ public class HandleCaseTIRFunction {
 		 *TODO think of a better way to distinguish whether it is a main entry point or a 0-output subroutine... 
 		 */
 		if(fcg.outRes.size()==0){
-			String indent = node.getIndent();
-			boolean first = true;
-			//buf.append(indent + "public static def " );
 			fcg.printStatements(node.getStmts());
-			//Write code for nested functions here
-			//buf.append(indent + "}//end of function\n}//end of class\n");
-			fcg.buf.append(indent + "stop\nend");
 			
 			if (Debug) System.out.println("the parameters in for stmt: "+fcg.forStmtParameter);
 			
-			fcg.buf2.append(indent + "program ");
 			ProgramMain subMain = new ProgramMain();
 			ProgramTitle title = new ProgramTitle();
 			ProgramParameterList paraList = new ProgramParameterList();
 			title.setProgramType("program");
 			title.setProgramName(fcg.majorName);
-			title.setProgramParameterList(null);
+			for(String inputVar:fcg.inArgs){
+				Parameter para = new Parameter();
+				para.setName(inputVar);
+				paraList.addParameter(para);
+			}
+			title.setProgramParameterList(paraList);
 			subMain.setProgramTitle(title);
 			// TODO - CHANGE IT TO DETERMINE RETURN TYPE		
 			fcg.buf2.append(fcg.majorName);
@@ -253,17 +251,7 @@ public class HandleCaseTIRFunction {
 				}
 			}
 			
-			fcg.buf2.append("\n");
-			fcg.buf2.append(fcg.buf);
-			try{
-				BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+fcg.majorName+".f95"));
-				out.write(fcg.buf2.toString());
-				out.close();
-			}
-			catch(IOException e){
-				System.err.println("Exception ");
-
-			}
+			fcg.SubProgram = subMain;
 		}
 		/**
 		 * deal with functions, not subroutine, because in Fortran, functions can essentially only return one value.
