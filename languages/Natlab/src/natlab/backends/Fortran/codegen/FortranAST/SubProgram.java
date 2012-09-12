@@ -19,4 +19,8 @@ public abstract class SubProgram extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 0;
   }
+    // Declared in PrettyPrinter.jadd at line 4
+
+   public void pp() {}
+
 }

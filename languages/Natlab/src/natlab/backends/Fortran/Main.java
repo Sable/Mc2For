@@ -38,7 +38,7 @@ public class Main {
 			System.out.println("\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
 			prg.setSubProgram(FortranCodeASTGenerator.FortranProgramGen(analysis, size, i, fileDir), i);
 			System.out.println("\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-			System.out.println(prg.getSubProgram(i).toString());
+			prg.getSubProgram(i).pp();
 		}
 	}
 }

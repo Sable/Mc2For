@@ -87,4 +87,10 @@ public class ProgramMain extends SubProgram implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 5
+
+   public void pp() {
+      getProgramTitle().pp();
+   }
+
 }

@@ -1,4 +1,12 @@
 aspect PrettyPrinter{
-   void ASTNode.pp() {}
-   void Program.pp() {}
+   public void ASTNode.pp() {}
+   public void Program.pp() {}
+   public void SubProgram.pp() {}
+   public void ProgramMain.pp() {
+      getProgramTitle().pp();
+   }
+   public void ProgramTitle.pp() {
+      System.out.println(getProgramType());
+      System.out.println(getProgramName());
+   }
 }
