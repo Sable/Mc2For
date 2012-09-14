@@ -53,4 +53,10 @@ public class Parameter extends ASTNode implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 23
+
+   public void pp() {
+      getName();
+   }
+
 }
