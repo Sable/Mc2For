@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public abstract class Statement extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 20
+    // Declared in FortranIR.ast line 17
 
     public Statement() {
         super();

@@ -31,11 +31,15 @@ public class ASTHandleCaseTIRFunction {
 		 *TODO think of a better way to distinguish whether it is a main entry point or a 0-output subroutine... 
 		 */
 		if(fcg.outRes.size()==0){
-			fcg.printStatements(node.getStmts());
+			SubProgram subMain = new SubProgram();
+			fcg.SubProgram = subMain;
+			StatementSection stmtSection = new StatementSection();
+			subMain.setStatementSection(stmtSection);
+			/**
+			 * go through all the statements.
+			 */
+			fcg.printStatements(node.getStmts());			
 			
-			if (Debug) System.out.println("the parameters in for stmt: "+fcg.forStmtParameter);
-			
-			ProgramMain subMain = new ProgramMain();
 			ProgramTitle title = new ProgramTitle();
 			ProgramParameterList paraList = new ProgramParameterList();
 			title.setProgramType("program");
@@ -155,6 +159,7 @@ public class ASTHandleCaseTIRFunction {
 							/**
 							 * if all the dimension is exactly known, which values are all integer, goes to else block.
 							 */
+							//currently, I put shapeInfo with the keyword dimension together, it's okay now, keep an eye on this.
 							else{
 								StringBuffer tempBuf = new StringBuffer();
 								tempBuf.append("dimension(");
@@ -201,9 +206,21 @@ public class ASTHandleCaseTIRFunction {
 			 * like extra variables for runtime shape check
 			 */
 			for(String tmpVariable : fcg.tmpVariables.keySet()){
-				
-				fcg.buf2.append("\n"+fcg.FortranMap.getFortranTypeMapping(fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString())
-						+" , dimension("+fcg.tmpVariables.get(tmpVariable).getShape().toString().replace(" ", "").replace("[", "").replace("]", "")+") :: "+tmpVariable);
+				DeclStmt declStmt = new DeclStmt();
+				//type is already a token, don't forget.
+				KeywordList keywordList = new KeywordList();
+				ShapeInfo shapeInfo = new ShapeInfo();
+				VariableList varList = new VariableList();
+				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString()));
+				Keyword keyword = new Keyword();
+				keyword.setName("dimension("+fcg.tmpVariables.get(tmpVariable).getShape().toString().replace(" ", "").replace("[", "").replace("]", "")+")");
+				keywordList.addKeyword(keyword);
+				Variable var = new Variable();
+				var.setName(tmpVariable);
+				varList.addVariable(var);
+				declStmt.setKeywordList(keywordList);
+				declStmt.setVariableList(varList);
+				declSection.addDeclStmt(declStmt);
 			}
 			/**
 			 * at the end of declaration, declare those user defined function.
@@ -282,7 +299,6 @@ public class ASTHandleCaseTIRFunction {
 			}
 			
 			subMain.setDeclarationSection(declSection);
-			fcg.SubProgram = subMain;
 		}
 		/**
 		 * deal with functions, not subroutine, because in Fortran, functions can essentially only return one value.

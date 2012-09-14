@@ -1,26 +1,27 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 
 
-public class ShapeInfo extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 14
+public class LiteralExp extends Exp implements Cloneable {
+    // Declared in FortranIR.ast line 20
 
-    public ShapeInfo() {
+    public LiteralExp() {
         super();
 
+        setChild(null, 0);
     }
 
-    // Declared in FortranIR.ast line 14
-    public ShapeInfo(String p0) {
-        setName(p0);
+    // Declared in FortranIR.ast line 20
+    public LiteralExp(Variable p0) {
+        setChild(p0, 0);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        ShapeInfo node = (ShapeInfo)super.clone();
+        LiteralExp node = (LiteralExp)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          ShapeInfo node = (ShapeInfo)clone();
+          LiteralExp node = (LiteralExp)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -29,7 +30,7 @@ public class ShapeInfo extends ASTNode implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        ShapeInfo res = (ShapeInfo)copy();
+        LiteralExp res = (LiteralExp)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();
@@ -41,22 +42,19 @@ public class ShapeInfo extends ASTNode implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 0;
+    return 1;
   }
-    // Declared in FortranIR.ast line 14
-    private String tokenString_Name;
-    public void setName(String value) {
-        tokenString_Name = value;
+    // Declared in FortranIR.ast line 20
+    public void setVariable(Variable node) {
+        setChild(node, 0);
     }
-    public String getName() {
-        return tokenString_Name;
+    public Variable getVariable() {
+        return (Variable)getChild(0);
     }
 
-
-    // Declared in PrettyPrinter.jadd at line 58
-
-    public void pp() {
-    	System.out.print(getName());
+    public Variable getVariableNoTransform() {
+        return (Variable)getChildNoTransform(0);
     }
+
 
 }

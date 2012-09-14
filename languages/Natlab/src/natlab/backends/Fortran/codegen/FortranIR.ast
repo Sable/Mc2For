@@ -1,8 +1,5 @@
 Program ::= SubProgram*;
-abstract SubProgram;
-ProgramMain: SubProgram ::= ProgramTitle DeclarationSection StatementSection;
-ProgramUserDefFunc: SubProgram ::= ProgramTitle DeclarationSection StatementSection;
-ProgramUserDefSubroutine: SubProgram ::= ProgramTitle DeclarationSection StatementSection;
+SubProgram ::= ProgramTitle DeclarationSection StatementSection;
 
 ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList];
 ProgramParameterList ::= Parameter*;
@@ -18,8 +15,9 @@ ShapeInfo ::= <Name: String>;
 
 StatementSection ::= Statement*;
 abstract Statement;
-AssignStmt: Statement ::= Variable Exp;
+AssignStmt: Statement ::= <RuntimeCheck> Variable Exp;
 abstract Exp;
+LiteralExp: Exp ::= Variable;
 BinaryOperation: Exp ::= LHSVariable <Operation: String> RHSVariable;
 LHSVariable: Variable;
 RHSVariable: Variable;

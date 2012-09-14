@@ -2,14 +2,14 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class Variable extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 13
 
     public Variable() {
         super();
 
     }
 
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 13
     public Variable(String p0) {
         setName(p0);
     }
@@ -43,7 +43,7 @@ public class Variable extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 0;
   }
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 13
     private String tokenString_Name;
     public void setName(String value) {
         tokenString_Name = value;
@@ -53,7 +53,7 @@ public class Variable extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 67
+    // Declared in PrettyPrinter.jadd at line 70
 
     public void pp() {
     	System.out.print(getName());

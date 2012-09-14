@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class AssignStmt extends Statement implements Cloneable {
-    // Declared in FortranIR.ast line 21
+    // Declared in FortranIR.ast line 18
 
     public AssignStmt() {
         super();
@@ -11,10 +11,11 @@ public class AssignStmt extends Statement implements Cloneable {
         setChild(null, 1);
     }
 
-    // Declared in FortranIR.ast line 21
-    public AssignStmt(Variable p0, Exp p1) {
-        setChild(p0, 0);
-        setChild(p1, 1);
+    // Declared in FortranIR.ast line 18
+    public AssignStmt(String p0, Variable p1, Exp p2) {
+        setRuntimeCheck(p0);
+        setChild(p1, 0);
+        setChild(p2, 1);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -46,7 +47,17 @@ public class AssignStmt extends Statement implements Cloneable {
   protected int numChildren() {
     return 2;
   }
-    // Declared in FortranIR.ast line 21
+    // Declared in FortranIR.ast line 18
+    private String tokenString_RuntimeCheck;
+    public void setRuntimeCheck(String value) {
+        tokenString_RuntimeCheck = value;
+    }
+    public String getRuntimeCheck() {
+        return tokenString_RuntimeCheck;
+    }
+
+
+    // Declared in FortranIR.ast line 18
     public void setVariable(Variable node) {
         setChild(node, 0);
     }
@@ -59,7 +70,7 @@ public class AssignStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 21
+    // Declared in FortranIR.ast line 18
     public void setExp(Exp node) {
         setChild(node, 1);
     }

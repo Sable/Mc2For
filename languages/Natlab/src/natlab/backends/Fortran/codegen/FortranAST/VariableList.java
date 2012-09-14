@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class VariableList extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 14
+    // Declared in FortranIR.ast line 11
 
     public VariableList() {
         super();
@@ -10,7 +10,7 @@ public class VariableList extends ASTNode implements Cloneable {
         setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 14
+    // Declared in FortranIR.ast line 11
     public VariableList(List p0) {
         setChild(p0, 0);
     }
@@ -44,7 +44,7 @@ public class VariableList extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 1;
   }
-    // Declared in FortranIR.ast line 14
+    // Declared in FortranIR.ast line 11
     public void setVariableList(List list) {
         setChild(list, 0);
     }
@@ -75,7 +75,7 @@ public class VariableList extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 58
+    // Declared in PrettyPrinter.jadd at line 61
 
     public void pp() {
     	int size = getNumVariable();

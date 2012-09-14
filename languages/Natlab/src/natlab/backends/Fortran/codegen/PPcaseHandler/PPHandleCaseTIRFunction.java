@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 import ast.Name;
 import natlab.backends.Fortran.codegen.*;
-import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 
@@ -42,27 +41,13 @@ public class PPHandleCaseTIRFunction {
 			if (Debug) System.out.println("the parameters in for stmt: "+fcg.forStmtParameter);
 			
 			fcg.buf2.append(indent + "program ");
-			ProgramMain subMain = new ProgramMain();
-			ProgramTitle title = new ProgramTitle();
-			ProgramParameterList paraList = new ProgramParameterList();
-			title.setProgramType("program");
-			title.setProgramName(fcg.majorName);
-			title.setProgramParameterList(null);
-			subMain.setProgramTitle(title);
 			// TODO - CHANGE IT TO DETERMINE RETURN TYPE		
 			fcg.buf2.append(fcg.majorName);
 			fcg.buf2.append("\nimplicit none");
 			
-			DeclarationSection declSection = new DeclarationSection();
-			
 			//System.out.println(this.analysis.getNodeList().get(index).getAnalysis().getOutFlowSets());
 			if (Debug) System.out.println(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()+"\n");
 			for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
-				DeclStmt declStmt = new DeclStmt();
-				//type is already a token, don't forget.
-				KeywordList keywordList = new KeywordList();
-				ShapeInfo shapeInfo = new ShapeInfo();
-				VariableList varList = new VariableList();
 				
 				if(fcg.forStmtParameter.contains(variable)||fcg.arrayIndexParameter.contains(variable)){
 					if (Debug) System.out.println("variable "+variable+" is a for stmt parameter.");
@@ -77,24 +62,13 @@ public class PPHandleCaseTIRFunction {
 						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
 					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping("int8"));
-					declStmt.setType(fcg.FortranMap.getFortranTypeMapping("int8"));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
 						fcg.buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
-						Keyword keyword1 = new Keyword();
-						keyword1.setName("parameter");
-						keywordList.addKeyword(keyword1);//TODO did Fortran support constant array or matrix?
-						Variable var = new Variable();
-						var.setName(variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
-						varList.addVariable(var);
-						declStmt.setKeywordList(keywordList);
-						declStmt.setVariableList(varList);
 					}
 					else{
 						fcg.buf2.append(" :: " + variable);
-						Variable var = new Variable();
-						var.setName(variable);
 					}
 				}
 				else{

@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class ProgramParameterList extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 8
+    // Declared in FortranIR.ast line 5
 
     public ProgramParameterList() {
         super();
@@ -10,7 +10,7 @@ public class ProgramParameterList extends ASTNode implements Cloneable {
         setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 8
+    // Declared in FortranIR.ast line 5
     public ProgramParameterList(List p0) {
         setChild(p0, 0);
     }
@@ -44,7 +44,7 @@ public class ProgramParameterList extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 1;
   }
-    // Declared in FortranIR.ast line 8
+    // Declared in FortranIR.ast line 5
     public void setParameterList(List list) {
         setChild(list, 0);
     }
@@ -75,7 +75,7 @@ public class ProgramParameterList extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 15
+    // Declared in PrettyPrinter.jadd at line 14
 
     public void pp() {
         int size = getNumParameter();

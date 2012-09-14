@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import ast.FPLiteralExpr;
 import ast.IntLiteralExpr;
 import natlab.backends.Fortran.codegen.*;
+import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 
@@ -18,6 +19,8 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 	
 	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAssignLiteralStmt node){
 		if (Debug) System.out.println("in an assignLiteral statement");
+		AssignStmt stmt = new AssignStmt();
+		
 		String LHS;
 		LHS = node.getTargetName().getVarName();
 		String RHS;
@@ -42,6 +45,7 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 			}
 			fcg.buf.append(LHS+" = "+RHS+";");
 		}
+		fcg.SubProgram.getStatementSection().addStatement(stmt);
 		return fcg;
 	}
 }

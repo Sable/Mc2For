@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class KeywordList extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 13
+    // Declared in FortranIR.ast line 10
 
     public KeywordList() {
         super();
@@ -10,7 +10,7 @@ public class KeywordList extends ASTNode implements Cloneable {
         setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 13
+    // Declared in FortranIR.ast line 10
     public KeywordList(List p0) {
         setChild(p0, 0);
     }
@@ -44,7 +44,7 @@ public class KeywordList extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 1;
   }
-    // Declared in FortranIR.ast line 13
+    // Declared in FortranIR.ast line 10
     public void setKeywordList(List list) {
         setChild(list, 0);
     }
@@ -75,14 +75,14 @@ public class KeywordList extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 43
+    // Declared in PrettyPrinter.jadd at line 46
 
     public void pp() {
     	int size = getNumKeyword();
         for(int i=0;i<size;i++) {
         	getKeyword(i).pp();
         	if(i<size-1) {
-        		System.out.print(" ");
+        		System.out.print(" , ");
         	}
         }
     }

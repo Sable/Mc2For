@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class DeclStmt extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 9
 
     public DeclStmt() {
         super();
@@ -12,7 +12,7 @@ public class DeclStmt extends ASTNode implements Cloneable {
         setChild(null, 2);
     }
 
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 9
     public DeclStmt(String p0, Opt p1, Opt p2, VariableList p3) {
         setType(p0);
         setChild(p1, 0);
@@ -49,7 +49,7 @@ public class DeclStmt extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 3;
   }
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 9
     private String tokenString_Type;
     public void setType(String value) {
         tokenString_Type = value;
@@ -59,7 +59,7 @@ public class DeclStmt extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 9
     public void setKeywordListOpt(Opt opt) {
         setChild(opt, 0);
     }
@@ -84,7 +84,7 @@ public class DeclStmt extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 9
     public void setShapeInfoOpt(Opt opt) {
         setChild(opt, 1);
     }
@@ -109,7 +109,7 @@ public class DeclStmt extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 12
+    // Declared in FortranIR.ast line 9
     public void setVariableList(VariableList node) {
         setChild(node, 2);
     }
@@ -127,11 +127,14 @@ public class DeclStmt extends ASTNode implements Cloneable {
     public void pp() {
     	System.out.print(getType());
     	if(hasKeywordList()) {
+    	    System.out.print(" , ");
     		getKeywordList().pp();
     	}
     	if(hasShapeInfo()) {
+    		System.out.print(" , ");
     		getShapeInfo().pp();
     	}
+    	System.out.print(" :: ");
     	getVariableList().pp();
     }
 

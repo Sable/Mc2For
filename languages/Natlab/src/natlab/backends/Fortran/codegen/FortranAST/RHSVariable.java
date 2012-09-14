@@ -2,14 +2,14 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class RHSVariable extends Variable implements Cloneable {
-    // Declared in FortranIR.ast line 25
+    // Declared in FortranIR.ast line 23
 
     public RHSVariable() {
         super();
 
     }
 
-    // Declared in FortranIR.ast line 25
+    // Declared in FortranIR.ast line 23
     public RHSVariable(String p0) {
         setName(p0);
     }
@@ -43,7 +43,7 @@ public class RHSVariable extends Variable implements Cloneable {
   protected int numChildren() {
     return 0;
   }
-    // Declared in FortranIR.ast line 16
+    // Declared in FortranIR.ast line 13
     private String tokenString_Name;
     public void setName(String value) {
         tokenString_Name = value;

@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public abstract class Exp extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 22
+    // Declared in FortranIR.ast line 19
 
     public Exp() {
         super();

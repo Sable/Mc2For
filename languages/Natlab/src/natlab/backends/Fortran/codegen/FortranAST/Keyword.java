@@ -2,14 +2,14 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class Keyword extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 15
+    // Declared in FortranIR.ast line 12
 
     public Keyword() {
         super();
 
     }
 
-    // Declared in FortranIR.ast line 15
+    // Declared in FortranIR.ast line 12
     public Keyword(String p0) {
         setName(p0);
     }
@@ -43,7 +43,7 @@ public class Keyword extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 0;
   }
-    // Declared in FortranIR.ast line 15
+    // Declared in FortranIR.ast line 12
     private String tokenString_Name;
     public void setName(String value) {
         tokenString_Name = value;
@@ -53,7 +53,7 @@ public class Keyword extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 52
+    // Declared in PrettyPrinter.jadd at line 55
 
     public void pp() {
     	System.out.print(getName());
