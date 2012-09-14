@@ -20,16 +20,26 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAssignLiteralStmt node){
 		if (Debug) System.out.println("in an assignLiteral statement");
 		AssignStmt stmt = new AssignStmt();
+		LiteralExp literalExp = new LiteralExp();
 		
 		String LHS;
 		LHS = node.getTargetName().getVarName();
-		String RHS;
+		Variable var = new Variable();
+		var.setName(LHS);
+		stmt.setVariable(var);
+		
+		Variable expVar = new Variable();
 		if(node.getRHS().getRValue() instanceof IntLiteralExpr){
-			RHS = ((IntLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString();
+			expVar.setName((((IntLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString()));
 		}
 		else{
-			RHS = ((FPLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString();
+			expVar.setName(((FPLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString());
 		}
+		literalExp.setVariable(expVar);
+		
+		/**
+		 * literal assignment target variable should be a constant, if it's not a constant, we need allocate it as a 1 by 1 array.
+		 */
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).isConstant()){
 			if (Debug) System.out.println(LHS+" is a constant");
 		}
