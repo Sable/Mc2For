@@ -77,6 +77,6 @@ public class Program extends ASTNode implements Cloneable {
 
     // Declared in PrettyPrinter.jadd at line 3
 
-   public void pp() {}
+	public void pp() {}
 
 }

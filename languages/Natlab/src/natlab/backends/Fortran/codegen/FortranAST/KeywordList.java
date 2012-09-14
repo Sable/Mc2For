@@ -75,4 +75,16 @@ public class KeywordList extends ASTNode implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 43
+
+    public void pp() {
+    	int size = getNumKeyword();
+        for(int i=0;i<size;i++) {
+        	getKeyword(i).pp();
+        	if(i<size-1) {
+        		System.out.print(" ");
+        	}
+        }
+    }
+
 }

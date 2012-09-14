@@ -1,26 +1,70 @@
 aspect PrettyPrinter{
-   public void ASTNode.pp() {}
-   public void Program.pp() {}
-   public void SubProgram.pp() {}
-   public void ProgramMain.pp() {
-      getProgramTitle().pp();
-   }
-   public void ProgramTitle.pp() {
-      StringBuffer buf = new StringBuffer();
-	  buf.append(getProgramType());
-	  buf.append(getProgramName());
-      getProgramParameterList().pp();
-   }
-   public void ProgramParameterList.pp() {
-      int size = getNumParameter();
-      for(int i=0; i<size; i++){
-    	  getParameter(i).pp();
-    	  if(i<size-1){
-    		  System.out.println(",");
-    	  }
-      }
-   }
-   public void Parameter.pp() {
-      getName();
-   }
+	public void ASTNode.pp() {}
+	public void Program.pp() {}
+	public void SubProgram.pp() {}
+	public void ProgramMain.pp() {
+		getProgramTitle().pp();
+		getDeclarationSection().pp();
+	}
+	public void ProgramTitle.pp() {
+	    System.out.print(getProgramType()+" "+getProgramName()+"(");
+	    getProgramParameterList().pp();
+	    System.out.println(")");
+	    System.out.println("implict none");
+	}
+    public void ProgramParameterList.pp() {
+        int size = getNumParameter();
+        for(int i=0;i<size;i++) {
+        	getParameter(i).pp();
+        	if(i<size-1) {
+        		System.out.print(",");
+        	}
+        }
+    }
+    public void Parameter.pp() {
+    	System.out.print(getName());
+    }
+    public void DeclarationSection.pp() {
+    	int size = getNumDeclStmt();
+    	for(int i=0;i<size;i++) {
+    		getDeclStmt(i).pp();
+    	}    
+    }
+    public void DeclStmt.pp() {
+    	System.out.print(getType());
+    	if(hasKeywordList()) {
+    		getKeywordList().pp();
+    	}
+    	if(hasShapeInfo()) {
+    		getShapeInfo().pp();
+    	}
+    	getVariableList().pp();
+    }
+    public void KeywordList.pp() {
+    	int size = getNumKeyword();
+        for(int i=0;i<size;i++) {
+        	getKeyword(i).pp();
+        	if(i<size-1) {
+        		System.out.print(" ");
+        	}
+        }
+    }
+    public void Keyword.pp() {
+    	System.out.print(getName());
+    }
+    public void ShapeInfo.pp() {
+    	System.out.print(getName());
+    }
+    public void VariableList.pp() {
+    	int size = getNumVariable();
+        for(int i=0;i<size;i++) {
+        	getVariable(i).pp();
+        	if(i<size-1) {
+        		System.out.print(", ");
+        	}
+        }
+    }
+    public void Variable.pp() {
+    	System.out.print(getName());
+    }
 }

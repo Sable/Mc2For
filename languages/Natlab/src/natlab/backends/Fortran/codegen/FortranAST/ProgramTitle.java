@@ -91,14 +91,13 @@ public class ProgramTitle extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 8
+    // Declared in PrettyPrinter.jadd at line 9
 
-   public void pp() {
-      StringBuffer buf = new StringBuffer();
-	  buf.append(getProgramType());
-	  buf.append(getProgramName());
-	  System.out.println(buf);
-      getProgramParameterList().pp();
-   }
+	public void pp() {
+	    System.out.print(getProgramType()+" "+getProgramName()+"(");
+	    getProgramParameterList().pp();
+	    System.out.println(")");
+	    System.out.println("implict none");
+	}
 
 }

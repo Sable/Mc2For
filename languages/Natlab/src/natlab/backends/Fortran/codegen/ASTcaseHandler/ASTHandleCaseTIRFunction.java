@@ -47,13 +47,9 @@ public class ASTHandleCaseTIRFunction {
 			}
 			title.setProgramParameterList(paraList);
 			subMain.setProgramTitle(title);
-			// TODO - CHANGE IT TO DETERMINE RETURN TYPE		
-			fcg.buf2.append(fcg.majorName);
-			fcg.buf2.append("\nimplicit none");
 			
 			DeclarationSection declSection = new DeclarationSection();
 			
-			//System.out.println(this.analysis.getNodeList().get(index).getAnalysis().getOutFlowSets());
 			if (Debug) System.out.println(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()+"\n");
 			for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
 				DeclStmt declStmt = new DeclStmt();
@@ -74,15 +70,13 @@ public class ASTHandleCaseTIRFunction {
 					else{
 						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping("int8"));
 					declStmt.setType(fcg.FortranMap.getFortranTypeMapping("int8"));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
-						fcg.buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
-						Keyword keyword1 = new Keyword();
-						keyword1.setName("parameter");
-						keywordList.addKeyword(keyword1);//TODO did Fortran support constant array or matrix?
+						Keyword keyword = new Keyword();
+						keyword.setName("parameter");
+						keywordList.addKeyword(keyword);//TODO did Fortran support constant array or matrix?
 						Variable var = new Variable();
 						var.setName(variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
 						varList.addVariable(var);
@@ -90,9 +84,11 @@ public class ASTHandleCaseTIRFunction {
 						declStmt.setVariableList(varList);
 					}
 					else{
-						fcg.buf2.append(" :: " + variable);
 						Variable var = new Variable();
 						var.setName(variable);
+						varList.addVariable(var);
+						declStmt.setKeywordList(keywordList);
+						declStmt.setVariableList(varList);
 					}
 				}
 				else{
@@ -106,17 +102,24 @@ public class ASTHandleCaseTIRFunction {
 					else{
 						buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					}*/
-					fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+					declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					//parameter
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
-						fcg.buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
+						Keyword keyword = new Keyword();
+						keyword.setName("parameter");
+						keywordList.addKeyword(keyword);//TODO did Fortran support constant array or matrix?
+						Variable var = new Variable();
+						var.setName(variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
+						varList.addVariable(var);
+						declStmt.setKeywordList(keywordList);
+						declStmt.setVariableList(varList);
 					}
 					else{
 						//dimension
 						if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
 							if (Debug) System.out.println("add dimension here!");
-							fcg.buf2.append(" , dimension(");
+							Keyword keyword = new Keyword();
 							ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 							boolean conter = false;
 							boolean variableShapeIsKnown = true;
@@ -130,41 +133,68 @@ public class ASTHandleCaseTIRFunction {
 							 * if one of the dimension is unknown, which value is null, goes to if block.
 							 */
 							if(variableShapeIsKnown==false){
+								StringBuffer tempBuf = new StringBuffer();
+								tempBuf.append("dimension(");
 								for(int i=1; i<=dim.size(); i++){
 									if(conter){
-										fcg.buf2.append(",");
+										tempBuf.append(",");
 									}
-									fcg.buf2.append(":");
+									tempBuf.append(":");
 									conter = true;
 								}
-								fcg.buf2.append(") , allocatable :: " + variable);
+								tempBuf.append(") , allocatable :: ");
+								keyword.setName(tempBuf.toString());
+								keywordList.addKeyword(keyword);
+								Variable var = new Variable();
+								var.setName(variable);
+								varList.addVariable(var);
+								declStmt.setKeywordList(keywordList);
+								declStmt.setVariableList(varList);
 							}
 							
 							/**
 							 * if all the dimension is exactly known, which values are all integer, goes to else block.
 							 */
 							else{
+								StringBuffer tempBuf = new StringBuffer();
+								tempBuf.append("dimension(");
 								for(Integer inte : dim){
 									if(conter){
-										fcg.buf2.append(",");
+										tempBuf.append(",");
 									}
-									fcg.buf2.append(inte.toString());
+									tempBuf.append(inte.toString());
 									conter = true;
 								}
-								fcg.buf2.append(")");
+								tempBuf.append(")");
 								if(fcg.outRes.contains(variable)){
-									fcg.buf2.append(" :: " + fcg.majorName);
+									keyword.setName(tempBuf.toString());
+									keywordList.addKeyword(keyword);
+									Variable var = new Variable();
+									var.setName(fcg.majorName);
+									varList.addVariable(var);
+									declStmt.setKeywordList(keywordList);
+									declStmt.setVariableList(varList);
 								}
 								else{
-									fcg.buf2.append(" :: " + variable);
+									keyword.setName(tempBuf.toString());
+									keywordList.addKeyword(keyword);
+									Variable var = new Variable();
+									var.setName(variable);
+									varList.addVariable(var);
+									declStmt.setKeywordList(keywordList);
+									declStmt.setVariableList(varList);
 								}
 							}
 						}
 						else{
-							fcg.buf2.append(" :: " + variable);
+							Variable var = new Variable();
+							var.setName(variable);
+							varList.addVariable(var);
+							declStmt.setVariableList(varList);
 						}
 					}
 				}
+				declSection.addDeclStmt(declStmt);
 			}
 			/**
 			 * declare those variables generated during the code generation,
@@ -251,6 +281,7 @@ public class ASTHandleCaseTIRFunction {
 				}
 			}
 			
+			subMain.setDeclarationSection(declSection);
 			fcg.SubProgram = subMain;
 		}
 		/**
