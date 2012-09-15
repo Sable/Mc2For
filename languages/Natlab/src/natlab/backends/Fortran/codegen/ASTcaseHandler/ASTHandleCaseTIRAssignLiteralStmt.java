@@ -36,7 +36,7 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 			expVar.setName(((FPLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString());
 		}
 		literalExp.setVariable(expVar);
-		
+		stmt.setExp(literalExp);
 		/**
 		 * literal assignment target variable should be a constant, if it's not a constant, we need allocate it as a 1 by 1 array.
 		 */
@@ -51,9 +51,8 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 				}
 			}
 			catch(Exception e){
-				fcg.buf.append("allocate("+LHS+"(1, 1));\n  ");
+				stmt.setRuntimeCheck("allocate("+LHS+"(1, 1));");
 			}
-			fcg.buf.append(LHS+" = "+RHS+";");
 		}
 		fcg.SubProgram.getStatementSection().addStatement(stmt);
 		return fcg;
