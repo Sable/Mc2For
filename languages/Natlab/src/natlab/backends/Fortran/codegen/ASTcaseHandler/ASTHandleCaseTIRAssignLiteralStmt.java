@@ -26,7 +26,7 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 		LHS = node.getTargetName().getVarName();
 		Variable var = new Variable();
 		var.setName(LHS);
-		stmt.setVariable(var);
+		stmt.addVariable(var);
 		
 		Variable expVar = new Variable();
 		if(node.getRHS().getRValue() instanceof IntLiteralExpr){

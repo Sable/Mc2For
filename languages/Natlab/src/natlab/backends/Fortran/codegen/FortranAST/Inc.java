@@ -1,26 +1,26 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 
 
-public class LHSVariable extends Variable implements Cloneable {
-    // Declared in FortranIR.ast line 22
+public class Inc extends ASTNode implements Cloneable {
+    // Declared in FortranIR.ast line 40
 
-    public LHSVariable() {
+    public Inc() {
         super();
 
     }
 
-    // Declared in FortranIR.ast line 22
-    public LHSVariable(String p0) {
+    // Declared in FortranIR.ast line 40
+    public Inc(String p0) {
         setName(p0);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        LHSVariable node = (LHSVariable)super.clone();
+        Inc node = (Inc)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          LHSVariable node = (LHSVariable)clone();
+          Inc node = (Inc)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -29,7 +29,7 @@ public class LHSVariable extends Variable implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        LHSVariable res = (LHSVariable)copy();
+        Inc res = (Inc)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();
@@ -43,7 +43,7 @@ public class LHSVariable extends Variable implements Cloneable {
   protected int numChildren() {
     return 0;
   }
-    // Declared in FortranIR.ast line 13
+    // Declared in FortranIR.ast line 40
     private String tokenString_Name;
     public void setName(String value) {
         tokenString_Name = value;

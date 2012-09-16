@@ -15,9 +15,26 @@ ShapeInfo ::= <Name: String>;
 
 StatementSection ::= Statement*;
 abstract Statement;
-AssignStmt: Statement ::= <RuntimeCheck> Variable Exp;
-abstract Exp;
-LiteralExp: Exp ::= Variable;
-BinaryOperation: Exp ::= LHSVariable <Operation: String> RHSVariable;
-LHSVariable: Variable;
-RHSVariable: Variable;
+
+AssignLiteralStmt: Statement ::= <RuntimeCheck> Variable <Literal>;
+
+AbstractAssignToVarStmt: Statement ::= <RuntimeCheck> <TargetVariable> <SourceVariable>;
+
+AbstractAssignToListStmt: Statement ::= <RuntimeCheck> Variable* Expression;
+abstract Expression;
+BinaryExpr: Expression ::= <Operand1> <Operation> <Operand2>;
+UnaryExpr: Expression ::= <Operation> <Operand>;
+DirectBuiltinExpr: Expression ::= <BuiltinFunc> <ArgsList>;
+NotDirectBuiltinExpr: Expression ::= <CodeInline>;
+BuiltinConstantExpr: Expression ::= <BuiltinFunc>;
+IOOperationExpr: Expression ::= <IOOperation> Variable;
+UserDefinedFunction: Expression ::= <FuncName> <ArgsList>;
+
+Subroutines: Statement ::= <FuncName> <InputArgsList> <OutputArgsList>;
+
+IfStmt: Statement ::= <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
+
+WhileStmt: Statement ::= <Condition> WhileBlock: StatementSection;
+
+ForStmt: Statement ::= <LoopVar> <LowBoundary> [Inc] <HighBoundary> ForBlock: StatementSection;
+Inc ::= <Name: String>;

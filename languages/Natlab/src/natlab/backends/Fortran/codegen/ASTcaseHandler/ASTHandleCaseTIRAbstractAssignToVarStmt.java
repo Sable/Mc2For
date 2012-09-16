@@ -3,6 +3,7 @@ package natlab.backends.Fortran.codegen.ASTcaseHandler;
 import java.util.ArrayList;
 
 import natlab.backends.Fortran.codegen.*;
+import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
@@ -20,12 +21,20 @@ public class ASTHandleCaseTIRAbstractAssignToVarStmt {
 		
 	}
 	
-	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRAbstractAssignToVarStmt node){
+	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToVarStmt node){
 		if (Debug) System.out.println("in an abstractAssignToVar statement");
+		AssignStmt stmt = new AssignStmt();
+		VariableAssign varExp = new  VariableAssign();
+		
 		String LHS, RHS;
-		//ArrayList<String> vars = new ArrayList<String>();
 		LHS = node.getTargetName().getID();
 		RHS = node.getRHS().getNodeString();
+		Variable var = new Variable();
+		var.setName(LHS);
+		stmt.addVariable(var);
+		
+		varExp.setVariable(RHS);
+		
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).isConstant()){
 			if (Debug) System.out.println(LHS+" is a constant");
 		}
@@ -65,10 +74,10 @@ public class ASTHandleCaseTIRAbstractAssignToVarStmt {
 				System.err.println("error in HandleCaseTIRAbstractAssignToVarStmt.java");
 			}
 			String type = fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(LHS).getSingleton())).getMatlabClass().toString());
-			fcg.buf.append(node.getLHS().getNodeString()+" = ");
+			fcg.buf.append(LHS+" = ");
 			if(type == "String"){
 				//type = makeFortranStringLiteral(type);
-				fcg.buf.append(fcg.makeFortranStringLiteral(node.getRHS().getNodeString()) + ";");
+				fcg.buf.append(fcg.makeFortranStringLiteral(RHS) + ";");
 			}
 			else
 				fcg.buf.append(node.getRHS().getNodeString() + ";");

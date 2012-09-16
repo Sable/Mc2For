@@ -1,30 +1,28 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 
 
-public class AssignStmt extends Statement implements Cloneable {
-    // Declared in FortranIR.ast line 18
+public class IOOperationExpr extends Expression implements Cloneable {
+    // Declared in FortranIR.ast line 30
 
-    public AssignStmt() {
+    public IOOperationExpr() {
         super();
 
         setChild(null, 0);
-        setChild(null, 1);
     }
 
-    // Declared in FortranIR.ast line 18
-    public AssignStmt(String p0, Variable p1, Exp p2) {
-        setRuntimeCheck(p0);
+    // Declared in FortranIR.ast line 30
+    public IOOperationExpr(String p0, Variable p1) {
+        setIOOperation(p0);
         setChild(p1, 0);
-        setChild(p2, 1);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        AssignStmt node = (AssignStmt)super.clone();
+        IOOperationExpr node = (IOOperationExpr)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          AssignStmt node = (AssignStmt)clone();
+          IOOperationExpr node = (IOOperationExpr)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -33,7 +31,7 @@ public class AssignStmt extends Statement implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        AssignStmt res = (AssignStmt)copy();
+        IOOperationExpr res = (IOOperationExpr)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();
@@ -45,19 +43,19 @@ public class AssignStmt extends Statement implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 2;
+    return 1;
   }
-    // Declared in FortranIR.ast line 18
-    private String tokenString_RuntimeCheck;
-    public void setRuntimeCheck(String value) {
-        tokenString_RuntimeCheck = value;
+    // Declared in FortranIR.ast line 30
+    private String tokenString_IOOperation;
+    public void setIOOperation(String value) {
+        tokenString_IOOperation = value;
     }
-    public String getRuntimeCheck() {
-        return tokenString_RuntimeCheck;
+    public String getIOOperation() {
+        return tokenString_IOOperation;
     }
 
 
-    // Declared in FortranIR.ast line 18
+    // Declared in FortranIR.ast line 30
     public void setVariable(Variable node) {
         setChild(node, 0);
     }
@@ -67,19 +65,6 @@ public class AssignStmt extends Statement implements Cloneable {
 
     public Variable getVariableNoTransform() {
         return (Variable)getChildNoTransform(0);
-    }
-
-
-    // Declared in FortranIR.ast line 18
-    public void setExp(Exp node) {
-        setChild(node, 1);
-    }
-    public Exp getExp() {
-        return (Exp)getChild(1);
-    }
-
-    public Exp getExpNoTransform() {
-        return (Exp)getChildNoTransform(1);
     }
 
 

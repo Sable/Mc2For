@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen;
+	package natlab.backends.Fortran.codegen;
 
 import ast.*;
 
@@ -136,6 +136,32 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 	}
 
 	/**********************HELPER METHODS***********************************/
+	public int getRHSCaseNumber(TIRAbstractAssignStmt node){
+		String RHSMatlabOperator;
+		RHSMatlabOperator = node.getRHS().getVarName();
+		if(true==FortranMap.isBinOperator(RHSMatlabOperator)){
+			return 1; //"binop";
+		}
+		else if(true==FortranMap.isUnOperator(RHSMatlabOperator)){
+		   return 2; //"unop";
+		}
+		else if(true==FortranMap.isFortranDirectBuiltin(RHSMatlabOperator)){
+			return 3; // "builtin";
+		}
+		else if(true == FortranMap.isMethod(RHSMatlabOperator)){
+			return 4; // "method";
+		}
+		else if(true==FortranMap.isBuiltinConst(RHSMatlabOperator)){
+			return 5; // "builtin";
+		}
+		else if(true==FortranMap.isIOOperation(RHSMatlabOperator)){
+			return 6; // "IO OPeration";
+		}
+		else{
+			return 7; // "user defined function";
+		}
+	}
+	
 	public void makeExpression(TIRAbstractAssignStmt node){
 		/** 
 		 * Change for built-ins with n args.
@@ -208,32 +234,6 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 			return node.getRHS().getChild(1).getChild(1).getNodeString();
 		else
 			return "";
-	}
-	
-	public int getRHSCaseNumber(TIRAbstractAssignStmt node){
-		String RHSMatlabOperator;
-		RHSMatlabOperator = node.getRHS().getVarName();
-		if(true==FortranMap.isBinOperator(RHSMatlabOperator)){
-			return 1; //"binop";
-		}
-		else if(true==FortranMap.isUnOperator(RHSMatlabOperator)){
-		   return 2; //"unop";
-		}
-		else if(true==FortranMap.isFortranDirectBuiltin(RHSMatlabOperator)){
-			return 3; // "builtin";
-		}
-		else if(true == FortranMap.isMethod(RHSMatlabOperator)){
-			return 4; // "method";
-		}
-		else if(true==FortranMap.isBuiltinConst(RHSMatlabOperator)){
-			return 5; // "builtin";
-		}
-		else if(true==FortranMap.isIOOperation(RHSMatlabOperator)){
-			return 6; // "IO OPeration";
-		}
-		else{
-			return 7; // "user defined function";
-		}
 	}
 	
 	public String getRHSMappingFortranOperator(TIRAbstractAssignStmt node){

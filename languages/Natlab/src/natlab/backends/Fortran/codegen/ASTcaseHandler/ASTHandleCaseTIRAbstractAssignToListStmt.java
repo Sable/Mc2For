@@ -14,7 +14,7 @@ public class ASTHandleCaseTIRAbstractAssignToListStmt {
 		
 	}
 	
-	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRAbstractAssignToListStmt node){
+	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		if (Debug) System.out.println("in an abstractAssignToList  statement");
 		if(fcg.FortranMap.isFortranNoDirectBuiltin(node.getRHS().getVarName())){
 			if (Debug) System.out.println("the function \""+node.getRHS().getVarName()+"\" has no corresponding builtin function in Fortran...");
