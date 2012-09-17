@@ -7,9 +7,15 @@ import ast.ASTNode;
 
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.tir.TIRAbstractAssignToVarStmt;
+import natlab.tame.tir.TIRArrayGetStmt;
+import natlab.tame.tir.TIRArraySetStmt;
 import natlab.tame.tir.TIRAssignLiteralStmt;
+import natlab.tame.tir.TIRCommentStmt;
+import natlab.tame.tir.TIRForStmt;
 import natlab.tame.tir.TIRFunction;
+import natlab.tame.tir.TIRIfStmt;
 import natlab.tame.tir.TIRNode;
+import natlab.tame.tir.TIRWhileStmt;
 import natlab.tame.tir.analysis.TIRAbstractNodeCaseHandler;
 import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
@@ -32,11 +38,11 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public ArrayList<String> outRes;
 	public HashMap<String, String> funcNameRep;//the key of this hashmap is the user defined function name, 
 	                                           //and the value is the corresponding substitute variable name.
-	public boolean indentIf;
-	public boolean indentFW;
+	
 	public boolean isSubroutine;//this boolean value help the compiler to distinguish subroutine with function.
 	public HashMap<String, BasicMatrixValue> tmpVariables;//to store those temporary variables which are used in Fortran code generation.
-	                                                        //The key is name, and the value is its shape.
+	public boolean isIfWhileForBlock;                                                        //The key is name, and the value is its shape.
+	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram SubProgram;
 	static boolean Debug = false;
 	
@@ -52,16 +58,23 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		this.inArgs = new ArrayList<String>();
 		this.outRes = new ArrayList<String>();
 		this.funcNameRep = new HashMap<String,String>();
-		this.indentIf = false;
-		this.indentFW = false;
 		this.isSubroutine = false;
 		this.tmpVariables = new HashMap<String,BasicMatrixValue>();
+		this.isIfWhileForBlock = false;
+		this.stmtSecForIfWhileForBlock = new StatementSection();
+		this.SubProgram = new SubProgram();
 		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
 	}
 	
 	public static SubProgram FortranProgramGen(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
 		return new FortranCodeASTGenerator(analysis, callgraphSize, index, fileDir).SubProgram;
+	}
+
+	public void interateStatements(ast.List<ast.Stmt> stmts){
+		for(ast.Stmt stmt : stmts){
+			((TIRNode)stmt).tirAnalyze(this);
+		}
 	}
 	
 	@Override
@@ -78,28 +91,75 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
 		ASTHandleCaseTIRAssignLiteralStmt assignLiteralStmt = new ASTHandleCaseTIRAssignLiteralStmt();
-		assignLiteralStmt.getFortran(this, node);
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(assignLiteralStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(assignLiteralStmt.getFortran(this, node));			
+		}
 	}
 	
 	@Override
 	public void caseTIRAbstractAssignToVarStmt(TIRAbstractAssignToVarStmt node){
 		ASTHandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = new ASTHandleCaseTIRAbstractAssignToVarStmt();
-		abstractAssignToVarStmt.getFortran(this, node);
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToVarStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(abstractAssignToVarStmt.getFortran(this, node));
+		}
 	}
 
 	@Override
 	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
 		ASTHandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new ASTHandleCaseTIRAbstractAssignToListStmt();
-		abstractAssignToListStmt.getFortran(this, node);
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(abstractAssignToListStmt.getFortran(this, node));
+		}
 	}
 	
-	public void printStatements(ast.List<ast.Stmt> stmts){
-		for(ast.Stmt stmt : stmts){
-			if(indentIf == true){
-			}
-			else if(indentFW == true){
-			}
-			((TIRNode)stmt).tirAnalyze(this);
+	@Override
+	public void caseTIRIfStmt(TIRIfStmt node){
+		ASTHandleCaseTIRIfStmt ifStmt = new ASTHandleCaseTIRIfStmt();
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(ifStmt.getFortran(this, node));
 		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(ifStmt.getFortran(this, node));
+		}
+	}
+	
+	@Override
+	public void caseTIRWhileStmt(TIRWhileStmt node){
+		ASTHandleCaseTIRWhileStmt whileStmt = new ASTHandleCaseTIRWhileStmt();
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(whileStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(whileStmt.getFortran(this, node));
+		}
+	}
+	
+	@Override
+	public void caseTIRForStmt(TIRForStmt node){
+		
+	}
+	
+	@Override
+	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
+		
+	}
+	
+	@Override
+	public void caseTIRArraySetStmt(TIRArraySetStmt node){
+		
+	}
+	
+	@Override
+	public void caseTIRCommentStmt(TIRCommentStmt node){
+		
 	}
 }

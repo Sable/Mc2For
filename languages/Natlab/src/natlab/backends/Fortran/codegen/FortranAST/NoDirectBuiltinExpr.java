@@ -53,4 +53,10 @@ public class NoDirectBuiltinExpr extends Expression implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 135
+
+    public void pp() {
+    	System.out.print(getCodeInline());
+    }
+
 }

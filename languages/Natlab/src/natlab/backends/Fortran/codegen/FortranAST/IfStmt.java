@@ -95,4 +95,17 @@ public class IfStmt extends Statement implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 164
+
+    public void pp() {
+    	System.out.print("if ("+getCondition()+") then");
+    	System.out.print("\n");
+    	getIfBlock().pp();
+    	if(hasElseBlock()) {
+    		System.out.print("else\n");
+    		getElseBlock().pp();
+    	}
+    	System.out.print("endif");
+    }
+
 }

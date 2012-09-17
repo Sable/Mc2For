@@ -118,7 +118,7 @@ public class BinaryExpr extends Expression implements Cloneable {
         		System.out.print(",");
         	}
     	}
-    	System.out.print(" = "+getOperand1()+" "+getOperator()+" "+getOperand2());
+    	System.out.print(" = "+getOperand1()+" "+getOperator()+" "+getOperand2()+";");
     }
 
 }

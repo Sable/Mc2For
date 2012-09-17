@@ -21,7 +21,7 @@ public class ASTHandleCaseTIRAbstractAssignToVarStmt {
 	/**
 	 * AbstractAssignToVarStmt: Statement ::= <RuntimeCheck> <TargetVariable> <SourceVariable>;
 	 */
-	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToVarStmt node){
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToVarStmt node){
 		if (Debug) System.out.println("in an abstractAssignToVar statement");
 		
 		AbstractAssignToVarStmt stmt = new AbstractAssignToVarStmt();
@@ -82,7 +82,6 @@ public class ASTHandleCaseTIRAbstractAssignToVarStmt {
 			else
 				fcg.buf.append(node.getRHS().getNodeString() + ";");*/
 		}
-		fcg.SubProgram.getStatementSection().addStatement(stmt);
-		return fcg;
+		return stmt;
 	}
 }

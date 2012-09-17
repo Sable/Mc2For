@@ -1,6 +1,7 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
 import natlab.backends.Fortran.codegen.*;
+import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 
 public class ASTHandleCaseTIRWhileStmt {
@@ -10,15 +11,22 @@ public class ASTHandleCaseTIRWhileStmt {
 	public ASTHandleCaseTIRWhileStmt(){
 		
 	}
-	
-	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRWhileStmt node){
+	/**
+	 * WhileStmt: Statement ::= <Condition> WhileBlock: StatementSection;
+	 */
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRWhileStmt node){
 		if (Debug) System.out.println("in while statement.");
 		if (Debug) System.out.println(node.getCondition().getVarName());
-		fcg.buf.append("do while ("+node.getCondition().getVarName()+")\n");
-		fcg.indentFW = true;
-		fcg.printStatements(node.getStatements());
-		fcg.indentFW = false;
-		fcg.buf.append("enddo");
-		return fcg;
+		
+		WhileStmt stmt = new WhileStmt();
+		stmt.setCondition(node.getCondition().getVarName());
+		
+		fcg.isIfWhileForBlock = true;
+		StatementSection whileStmtSec = new StatementSection();
+		fcg.stmtSecForIfWhileForBlock = whileStmtSec;
+		fcg.interateStatements(node.getStatements());
+		stmt.setWhileBlock(whileStmtSec);
+		fcg.isIfWhileForBlock = false;
+		return stmt;
 	}
 }

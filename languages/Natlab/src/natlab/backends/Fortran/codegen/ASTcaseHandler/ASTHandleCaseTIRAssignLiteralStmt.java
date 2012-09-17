@@ -19,7 +19,7 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 	/**
 	 * AssignLiteralStmt: Statement ::= <RuntimeCheck> Variable <Literal>;
 	 */
-	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAssignLiteralStmt node){
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAssignLiteralStmt node){
 		if (Debug) System.out.println("in an assignLiteral statement");
 		
 		AssignLiteralStmt stmt = new AssignLiteralStmt();
@@ -53,7 +53,6 @@ public class ASTHandleCaseTIRAssignLiteralStmt {
 				stmt.setRuntimeCheck(rtc);
 			}
 		}
-		fcg.SubProgram.getStatementSection().addStatement(stmt);
-		return fcg;
+		return stmt;
 	}
 }

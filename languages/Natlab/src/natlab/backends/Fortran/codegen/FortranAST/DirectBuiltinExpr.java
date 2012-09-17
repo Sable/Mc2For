@@ -97,4 +97,17 @@ public class DirectBuiltinExpr extends Expression implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 125
+
+    public void pp() {
+    	int size = getNumVariable();
+    	for(int i=0;i<size;i++) {
+    		getVariable(i).pp();
+    		if(i<size-1) {
+        		System.out.print(",");
+        	}
+    	}
+    	System.out.print(" = "+getBuiltinFunc()+"("+getArgsList()+");");
+    }
+
 }

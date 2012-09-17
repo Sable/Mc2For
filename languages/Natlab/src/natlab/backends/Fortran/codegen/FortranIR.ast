@@ -28,7 +28,7 @@ UnaryExpr: Expression ::= Variable* <Operator> <Operand>;
 DirectBuiltinExpr: Expression ::= Variable* <BuiltinFunc> <ArgsList>;
 NoDirectBuiltinExpr: Expression ::= <CodeInline>;
 BuiltinConstantExpr: Expression ::= Variable* <BuiltinFunc>;
-IOOperationExpr: Expression ::= <IOOperator> Variable*;
+IOOperationExpr: Expression ::= <IOOperator> <ArgsList>;
 UserDefinedFunction: Expression ::= Variable* <FuncName> <ArgsList>;
 
 Subroutines: Statement ::= <FuncName> <InputArgsList> <OutputArgsList>;

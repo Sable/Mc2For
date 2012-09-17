@@ -75,4 +75,10 @@ public class Subroutines extends Statement implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 161
+
+    public void pp() {
+    	System.out.print("call "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
+    }
+
 }

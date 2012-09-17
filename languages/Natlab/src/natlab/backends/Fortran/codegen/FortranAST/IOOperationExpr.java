@@ -7,13 +7,12 @@ public class IOOperationExpr extends Expression implements Cloneable {
     public IOOperationExpr() {
         super();
 
-        setChild(new List(), 0);
     }
 
     // Declared in FortranIR.ast line 31
-    public IOOperationExpr(String p0, List p1) {
+    public IOOperationExpr(String p0, String p1) {
         setIOOperator(p0);
-        setChild(p1, 0);
+        setArgsList(p1);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -43,7 +42,7 @@ public class IOOperationExpr extends Expression implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 1;
+    return 0;
   }
     // Declared in FortranIR.ast line 31
     private String tokenString_IOOperator;
@@ -56,34 +55,19 @@ public class IOOperationExpr extends Expression implements Cloneable {
 
 
     // Declared in FortranIR.ast line 31
-    public void setVariableList(List list) {
-        setChild(list, 0);
+    private String tokenString_ArgsList;
+    public void setArgsList(String value) {
+        tokenString_ArgsList = value;
+    }
+    public String getArgsList() {
+        return tokenString_ArgsList;
     }
 
-    public int getNumVariable() {
-        return getVariableList().getNumChild();
-    }
 
-    public Variable getVariable(int i) {
-        return (Variable)getVariableList().getChild(i);
-    }
+    // Declared in PrettyPrinter.jadd at line 148
 
-    public void addVariable(Variable node) {
-        List list = getVariableList();
-        list.setChild(node, list.getNumChild());
+    public void pp() {
+    	System.out.print(getIOOperator()+getArgsList()+";");
     }
-
-    public void setVariable(Variable node, int i) {
-        List list = getVariableList();
-        list.setChild(node, i);
-    }
-    public List getVariableList() {
-        return (List)getChild(0);
-    }
-
-    public List getVariableListNoTransform() {
-        return (List)getChildNoTransform(0);
-    }
-
 
 }

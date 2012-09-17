@@ -17,14 +17,13 @@ public class ASTHandleCaseTIRAbstractAssignToListStmt {
 	/**
 	 * AbstractAssignToListStmt: Statement ::= [RuntimeCheck] Variable* Expression;
 	 */
-	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		if (Debug) System.out.println("in an abstractAssignToList  statement");
 		
 		AbstractAssignToListStmt stmt = new AbstractAssignToListStmt();
 		Expression exp = makeExpression(fcg, node);
 		stmt.setExpression(exp);
-		fcg.SubProgram.getStatementSection().addStatement(stmt);
-		return fcg;
+		return stmt;
 	}
 	
 	/**********************HELPER METHODS***********************************/
@@ -98,11 +97,7 @@ public class ASTHandleCaseTIRAbstractAssignToListStmt {
 			Args = getArgsList(node);
 			ArgsListasString = getArgsListAsString(Args);
 			IOOperationExpr ioExpr = new IOOperationExpr();
-			for(ast.Name name : node.getTargets().asNameList()){
-				Variable var = new Variable();
-				var.setName(name.getID());
-				ioExpr.addVariable(var);
-			}
+			ioExpr.setArgsList(ArgsListasString);
 			ioExpr.setIOOperator(RHSFortranOperator);
 			return ioExpr;
 		case 7:

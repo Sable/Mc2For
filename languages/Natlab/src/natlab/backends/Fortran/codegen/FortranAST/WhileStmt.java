@@ -68,4 +68,14 @@ public class WhileStmt extends Statement implements Cloneable {
     }
 
 
+    // Declared in PrettyPrinter.jadd at line 174
+
+    public void pp() {
+    	System.out.print("do while ("+getCondition()+")");
+    	System.out.print("\n");
+    	getWhileBlock().pp();
+    	System.out.print("enddo");
+    	
+    }
+
 }

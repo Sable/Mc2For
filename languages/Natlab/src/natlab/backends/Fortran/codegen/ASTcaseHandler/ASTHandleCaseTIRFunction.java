@@ -38,7 +38,7 @@ public class ASTHandleCaseTIRFunction {
 			/**
 			 * go through all the statements.
 			 */
-			fcg.printStatements(node.getStmts());			
+			fcg.interateStatements(node.getStmts());			
 			
 			ProgramTitle title = new ProgramTitle();
 			//ProgramParameterList paraList = new ProgramParameterList();
@@ -308,7 +308,7 @@ public class ASTHandleCaseTIRFunction {
 			String indent = node.getIndent();
 			boolean first = true;
 			
-			fcg.printStatements(node.getStmts());
+			fcg.interateStatements(node.getStmts());
 			fcg.buf.append(indent + "return\nend");
 			
 			if (Debug) System.out.println("the parameters in for stmt: "+fcg.forStmtParameter);
@@ -454,7 +454,7 @@ public class ASTHandleCaseTIRFunction {
 		else{
 			fcg.isSubroutine = true;
 			if (Debug) System.out.println("this is a subroutine");
-			fcg.printStatements(node.getStmts());
+			fcg.interateStatements(node.getStmts());
 			fcg.buf.append("return\nend");
 			
 			fcg.buf2.append("subroutine ");
