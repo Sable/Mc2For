@@ -41,15 +41,15 @@ public class ASTHandleCaseTIRFunction {
 			fcg.printStatements(node.getStmts());			
 			
 			ProgramTitle title = new ProgramTitle();
-			ProgramParameterList paraList = new ProgramParameterList();
+			//ProgramParameterList paraList = new ProgramParameterList();
 			title.setProgramType("program");
 			title.setProgramName(fcg.majorName);
-			for(String inputVar:fcg.inArgs){
+			/*for(String inputVar:fcg.inArgs){
 				Parameter para = new Parameter();
 				para.setName(inputVar);
 				paraList.addParameter(para);
-			}
-			title.setProgramParameterList(paraList);
+			}*/
+			//title.setProgramParameterList(paraList);
 			subMain.setProgramTitle(title);
 			
 			DeclarationSection declSection = new DeclarationSection();
@@ -76,7 +76,7 @@ public class ASTHandleCaseTIRFunction {
 					}*/
 					declStmt.setType(fcg.FortranMap.getFortranTypeMapping("int8"));
 					//parameter
-					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+					/*if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
 						Keyword keyword = new Keyword();
 						keyword.setName("parameter");
@@ -86,14 +86,14 @@ public class ASTHandleCaseTIRFunction {
 						varList.addVariable(var);
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
-					}
-					else{
+					}*/
+					//else{
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
-					}
+					//}
 				}
 				else{
 					if (Debug) System.out.println(variable + " = " + fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable));
@@ -108,7 +108,7 @@ public class ASTHandleCaseTIRFunction {
 					}*/
 					declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 					//parameter
-					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+					/*if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 						if (Debug) System.out.println("add parameter here!");
 						Keyword keyword = new Keyword();
 						keyword.setName("parameter");
@@ -118,8 +118,8 @@ public class ASTHandleCaseTIRFunction {
 						varList.addVariable(var);
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
-					}
-					else{
+					}*/
+					//else{
 						//dimension
 						if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
 							if (Debug) System.out.println("add dimension here!");
@@ -197,7 +197,7 @@ public class ASTHandleCaseTIRFunction {
 							varList.addVariable(var);
 							declStmt.setVariableList(varList);
 						}
-					}
+					//}
 				}
 				declSection.addDeclStmt(declStmt);
 			}

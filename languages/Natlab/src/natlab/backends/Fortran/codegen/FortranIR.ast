@@ -16,19 +16,20 @@ ShapeInfo ::= <Name: String>;
 StatementSection ::= Statement*;
 abstract Statement;
 
-AssignLiteralStmt: Statement ::= <RuntimeCheck> Variable <Literal>;
+AssignLiteralStmt: Statement ::= [RuntimeCheck] Variable <Literal>;
+RuntimeCheck ::= <Name: String>;
 
-AbstractAssignToVarStmt: Statement ::= <RuntimeCheck> <TargetVariable> <SourceVariable>;
+AbstractAssignToVarStmt: Statement ::= [RuntimeCheck] <TargetVariable> <SourceVariable>;
 
-AbstractAssignToListStmt: Statement ::= <RuntimeCheck> Variable* Expression;
+AbstractAssignToListStmt: Statement ::= [RuntimeCheck] Expression;
 abstract Expression;
-BinaryExpr: Expression ::= <Operand1> <Operation> <Operand2>;
-UnaryExpr: Expression ::= <Operation> <Operand>;
-DirectBuiltinExpr: Expression ::= <BuiltinFunc> <ArgsList>;
-NotDirectBuiltinExpr: Expression ::= <CodeInline>;
-BuiltinConstantExpr: Expression ::= <BuiltinFunc>;
-IOOperationExpr: Expression ::= <IOOperation> Variable;
-UserDefinedFunction: Expression ::= <FuncName> <ArgsList>;
+BinaryExpr: Expression ::= Variable* <Operand1> <Operator> <Operand2>;
+UnaryExpr: Expression ::= Variable* <Operator> <Operand>;
+DirectBuiltinExpr: Expression ::= Variable* <BuiltinFunc> <ArgsList>;
+NoDirectBuiltinExpr: Expression ::= <CodeInline>;
+BuiltinConstantExpr: Expression ::= Variable* <BuiltinFunc>;
+IOOperationExpr: Expression ::= <IOOperator> Variable*;
+UserDefinedFunction: Expression ::= Variable* <FuncName> <ArgsList>;
 
 Subroutines: Statement ::= <FuncName> <InputArgsList> <OutputArgsList>;
 

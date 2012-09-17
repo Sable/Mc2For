@@ -139,22 +139,19 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 	public int getRHSCaseNumber(TIRAbstractAssignStmt node){
 		String RHSMatlabOperator;
 		RHSMatlabOperator = node.getRHS().getVarName();
-		if(true==FortranMap.isBinOperator(RHSMatlabOperator)){
+		if(true==FortranMap.isFortranBinOperator(RHSMatlabOperator)){
 			return 1; //"binop";
 		}
-		else if(true==FortranMap.isUnOperator(RHSMatlabOperator)){
+		else if(true==FortranMap.isFortranUnOperator(RHSMatlabOperator)){
 		   return 2; //"unop";
 		}
 		else if(true==FortranMap.isFortranDirectBuiltin(RHSMatlabOperator)){
 			return 3; // "builtin";
 		}
-		else if(true == FortranMap.isMethod(RHSMatlabOperator)){
-			return 4; // "method";
-		}
 		else if(true==FortranMap.isBuiltinConst(RHSMatlabOperator)){
 			return 5; // "builtin";
 		}
-		else if(true==FortranMap.isIOOperation(RHSMatlabOperator)){
+		else if(true==FortranMap.isFortranIOOperation(RHSMatlabOperator)){
 			return 6; // "IO OPeration";
 		}
 		else{
@@ -240,10 +237,10 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 		String RHSFortranOperator;
 		String RHSMatlabOperator;
 		RHSMatlabOperator = node.getRHS().getVarName();
-		if(true==FortranMap.isBinOperator(RHSMatlabOperator)){
+		if(true==FortranMap.isFortranBinOperator(RHSMatlabOperator)){
 			RHSFortranOperator= FortranMap.getFortranBinOpMapping(RHSMatlabOperator);
 		}
-		else if(true==FortranMap.isUnOperator(RHSMatlabOperator)){
+		else if(true==FortranMap.isFortranUnOperator(RHSMatlabOperator)){
 			RHSFortranOperator= FortranMap.getFortranUnOpMapping(RHSMatlabOperator);
 		}
 		
@@ -253,10 +250,7 @@ public class FortranCodePrettyPrinter extends TIRAbstractNodeCaseHandler{
 		else if(true==FortranMap.isBuiltinConst(RHSMatlabOperator)){
 			RHSFortranOperator= FortranMap.getFortranBuiltinConstMapping(RHSMatlabOperator);
 		}
-		else if(true == FortranMap.isMethod(RHSMatlabOperator)){
-			RHSFortranOperator= FortranMap.getFortranMethodMapping(RHSMatlabOperator);
-		}
-		else if(true == FortranMap.isIOOperation(RHSMatlabOperator)){
+		else if(true == FortranMap.isFortranIOOperation(RHSMatlabOperator)){
 			RHSFortranOperator= FortranMap.getFortranIOOperationMapping(RHSMatlabOperator);
 		}
 		else{

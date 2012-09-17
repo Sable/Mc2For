@@ -9,7 +9,6 @@ public class FortranMapping {
 	private static HashMap<String, String> FortranDirectBuiltinMap = new HashMap();
 	private static Set<String> FortranNoDirectBuiltinSet = new HashSet<String>();
 	private static HashMap<String, String> FortranBuiltinConstMap = new HashMap();
-	private static HashMap<String, String> FortranMethodMap = new HashMap();
 	private static HashMap<String, String> FortranIOOperationMap = new HashMap();
 	
 	public FortranMapping(){
@@ -19,7 +18,6 @@ public class FortranMapping {
 		makeFortranDirectBuiltinMap();
 		makeFortranNoDirectBuiltinSet();
 		makeFortranBuiltinConstMap();
-		makeFortranMethodMap();
 		makeFortranIOOperationMap();
 	}
 	
@@ -94,10 +92,6 @@ public class FortranMapping {
 		FortranBuiltinConstMap.put("pi", "Math.PI");	
 	}
 	
-	private void makeFortranMethodMap(){
-		//TODO
-	}
-	
 	private void makeFortranIOOperationMap(){
 		FortranIOOperationMap.put("disp", "print *, ");	
 	}
@@ -106,7 +100,7 @@ public class FortranMapping {
 		return FortranTypeMap.get(mclassasKey);
 	}
 	
-	public Boolean isBinOperator(String expType){
+	public Boolean isFortranBinOperator(String expType){
 		if (true == FortranBinOperatorMap.containsKey(expType))
 			return true;
 		else
@@ -119,7 +113,7 @@ public class FortranMapping {
 	
 	
 	
-	public Boolean isUnOperator(String expType){
+	public Boolean isFortranUnOperator(String expType){
 		if (true == FortranUnOperatorMap.containsKey(expType))
 			return true;
 		else
@@ -160,18 +154,7 @@ public class FortranMapping {
 		
 	}
 	
-	public Boolean isMethod(String expType){
-		if (true == FortranMethodMap.containsKey(expType))
-			return true;
-		else
-			return false;
-	}
-	
-	public String getFortranMethodMapping(String MethodName){
-		return FortranMethodMap.get(MethodName);
-	}
-	
-	public Boolean isIOOperation(String expType){
+	public Boolean isFortranIOOperation(String expType){
 		if (true == FortranIOOperationMap.containsKey(expType))
 			return true;
 		else

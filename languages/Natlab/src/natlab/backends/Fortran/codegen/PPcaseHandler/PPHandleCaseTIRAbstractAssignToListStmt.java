@@ -18,7 +18,7 @@ public class PPHandleCaseTIRAbstractAssignToListStmt {
 		if (Debug) System.out.println("in an abstractAssignToList  statement");
 		if(fcg.FortranMap.isFortranNoDirectBuiltin(node.getRHS().getVarName())){
 			if (Debug) System.out.println("the function \""+node.getRHS().getVarName()+"\" has no corresponding builtin function in Fortran...");
-			FortranCodeInliner fci = new FortranCodeInliner();
+			FortranCodePrettyPrintInliner fci = new FortranCodePrettyPrintInliner();
 			fci.inline(fcg, node);
 			//TODO add more no direct mapping built-ins
 		}

@@ -6,11 +6,10 @@ import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
-import natlab.tame.valueanalysis.constant.*;
 
-public class FortranCodeInliner {
+public class FortranCodePrettyPrintInliner {
 
-	public FortranCodeInliner(){
+	public FortranCodePrettyPrintInliner(){
 		
 	}
 	
