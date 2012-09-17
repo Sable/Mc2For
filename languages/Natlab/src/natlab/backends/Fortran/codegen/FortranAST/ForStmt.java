@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class ForStmt extends Statement implements Cloneable {
-    // Declared in FortranIR.ast line 39
+    // Declared in FortranIR.ast line 40
 
     public ForStmt() {
         super();
@@ -11,7 +11,7 @@ public class ForStmt extends Statement implements Cloneable {
         setChild(null, 1);
     }
 
-    // Declared in FortranIR.ast line 39
+    // Declared in FortranIR.ast line 40
     public ForStmt(String p0, String p1, Opt p2, String p3, StatementSection p4) {
         setLoopVar(p0);
         setLowBoundary(p1);
@@ -49,7 +49,7 @@ public class ForStmt extends Statement implements Cloneable {
   protected int numChildren() {
     return 2;
   }
-    // Declared in FortranIR.ast line 39
+    // Declared in FortranIR.ast line 40
     private String tokenString_LoopVar;
     public void setLoopVar(String value) {
         tokenString_LoopVar = value;
@@ -59,7 +59,7 @@ public class ForStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 39
+    // Declared in FortranIR.ast line 40
     private String tokenString_LowBoundary;
     public void setLowBoundary(String value) {
         tokenString_LowBoundary = value;
@@ -69,7 +69,7 @@ public class ForStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 39
+    // Declared in FortranIR.ast line 40
     public void setIncOpt(Opt opt) {
         setChild(opt, 0);
     }
@@ -94,7 +94,7 @@ public class ForStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 39
+    // Declared in FortranIR.ast line 40
     private String tokenString_HighBoundary;
     public void setHighBoundary(String value) {
         tokenString_HighBoundary = value;
@@ -104,7 +104,7 @@ public class ForStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 39
+    // Declared in FortranIR.ast line 40
     public void setForBlock(StatementSection node) {
         setChild(node, 1);
     }

@@ -2,17 +2,19 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class UserDefinedFunction extends Expression implements Cloneable {
-    // Declared in FortranIR.ast line 31
+    // Declared in FortranIR.ast line 32
 
     public UserDefinedFunction() {
         super();
 
+        setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 31
-    public UserDefinedFunction(String p0, String p1) {
-        setFuncName(p0);
-        setArgsList(p1);
+    // Declared in FortranIR.ast line 32
+    public UserDefinedFunction(List p0, String p1, String p2) {
+        setChild(p0, 0);
+        setFuncName(p1);
+        setArgsList(p2);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -42,9 +44,40 @@ public class UserDefinedFunction extends Expression implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 0;
+    return 1;
   }
-    // Declared in FortranIR.ast line 31
+    // Declared in FortranIR.ast line 32
+    public void setVariableList(List list) {
+        setChild(list, 0);
+    }
+
+    public int getNumVariable() {
+        return getVariableList().getNumChild();
+    }
+
+    public Variable getVariable(int i) {
+        return (Variable)getVariableList().getChild(i);
+    }
+
+    public void addVariable(Variable node) {
+        List list = getVariableList();
+        list.setChild(node, list.getNumChild());
+    }
+
+    public void setVariable(Variable node, int i) {
+        List list = getVariableList();
+        list.setChild(node, i);
+    }
+    public List getVariableList() {
+        return (List)getChild(0);
+    }
+
+    public List getVariableListNoTransform() {
+        return (List)getChildNoTransform(0);
+    }
+
+
+    // Declared in FortranIR.ast line 32
     private String tokenString_FuncName;
     public void setFuncName(String value) {
         tokenString_FuncName = value;
@@ -54,7 +87,7 @@ public class UserDefinedFunction extends Expression implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 31
+    // Declared in FortranIR.ast line 32
     private String tokenString_ArgsList;
     public void setArgsList(String value) {
         tokenString_ArgsList = value;

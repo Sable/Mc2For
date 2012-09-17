@@ -7,13 +7,14 @@ public class AssignLiteralStmt extends Statement implements Cloneable {
     public AssignLiteralStmt() {
         super();
 
-        setChild(null, 0);
+        setChild(new Opt(), 0);
+        setChild(null, 1);
     }
 
     // Declared in FortranIR.ast line 19
-    public AssignLiteralStmt(String p0, Variable p1, String p2) {
-        setRuntimeCheck(p0);
-        setChild(p1, 0);
+    public AssignLiteralStmt(Opt p0, Variable p1, String p2) {
+        setChild(p0, 0);
+        setChild(p1, 1);
         setLiteral(p2);
     }
 
@@ -44,28 +45,43 @@ public class AssignLiteralStmt extends Statement implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 1;
+    return 2;
   }
     // Declared in FortranIR.ast line 19
-    private String tokenString_RuntimeCheck;
-    public void setRuntimeCheck(String value) {
-        tokenString_RuntimeCheck = value;
+    public void setRuntimeCheckOpt(Opt opt) {
+        setChild(opt, 0);
     }
-    public String getRuntimeCheck() {
-        return tokenString_RuntimeCheck;
+
+    public boolean hasRuntimeCheck() {
+        return getRuntimeCheckOpt().getNumChild() != 0;
+    }
+
+    public RuntimeCheck getRuntimeCheck() {
+        return (RuntimeCheck)getRuntimeCheckOpt().getChild(0);
+    }
+
+    public void setRuntimeCheck(RuntimeCheck node) {
+        getRuntimeCheckOpt().setChild(node, 0);
+    }
+    public Opt getRuntimeCheckOpt() {
+        return (Opt)getChild(0);
+    }
+
+    public Opt getRuntimeCheckOptNoTransform() {
+        return (Opt)getChildNoTransform(0);
     }
 
 
     // Declared in FortranIR.ast line 19
     public void setVariable(Variable node) {
-        setChild(node, 0);
+        setChild(node, 1);
     }
     public Variable getVariable() {
-        return (Variable)getChild(0);
+        return (Variable)getChild(1);
     }
 
     public Variable getVariableNoTransform() {
-        return (Variable)getChildNoTransform(0);
+        return (Variable)getChildNoTransform(1);
     }
 
 
@@ -78,5 +94,15 @@ public class AssignLiteralStmt extends Statement implements Cloneable {
         return tokenString_Literal;
     }
 
+
+    // Declared in PrettyPrinter.jadd at line 85
+
+    public void pp() {
+    	if(hasRuntimeCheck()) {
+    		System.out.println(getRuntimeCheck());
+    	}
+    	getVariable().pp();
+    	System.out.print(" = "+getLiteral()+";");
+    }
 
 }

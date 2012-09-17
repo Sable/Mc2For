@@ -2,18 +2,20 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class BinaryExpr extends Expression implements Cloneable {
-    // Declared in FortranIR.ast line 25
+    // Declared in FortranIR.ast line 26
 
     public BinaryExpr() {
         super();
 
+        setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 25
-    public BinaryExpr(String p0, String p1, String p2) {
-        setOperand1(p0);
-        setOperation(p1);
-        setOperand2(p2);
+    // Declared in FortranIR.ast line 26
+    public BinaryExpr(List p0, String p1, String p2, String p3) {
+        setChild(p0, 0);
+        setOperand1(p1);
+        setOperator(p2);
+        setOperand2(p3);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -43,9 +45,40 @@ public class BinaryExpr extends Expression implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 0;
+    return 1;
   }
-    // Declared in FortranIR.ast line 25
+    // Declared in FortranIR.ast line 26
+    public void setVariableList(List list) {
+        setChild(list, 0);
+    }
+
+    public int getNumVariable() {
+        return getVariableList().getNumChild();
+    }
+
+    public Variable getVariable(int i) {
+        return (Variable)getVariableList().getChild(i);
+    }
+
+    public void addVariable(Variable node) {
+        List list = getVariableList();
+        list.setChild(node, list.getNumChild());
+    }
+
+    public void setVariable(Variable node, int i) {
+        List list = getVariableList();
+        list.setChild(node, i);
+    }
+    public List getVariableList() {
+        return (List)getChild(0);
+    }
+
+    public List getVariableListNoTransform() {
+        return (List)getChildNoTransform(0);
+    }
+
+
+    // Declared in FortranIR.ast line 26
     private String tokenString_Operand1;
     public void setOperand1(String value) {
         tokenString_Operand1 = value;
@@ -55,17 +88,17 @@ public class BinaryExpr extends Expression implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 25
-    private String tokenString_Operation;
-    public void setOperation(String value) {
-        tokenString_Operation = value;
+    // Declared in FortranIR.ast line 26
+    private String tokenString_Operator;
+    public void setOperator(String value) {
+        tokenString_Operator = value;
     }
-    public String getOperation() {
-        return tokenString_Operation;
+    public String getOperator() {
+        return tokenString_Operator;
     }
 
 
-    // Declared in FortranIR.ast line 25
+    // Declared in FortranIR.ast line 26
     private String tokenString_Operand2;
     public void setOperand2(String value) {
         tokenString_Operand2 = value;
@@ -74,5 +107,18 @@ public class BinaryExpr extends Expression implements Cloneable {
         return tokenString_Operand2;
     }
 
+
+    // Declared in PrettyPrinter.jadd at line 105
+
+    public void pp() {
+    	int size = getNumVariable();
+    	for(int i=0;i<size;i++) {
+    		getVariable(i).pp();
+    		if(i<size-1) {
+        		System.out.print(",");
+        	}
+    	}
+    	System.out.print(" = "+getOperand1()+" "+getOperator()+" "+getOperand2());
+    }
 
 }

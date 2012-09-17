@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class WhileStmt extends Statement implements Cloneable {
-    // Declared in FortranIR.ast line 37
+    // Declared in FortranIR.ast line 38
 
     public WhileStmt() {
         super();
@@ -10,7 +10,7 @@ public class WhileStmt extends Statement implements Cloneable {
         setChild(null, 0);
     }
 
-    // Declared in FortranIR.ast line 37
+    // Declared in FortranIR.ast line 38
     public WhileStmt(String p0, StatementSection p1) {
         setCondition(p0);
         setChild(p1, 0);
@@ -45,7 +45,7 @@ public class WhileStmt extends Statement implements Cloneable {
   protected int numChildren() {
     return 1;
   }
-    // Declared in FortranIR.ast line 37
+    // Declared in FortranIR.ast line 38
     private String tokenString_Condition;
     public void setCondition(String value) {
         tokenString_Condition = value;
@@ -55,7 +55,7 @@ public class WhileStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 37
+    // Declared in FortranIR.ast line 38
     public void setWhileBlock(StatementSection node) {
         setChild(node, 0);
     }

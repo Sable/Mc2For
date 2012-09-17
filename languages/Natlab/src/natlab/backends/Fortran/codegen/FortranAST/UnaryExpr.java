@@ -2,17 +2,19 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class UnaryExpr extends Expression implements Cloneable {
-    // Declared in FortranIR.ast line 26
+    // Declared in FortranIR.ast line 27
 
     public UnaryExpr() {
         super();
 
+        setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 26
-    public UnaryExpr(String p0, String p1) {
-        setOperation(p0);
-        setOperand(p1);
+    // Declared in FortranIR.ast line 27
+    public UnaryExpr(List p0, String p1, String p2) {
+        setChild(p0, 0);
+        setOperator(p1);
+        setOperand(p2);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -42,19 +44,50 @@ public class UnaryExpr extends Expression implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 0;
+    return 1;
   }
-    // Declared in FortranIR.ast line 26
-    private String tokenString_Operation;
-    public void setOperation(String value) {
-        tokenString_Operation = value;
+    // Declared in FortranIR.ast line 27
+    public void setVariableList(List list) {
+        setChild(list, 0);
     }
-    public String getOperation() {
-        return tokenString_Operation;
+
+    public int getNumVariable() {
+        return getVariableList().getNumChild();
+    }
+
+    public Variable getVariable(int i) {
+        return (Variable)getVariableList().getChild(i);
+    }
+
+    public void addVariable(Variable node) {
+        List list = getVariableList();
+        list.setChild(node, list.getNumChild());
+    }
+
+    public void setVariable(Variable node, int i) {
+        List list = getVariableList();
+        list.setChild(node, i);
+    }
+    public List getVariableList() {
+        return (List)getChild(0);
+    }
+
+    public List getVariableListNoTransform() {
+        return (List)getChildNoTransform(0);
     }
 
 
-    // Declared in FortranIR.ast line 26
+    // Declared in FortranIR.ast line 27
+    private String tokenString_Operator;
+    public void setOperator(String value) {
+        tokenString_Operator = value;
+    }
+    public String getOperator() {
+        return tokenString_Operator;
+    }
+
+
+    // Declared in FortranIR.ast line 27
     private String tokenString_Operand;
     public void setOperand(String value) {
         tokenString_Operand = value;

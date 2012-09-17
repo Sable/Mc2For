@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class IfStmt extends Statement implements Cloneable {
-    // Declared in FortranIR.ast line 35
+    // Declared in FortranIR.ast line 36
 
     public IfStmt() {
         super();
@@ -11,7 +11,7 @@ public class IfStmt extends Statement implements Cloneable {
         setChild(new Opt(), 1);
     }
 
-    // Declared in FortranIR.ast line 35
+    // Declared in FortranIR.ast line 36
     public IfStmt(String p0, StatementSection p1, Opt p2) {
         setCondition(p0);
         setChild(p1, 0);
@@ -47,7 +47,7 @@ public class IfStmt extends Statement implements Cloneable {
   protected int numChildren() {
     return 2;
   }
-    // Declared in FortranIR.ast line 35
+    // Declared in FortranIR.ast line 36
     private String tokenString_Condition;
     public void setCondition(String value) {
         tokenString_Condition = value;
@@ -57,7 +57,7 @@ public class IfStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 35
+    // Declared in FortranIR.ast line 36
     public void setIfBlock(StatementSection node) {
         setChild(node, 0);
     }
@@ -70,7 +70,7 @@ public class IfStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in FortranIR.ast line 35
+    // Declared in FortranIR.ast line 36
     public void setElseBlockOpt(Opt opt) {
         setChild(opt, 1);
     }

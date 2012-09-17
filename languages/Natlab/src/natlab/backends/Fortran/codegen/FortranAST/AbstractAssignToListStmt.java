@@ -2,20 +2,19 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class AbstractAssignToListStmt extends Statement implements Cloneable {
-    // Declared in FortranIR.ast line 23
+    // Declared in FortranIR.ast line 24
 
     public AbstractAssignToListStmt() {
         super();
 
-        setChild(new List(), 0);
+        setChild(new Opt(), 0);
         setChild(null, 1);
     }
 
-    // Declared in FortranIR.ast line 23
-    public AbstractAssignToListStmt(String p0, List p1, Expression p2) {
-        setRuntimeCheck(p0);
-        setChild(p1, 0);
-        setChild(p2, 1);
+    // Declared in FortranIR.ast line 24
+    public AbstractAssignToListStmt(Opt p0, Expression p1) {
+        setChild(p0, 0);
+        setChild(p1, 1);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -47,48 +46,32 @@ public class AbstractAssignToListStmt extends Statement implements Cloneable {
   protected int numChildren() {
     return 2;
   }
-    // Declared in FortranIR.ast line 23
-    private String tokenString_RuntimeCheck;
-    public void setRuntimeCheck(String value) {
-        tokenString_RuntimeCheck = value;
-    }
-    public String getRuntimeCheck() {
-        return tokenString_RuntimeCheck;
+    // Declared in FortranIR.ast line 24
+    public void setRuntimeCheckOpt(Opt opt) {
+        setChild(opt, 0);
     }
 
-
-    // Declared in FortranIR.ast line 23
-    public void setVariableList(List list) {
-        setChild(list, 0);
+    public boolean hasRuntimeCheck() {
+        return getRuntimeCheckOpt().getNumChild() != 0;
     }
 
-    public int getNumVariable() {
-        return getVariableList().getNumChild();
+    public RuntimeCheck getRuntimeCheck() {
+        return (RuntimeCheck)getRuntimeCheckOpt().getChild(0);
     }
 
-    public Variable getVariable(int i) {
-        return (Variable)getVariableList().getChild(i);
+    public void setRuntimeCheck(RuntimeCheck node) {
+        getRuntimeCheckOpt().setChild(node, 0);
+    }
+    public Opt getRuntimeCheckOpt() {
+        return (Opt)getChild(0);
     }
 
-    public void addVariable(Variable node) {
-        List list = getVariableList();
-        list.setChild(node, list.getNumChild());
-    }
-
-    public void setVariable(Variable node, int i) {
-        List list = getVariableList();
-        list.setChild(node, i);
-    }
-    public List getVariableList() {
-        return (List)getChild(0);
-    }
-
-    public List getVariableListNoTransform() {
-        return (List)getChildNoTransform(0);
+    public Opt getRuntimeCheckOptNoTransform() {
+        return (Opt)getChildNoTransform(0);
     }
 
 
-    // Declared in FortranIR.ast line 23
+    // Declared in FortranIR.ast line 24
     public void setExpression(Expression node) {
         setChild(node, 1);
     }
@@ -100,5 +83,14 @@ public class AbstractAssignToListStmt extends Statement implements Cloneable {
         return (Expression)getChildNoTransform(1);
     }
 
+
+    // Declared in PrettyPrinter.jadd at line 98
+
+    public void pp() {
+    	if(hasRuntimeCheck()) {
+    		System.out.println(getRuntimeCheck());
+    	}
+    	getExpression().pp();
+    }
 
 }

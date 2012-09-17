@@ -2,16 +2,18 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public class BuiltinConstantExpr extends Expression implements Cloneable {
-    // Declared in FortranIR.ast line 29
+    // Declared in FortranIR.ast line 30
 
     public BuiltinConstantExpr() {
         super();
 
+        setChild(new List(), 0);
     }
 
-    // Declared in FortranIR.ast line 29
-    public BuiltinConstantExpr(String p0) {
-        setBuiltinFunc(p0);
+    // Declared in FortranIR.ast line 30
+    public BuiltinConstantExpr(List p0, String p1) {
+        setChild(p0, 0);
+        setBuiltinFunc(p1);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -41,9 +43,40 @@ public class BuiltinConstantExpr extends Expression implements Cloneable {
         super.flushCache();
     }
   protected int numChildren() {
-    return 0;
+    return 1;
   }
-    // Declared in FortranIR.ast line 29
+    // Declared in FortranIR.ast line 30
+    public void setVariableList(List list) {
+        setChild(list, 0);
+    }
+
+    public int getNumVariable() {
+        return getVariableList().getNumChild();
+    }
+
+    public Variable getVariable(int i) {
+        return (Variable)getVariableList().getChild(i);
+    }
+
+    public void addVariable(Variable node) {
+        List list = getVariableList();
+        list.setChild(node, list.getNumChild());
+    }
+
+    public void setVariable(Variable node, int i) {
+        List list = getVariableList();
+        list.setChild(node, i);
+    }
+    public List getVariableList() {
+        return (List)getChild(0);
+    }
+
+    public List getVariableListNoTransform() {
+        return (List)getChildNoTransform(0);
+    }
+
+
+    // Declared in FortranIR.ast line 30
     private String tokenString_BuiltinFunc;
     public void setBuiltinFunc(String value) {
         tokenString_BuiltinFunc = value;

@@ -1,26 +1,26 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 
 
-public class NotDirectBuiltinExpr extends Expression implements Cloneable {
-    // Declared in FortranIR.ast line 28
+public class RuntimeCheck extends ASTNode implements Cloneable {
+    // Declared in FortranIR.ast line 20
 
-    public NotDirectBuiltinExpr() {
+    public RuntimeCheck() {
         super();
 
     }
 
-    // Declared in FortranIR.ast line 28
-    public NotDirectBuiltinExpr(String p0) {
-        setCodeInline(p0);
+    // Declared in FortranIR.ast line 20
+    public RuntimeCheck(String p0) {
+        setName(p0);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        NotDirectBuiltinExpr node = (NotDirectBuiltinExpr)super.clone();
+        RuntimeCheck node = (RuntimeCheck)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          NotDirectBuiltinExpr node = (NotDirectBuiltinExpr)clone();
+          RuntimeCheck node = (RuntimeCheck)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -29,7 +29,7 @@ public class NotDirectBuiltinExpr extends Expression implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        NotDirectBuiltinExpr res = (NotDirectBuiltinExpr)copy();
+        RuntimeCheck res = (RuntimeCheck)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();
@@ -43,13 +43,13 @@ public class NotDirectBuiltinExpr extends Expression implements Cloneable {
   protected int numChildren() {
     return 0;
   }
-    // Declared in FortranIR.ast line 28
-    private String tokenString_CodeInline;
-    public void setCodeInline(String value) {
-        tokenString_CodeInline = value;
+    // Declared in FortranIR.ast line 20
+    private String tokenString_Name;
+    public void setName(String value) {
+        tokenString_Name = value;
     }
-    public String getCodeInline() {
-        return tokenString_CodeInline;
+    public String getName() {
+        return tokenString_Name;
     }
 
 

@@ -75,7 +75,7 @@ public class DeclarationSection extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 26
+    // Declared in PrettyPrinter.jadd at line 30
 
     public void pp() {
     	int size = getNumDeclStmt();

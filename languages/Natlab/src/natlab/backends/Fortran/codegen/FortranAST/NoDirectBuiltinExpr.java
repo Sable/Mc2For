@@ -1,26 +1,26 @@
 package natlab.backends.Fortran.codegen.FortranAST;
 
 
-public class Variable extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 13
+public class NoDirectBuiltinExpr extends Expression implements Cloneable {
+    // Declared in FortranIR.ast line 29
 
-    public Variable() {
+    public NoDirectBuiltinExpr() {
         super();
 
     }
 
-    // Declared in FortranIR.ast line 13
-    public Variable(String p0) {
-        setName(p0);
+    // Declared in FortranIR.ast line 29
+    public NoDirectBuiltinExpr(String p0) {
+        setCodeInline(p0);
     }
 
     public Object clone() throws CloneNotSupportedException {
-        Variable node = (Variable)super.clone();
+        NoDirectBuiltinExpr node = (NoDirectBuiltinExpr)super.clone();
     return node;
     }
     public ASTNode copy() {
       try {
-          Variable node = (Variable)clone();
+          NoDirectBuiltinExpr node = (NoDirectBuiltinExpr)clone();
           if(children != null) node.children = (ASTNode[])children.clone();
           return node;
       } catch (CloneNotSupportedException e) {
@@ -29,7 +29,7 @@ public class Variable extends ASTNode implements Cloneable {
       return null;
     }
     public ASTNode fullCopy() {
-        Variable res = (Variable)copy();
+        NoDirectBuiltinExpr res = (NoDirectBuiltinExpr)copy();
         for(int i = 0; i < getNumChild(); i++) {
           ASTNode node = getChildNoTransform(i);
           if(node != null) node = node.fullCopy();
@@ -43,20 +43,14 @@ public class Variable extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 0;
   }
-    // Declared in FortranIR.ast line 13
-    private String tokenString_Name;
-    public void setName(String value) {
-        tokenString_Name = value;
+    // Declared in FortranIR.ast line 29
+    private String tokenString_CodeInline;
+    public void setCodeInline(String value) {
+        tokenString_CodeInline = value;
     }
-    public String getName() {
-        return tokenString_Name;
+    public String getCodeInline() {
+        return tokenString_CodeInline;
     }
 
-
-    // Declared in PrettyPrinter.jadd at line 74
-
-    public void pp() {
-    	System.out.print(getName());
-    }
 
 }

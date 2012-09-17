@@ -92,6 +92,7 @@ public class SubProgram extends ASTNode implements Cloneable {
 	public void pp() {
 		getProgramTitle().pp();
 		getDeclarationSection().pp();
+		getStatementSection().pp();
 	}
 
 }

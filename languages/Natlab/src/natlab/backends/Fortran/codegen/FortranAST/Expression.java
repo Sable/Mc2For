@@ -2,7 +2,7 @@ package natlab.backends.Fortran.codegen.FortranAST;
 
 
 public abstract class Expression extends ASTNode implements Cloneable {
-    // Declared in FortranIR.ast line 24
+    // Declared in FortranIR.ast line 25
 
     public Expression() {
         super();
@@ -19,4 +19,8 @@ public abstract class Expression extends ASTNode implements Cloneable {
   protected int numChildren() {
     return 0;
   }
+    // Declared in PrettyPrinter.jadd at line 104
+
+    public void pp() {}
+
 }
