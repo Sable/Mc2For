@@ -12,7 +12,7 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 public class Main {
 	
 	public static void main(String[] args) {
-		String fileDir = "/home/2011/xli141/for_test/";
+		String fileDir = "/home/xu/for_test/";
 	    String fileIn = fileDir+"hello.m";
 	    GenericFile gFile = GenericFile.create(fileIn);
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj

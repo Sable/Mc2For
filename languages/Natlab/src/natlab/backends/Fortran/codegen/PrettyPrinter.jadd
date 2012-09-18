@@ -175,7 +175,20 @@ aspect PrettyPrinter{
     	System.out.print("do while ("+getCondition()+")");
     	System.out.print("\n");
     	getWhileBlock().pp();
-    	System.out.print("enddo");
-    	
+    	System.out.print("enddo");   	
+    }
+    public void ForStmt.pp() {
+    	System.out.print("do "+getLoopVar()+" = "+getLowBoundary()+" , ");
+    	if(hasInc()) {
+    		getInc().pp();
+    		System.out.print(" , ");
+    	}
+    	System.out.print(getUpperBoundary());
+    	System.out.print("\n");
+    	getForBlock().pp();
+    	System.out.print("enddo");    	
+    }
+    public void Inc.pp() {
+    	System.out.print(getName());
     }
 }

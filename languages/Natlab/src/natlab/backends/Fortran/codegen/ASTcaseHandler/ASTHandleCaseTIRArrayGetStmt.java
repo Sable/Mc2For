@@ -13,8 +13,9 @@ public class ASTHandleCaseTIRArrayGetStmt {
 		
 	}
 	
-	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRArrayGetStmt node){
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRArrayGetStmt node){
 		if (Debug) System.out.println("in an arrayget statement!");
+		
 		String indexList = node.getIndizes().toString();
 		String[] tokens = indexList.replace("[", "").replace("]", "").split("[,]");
 		ArrayList<String> tokensAsArray = new ArrayList<String>();

@@ -74,8 +74,7 @@ public class WhileStmt extends Statement implements Cloneable {
     	System.out.print("do while ("+getCondition()+")");
     	System.out.print("\n");
     	getWhileBlock().pp();
-    	System.out.print("enddo");
-    	
+    	System.out.print("enddo");   	
     }
 
 }

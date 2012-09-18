@@ -145,7 +145,13 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRForStmt(TIRForStmt node){
-		
+		ASTHandleCaseTIRForStmt forStmt = new ASTHandleCaseTIRForStmt();
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(forStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(forStmt.getFortran(this, node));
+		}
 	}
 	
 	@Override

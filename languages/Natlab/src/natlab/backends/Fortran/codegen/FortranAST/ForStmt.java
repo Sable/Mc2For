@@ -16,7 +16,7 @@ public class ForStmt extends Statement implements Cloneable {
         setLoopVar(p0);
         setLowBoundary(p1);
         setChild(p2, 0);
-        setHighBoundary(p3);
+        setUpperBoundary(p3);
         setChild(p4, 1);
     }
 
@@ -95,12 +95,12 @@ public class ForStmt extends Statement implements Cloneable {
 
 
     // Declared in FortranIR.ast line 40
-    private String tokenString_HighBoundary;
-    public void setHighBoundary(String value) {
-        tokenString_HighBoundary = value;
+    private String tokenString_UpperBoundary;
+    public void setUpperBoundary(String value) {
+        tokenString_UpperBoundary = value;
     }
-    public String getHighBoundary() {
-        return tokenString_HighBoundary;
+    public String getUpperBoundary() {
+        return tokenString_UpperBoundary;
     }
 
 
@@ -116,5 +116,19 @@ public class ForStmt extends Statement implements Cloneable {
         return (StatementSection)getChildNoTransform(1);
     }
 
+
+    // Declared in PrettyPrinter.jadd at line 180
+
+    public void pp() {
+    	System.out.print("do "+getLoopVar()+" = "+getLowBoundary()+" , ");
+    	if(hasInc()) {
+    		getInc().pp();
+    		System.out.print(" , ");
+    	}
+    	System.out.print(getUpperBoundary());
+    	System.out.print("\n");
+    	getForBlock().pp();
+    	System.out.print("enddo");    	
+    }
 
 }

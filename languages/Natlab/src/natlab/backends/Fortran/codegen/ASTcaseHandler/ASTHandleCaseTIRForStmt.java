@@ -1,6 +1,7 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
 import natlab.backends.Fortran.codegen.*;
+import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 
 public class ASTHandleCaseTIRForStmt {
@@ -10,18 +11,38 @@ public class ASTHandleCaseTIRForStmt {
 	public ASTHandleCaseTIRForStmt(){
 		
 	}
-	
-	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRForStmt node){
+	/**
+	 * ForStmt: Statement ::= <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
+	 */
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRForStmt node){
 		if (Debug) System.out.println("in for statement.");
 		if (Debug) System.out.println(node.getLoopVarName().getVarName());
-		fcg.buf.append("do "+node.getLoopVarName().getVarName()+" = "+node.getLowerName().getVarName()+" , "+node.getUpperName().getVarName()+"\n");
-		fcg.indentFW = true;
-		fcg.printStatements(node.getStatements());
-		fcg.indentFW = false;
-		fcg.buf.append("enddo");
+		
+		ForStmt stmt = new ForStmt();
+		
+		stmt.setLoopVar(node.getLoopVarName().getVarName());
 		fcg.forStmtParameter.add(node.getLoopVarName().getVarName());
+		
+		stmt.setLowBoundary(node.getLowerName().getVarName());
 		fcg.forStmtParameter.add(node.getLowerName().getVarName());
+		
+		stmt.setUpperBoundary(node.getUpperName().getVarName());
 		fcg.forStmtParameter.add(node.getUpperName().getVarName());
-		return fcg;
+		
+		Inc inc = new Inc();
+		if(node.getIncName()!=null){
+			inc.setName(node.getIncName().getVarName());
+			fcg.forStmtParameter.add(node.getIncName().getVarName());
+			stmt.setInc(inc);
+		}
+		
+		fcg.isIfWhileForBlock = true;
+		StatementSection forStmtSec = new StatementSection();
+		fcg.stmtSecForIfWhileForBlock = forStmtSec;
+		fcg.interateStatements(node.getStatements());
+		stmt.setForBlock(forStmtSec);
+		fcg.isIfWhileForBlock = false;
+		
+		return stmt;
 	}
 }
