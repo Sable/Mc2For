@@ -75,7 +75,7 @@ public class StatementSection extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 77
+    // Declared in PrettyPrinter.jadd at line 78
 
     public void pp() {
     	int size = getNumStatement();

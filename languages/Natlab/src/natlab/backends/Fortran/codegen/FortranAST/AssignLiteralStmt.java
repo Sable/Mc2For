@@ -95,7 +95,7 @@ public class AssignLiteralStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 85
+    // Declared in PrettyPrinter.jadd at line 86
 
     public void pp() {
     	if(hasRuntimeCheck()) {

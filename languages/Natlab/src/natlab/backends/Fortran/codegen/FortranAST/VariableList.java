@@ -75,7 +75,7 @@ public class VariableList extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 65
+    // Declared in PrettyPrinter.jadd at line 66
 
     public void pp() {
     	int size = getNumVariable();

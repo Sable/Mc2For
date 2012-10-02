@@ -13,10 +13,11 @@ public class SubProgram extends ASTNode implements Cloneable {
     }
 
     // Declared in FortranIR.ast line 2
-    public SubProgram(ProgramTitle p0, DeclarationSection p1, StatementSection p2) {
+    public SubProgram(ProgramTitle p0, DeclarationSection p1, StatementSection p2, String p3) {
         setChild(p0, 0);
         setChild(p1, 1);
         setChild(p2, 2);
+        setProgramEnd(p3);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -87,12 +88,23 @@ public class SubProgram extends ASTNode implements Cloneable {
     }
 
 
+    // Declared in FortranIR.ast line 2
+    private String tokenString_ProgramEnd;
+    public void setProgramEnd(String value) {
+        tokenString_ProgramEnd = value;
+    }
+    public String getProgramEnd() {
+        return tokenString_ProgramEnd;
+    }
+
+
     // Declared in PrettyPrinter.jadd at line 4
 
 	public void pp() {
 		getProgramTitle().pp();
 		getDeclarationSection().pp();
 		getStatementSection().pp();
+		System.out.println(getProgramEnd());
 	}
 
 }

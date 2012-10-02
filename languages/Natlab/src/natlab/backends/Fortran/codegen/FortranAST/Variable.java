@@ -53,7 +53,7 @@ public class Variable extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 74
+    // Declared in PrettyPrinter.jadd at line 75
 
     public void pp() {
     	System.out.print(getName());

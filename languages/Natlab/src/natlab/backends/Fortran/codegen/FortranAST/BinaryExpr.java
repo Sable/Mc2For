@@ -108,7 +108,7 @@ public class BinaryExpr extends Expression implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 105
+    // Declared in PrettyPrinter.jadd at line 106
 
     public void pp() {
     	int size = getNumVariable();

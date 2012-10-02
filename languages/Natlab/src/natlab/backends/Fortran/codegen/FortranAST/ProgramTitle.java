@@ -91,7 +91,7 @@ public class ProgramTitle extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 9
+    // Declared in PrettyPrinter.jadd at line 10
 
 	public void pp() {
 	    System.out.print(getProgramType()+" "+getProgramName());
@@ -100,7 +100,7 @@ public class ProgramTitle extends ASTNode implements Cloneable {
 	    	getProgramParameterList().pp();
 	    	System.out.print(")");
 	    }
-	    System.out.println("\nimplict none");
+	    System.out.println("\nimplicit none");
 	}
 
 }

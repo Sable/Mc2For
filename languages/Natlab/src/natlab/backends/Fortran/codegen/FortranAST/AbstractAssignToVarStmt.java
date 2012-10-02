@@ -91,7 +91,7 @@ public class AbstractAssignToVarStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 92
+    // Declared in PrettyPrinter.jadd at line 93
 
     public void pp() {
     	if(hasRuntimeCheck()) {

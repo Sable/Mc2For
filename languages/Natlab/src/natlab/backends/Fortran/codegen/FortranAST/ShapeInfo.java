@@ -53,7 +53,7 @@ public class ShapeInfo extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 62
+    // Declared in PrettyPrinter.jadd at line 63
 
     public void pp() {
     	System.out.print(getName());

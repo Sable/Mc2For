@@ -122,7 +122,7 @@ public class DeclStmt extends ASTNode implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 37
+    // Declared in PrettyPrinter.jadd at line 38
 
     public void pp() {
     	System.out.print(getType());

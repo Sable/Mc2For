@@ -84,7 +84,7 @@ public class AbstractAssignToListStmt extends Statement implements Cloneable {
     }
 
 
-    // Declared in PrettyPrinter.jadd at line 98
+    // Declared in PrettyPrinter.jadd at line 99
 
     public void pp() {
     	if(hasRuntimeCheck()) {
