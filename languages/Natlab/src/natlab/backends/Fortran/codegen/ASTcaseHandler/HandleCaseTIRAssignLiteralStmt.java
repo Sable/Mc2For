@@ -9,11 +9,11 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 
-public class ASTHandleCaseTIRAssignLiteralStmt {
+public class HandleCaseTIRAssignLiteralStmt {
 
 	static boolean Debug = false;
 	
-	public ASTHandleCaseTIRAssignLiteralStmt(){
+	public HandleCaseTIRAssignLiteralStmt(){
 		
 	}
 	/**

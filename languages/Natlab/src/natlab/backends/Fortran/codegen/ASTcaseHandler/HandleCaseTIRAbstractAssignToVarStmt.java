@@ -6,16 +6,17 @@ import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
+import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
 import natlab.tame.classes.reference.*;
 
-public class ASTHandleCaseTIRAbstractAssignToVarStmt {
+public class HandleCaseTIRAbstractAssignToVarStmt {
 
 	static boolean Debug = false;
 	static boolean lhsShapeIsknown = true;
 	static boolean rhsShapeIsKnown = true;
 	
-	public ASTHandleCaseTIRAbstractAssignToVarStmt(){
+	public HandleCaseTIRAbstractAssignToVarStmt(){
 		
 	}
 	/**
@@ -62,7 +63,7 @@ public class ASTHandleCaseTIRAbstractAssignToVarStmt {
 					ArrayList<Integer> shape = new ArrayList<Integer>();
 					shape.add(2);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(new BasicMatrixValue(PrimitiveClassReference.INT8),(new ShapeFactory()).newShapeFromIntegers(shape));
+							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory<AggrValue<BasicMatrixValue>>()).newShapeFromIntegers(shape));
 					fcg.tmpVariables.put(node.getTargetName().getID()+"_RTC",tmp);
 				}
 				else if(lhsShapeIsknown == false){

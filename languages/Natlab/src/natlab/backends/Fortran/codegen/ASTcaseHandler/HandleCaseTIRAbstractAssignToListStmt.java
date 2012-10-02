@@ -7,11 +7,11 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 
-public class ASTHandleCaseTIRAbstractAssignToListStmt {
+public class HandleCaseTIRAbstractAssignToListStmt {
 
 	static boolean Debug = false;
 	
-	public ASTHandleCaseTIRAbstractAssignToListStmt(){
+	public HandleCaseTIRAbstractAssignToListStmt(){
 		
 	}
 	/**
@@ -126,7 +126,7 @@ public class ASTHandleCaseTIRAbstractAssignToListStmt {
 			String LHSName;
 			LHSName = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 			//XU, a little bit trick, go back to IR to get a better solution
-			fcg.funcNameRep.put(funcName, LHSName);
+			fcg.funcNameRep.put(LHSName, funcName);
 			return userDefFunc;
 		default:
 			System.err.println("this cannot happen...");

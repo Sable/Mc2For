@@ -4,11 +4,11 @@ import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 
-public class ASTHandleCaseTIRForStmt {
+public class HandleCaseTIRForStmt {
 
 	static boolean Debug = false;
 	
-	public ASTHandleCaseTIRForStmt(){
+	public HandleCaseTIRForStmt(){
 		
 	}
 	/**
@@ -39,7 +39,7 @@ public class ASTHandleCaseTIRForStmt {
 		fcg.isIfWhileForBlock = true;
 		StatementSection forStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = forStmtSec;
-		fcg.interateStatements(node.getStatements());
+		fcg.iterateStatements(node.getStatements());
 		stmt.setForBlock(forStmtSec);
 		fcg.isIfWhileForBlock = false;
 		
