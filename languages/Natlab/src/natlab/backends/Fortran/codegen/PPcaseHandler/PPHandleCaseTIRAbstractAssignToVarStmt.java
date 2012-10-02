@@ -6,7 +6,6 @@ import natlab.backends.Fortran.codegen.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
-import natlab.tame.valueanalysis.components.shape.Shape;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
 import natlab.tame.classes.reference.*;
 
@@ -54,7 +53,7 @@ public class PPHandleCaseTIRAbstractAssignToVarStmt {
 					ArrayList<Integer> shape = new ArrayList<Integer>();
 					shape.add(2);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(new BasicMatrixValue(PrimitiveClassReference.INT8),(new ShapeFactory()).newShapeFromIntegers(shape));
+							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory<AggrValue<BasicMatrixValue>>()).newShapeFromIntegers(shape));
 					fcg.tmpVariables.put(LHS+"_shapeTmp",tmp);
 				}
 				else if(lhsShapeIsknown == false){

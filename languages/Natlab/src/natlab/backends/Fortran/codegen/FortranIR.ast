@@ -1,5 +1,5 @@
 Program ::= SubProgram*;
-SubProgram ::= ProgramTitle DeclarationSection StatementSection;
+SubProgram ::= ProgramTitle DeclarationSection StatementSection <ProgramEnd>;
 
 ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList];
 ProgramParameterList ::= Parameter*;
@@ -39,3 +39,8 @@ WhileStmt: Statement ::= <Condition> WhileBlock: StatementSection;
 
 ForStmt: Statement ::= <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
 Inc ::= <Name: String>;
+
+ArrayGetStmt: Statement ::= <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+lhsIndex ::= <Name: String>;
+
+ArraySetStmt: Statement ::= <lhsVariable> <lhsIndex> <rhsVariable>;

@@ -5,6 +5,7 @@ aspect PrettyPrinter{
 		getProgramTitle().pp();
 		getDeclarationSection().pp();
 		getStatementSection().pp();
+		System.out.println(getProgramEnd());
 	}
 	public void ProgramTitle.pp() {
 	    System.out.print(getProgramType()+" "+getProgramName());
@@ -13,7 +14,7 @@ aspect PrettyPrinter{
 	    	getProgramParameterList().pp();
 	    	System.out.print(")");
 	    }
-	    System.out.println("\nimplict none");
+	    System.out.println("\nimplicit none");
 	}
     public void ProgramParameterList.pp() {
         int size = getNumParameter();
@@ -190,5 +191,20 @@ aspect PrettyPrinter{
     }
     public void Inc.pp() {
     	System.out.print(getName());
+    }
+    public void ArrayGetStmt.pp() {
+    	System.out.print(getlhsVariable());
+    	if(haslhsIndex()) {
+    		System.out.print("(");
+    		getlhsIndex().pp();
+    		System.out.print(")");
+    	}
+    	System.out.print(" = "+getrhsVariable()+"("+getrhsIndex()+");");
+    }
+    public void lhsIndex.pp() {
+    	System.out.print(getName());
+    }
+    public void ArraySetStmt.pp() {
+    	System.out.print(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
     }
 }

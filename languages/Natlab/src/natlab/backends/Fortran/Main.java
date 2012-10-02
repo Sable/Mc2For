@@ -22,13 +22,13 @@ public class Main {
 	    /**
 	     * pretty print the generated code.
 	     */
-		String fortranCode;
+		/*String fortranCode;
 		for(int i=0;i<=size-1;i++){
 			System.out.println("\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
 			fortranCode = FortranCodePrettyPrinter.FortranCodePrinter(analysis, size, i, fileDir);
 			System.out.println("\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 			System.out.println(fortranCode);
-		}
+		}*/
 		
 		/**
 		 * generate the Fortran AST and then let the AST toString itself.
