@@ -66,7 +66,7 @@ public class FortranCodePrettyPrintInliner {
 			shape.add(1);
 			shape.add(secondDimensionInt);
 			BasicMatrixValue tmp = 
-					new BasicMatrixValue(new BasicMatrixValue(PrimitiveClassReference.DOUBLE),(new ShapeFactory()).newShapeFromIntegers(shape));
+					new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape));
 			fcg.tmpVariables.put(LHS+"_columnTmp", tmp);
 		}
 		return fcg;

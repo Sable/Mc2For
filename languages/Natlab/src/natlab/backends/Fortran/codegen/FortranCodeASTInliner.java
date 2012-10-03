@@ -21,7 +21,7 @@ public class FortranCodeASTInliner {
 		if(node.getRHS().getVarName().equals("horzcat")){
 			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 			ArrayList<String> args = new ArrayList<String>();
-			args = ASTHandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
 			int argsNum = args.size();
 			StringBuffer tmpBuf = new StringBuffer();
 			for(int i=1; i<=argsNum; i++){
@@ -35,7 +35,7 @@ public class FortranCodeASTInliner {
 		else if(node.getRHS().getVarName().equals("vertcat")){
 			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 			ArrayList<String> args = new ArrayList<String>();
-			args = ASTHandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
 			int argsNum = args.size();
 			StringBuffer tmpBuf = new StringBuffer();
 			for(int i=1; i<=argsNum; i++){
@@ -49,7 +49,7 @@ public class FortranCodeASTInliner {
 		else if(node.getRHS().getVarName().equals("ones")){
 			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 			ArrayList<String> args = new ArrayList<String>();
-			args = ASTHandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
 			int argsNum = args.size();
 			double secondDimensionDbl = (Double)((BasicMatrixValue)(fcg.analysis.getNodeList()
 					.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(1)).getSingleton())).getConstant().getValue();
@@ -76,7 +76,7 @@ public class FortranCodeASTInliner {
 			shape.add(1);
 			shape.add(secondDimensionInt);
 			BasicMatrixValue tmp = 
-					new BasicMatrixValue(new BasicMatrixValue(PrimitiveClassReference.DOUBLE),(new ShapeFactory()).newShapeFromIntegers(shape));
+					new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape));
 			fcg.tmpVariables.put(LHS+"_columnTmp", tmp);
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
