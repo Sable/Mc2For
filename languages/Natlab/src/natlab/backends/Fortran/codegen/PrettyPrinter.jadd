@@ -82,8 +82,17 @@ aspect PrettyPrinter{
     		System.out.println("");
     	}
     }
-    public void Statement.pp() {}
+    public void Statement.pp() {
+    
+    }
+    public void CommentStmt.pp() {
+    	if(getComment()!=null){
+    		System.out.print("c   ");
+    		System.out.print(getComment());
+    	}
+    }
     public void AssignLiteralStmt.pp() {
+    	System.out.print(getIndent());
     	if(hasRuntimeCheck()) {
     		System.out.println(getRuntimeCheck());
     	}
@@ -91,12 +100,14 @@ aspect PrettyPrinter{
     	System.out.print(" = "+getLiteral()+";");
     }
     public void AbstractAssignToVarStmt.pp() {
+    	System.out.print(getIndent());
     	if(hasRuntimeCheck()) {
     		System.out.println(getRuntimeCheck());
     	}
     	System.out.print(getTargetVariable()+" = "+getSourceVariable()+";");
     }
     public void AbstractAssignToListStmt.pp() {
+    	System.out.print(getIndent());
     	if(hasRuntimeCheck()) {
     		System.out.println(getRuntimeCheck());
     	}
@@ -160,25 +171,29 @@ aspect PrettyPrinter{
     	System.out.print(" = "+getFuncName()+"("+getArgsList()+");");
     }
     public void Subroutines.pp() {
+    	System.out.print(getIndent());
     	System.out.print("call "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
     }
     public void IfStmt.pp() {
-    	System.out.print("if ("+getCondition()+") then");
-    	System.out.print("\n");
+    	System.out.print(getIndent());
+    	System.out.print("if ("+getCondition()+") then\n");
     	getIfBlock().pp();
     	if(hasElseBlock()) {
+    		System.out.print(getIndent());
     		System.out.print("else\n");
     		getElseBlock().pp();
     	}
     	System.out.print("endif");
     }
     public void WhileStmt.pp() {
+   	 	System.out.print(getIndent());
     	System.out.print("do while ("+getCondition()+")");
     	System.out.print("\n");
     	getWhileBlock().pp();
     	System.out.print("enddo");   	
     }
     public void ForStmt.pp() {
+    	System.out.print(getIndent());
     	System.out.print("do "+getLoopVar()+" = "+getLowBoundary()+" , ");
     	if(hasInc()) {
     		getInc().pp();
@@ -193,6 +208,7 @@ aspect PrettyPrinter{
     	System.out.print(getName());
     }
     public void ArrayGetStmt.pp() {
+    	System.out.print(getIndent());
     	System.out.print(getlhsVariable());
     	if(haslhsIndex()) {
     		System.out.print("(");
@@ -205,6 +221,7 @@ aspect PrettyPrinter{
     	System.out.print(getName());
     }
     public void ArraySetStmt.pp() {
+    	System.out.print(getIndent());
     	System.out.print(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
     }
 }

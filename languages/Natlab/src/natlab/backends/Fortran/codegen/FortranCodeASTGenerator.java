@@ -44,6 +44,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public boolean isIfWhileForBlock;                                                        //The key is name, and the value is its shape.
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram SubProgram;
+	public int indentNum;
+	public String indent;
 	static boolean Debug = false;
 	
 	public FortranCodeASTGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
@@ -63,6 +65,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		this.isIfWhileForBlock = false;
 		this.stmtSecForIfWhileForBlock = new StatementSection();
 		this.SubProgram = new SubProgram();
+		this.indentNum = 0;
+		this.indent = "   ";
 		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
 	}
 	
@@ -86,6 +90,12 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public void caseTIRFunction(TIRFunction node){
 		HandleCaseTIRFunction functionStmt = new HandleCaseTIRFunction();
 		functionStmt.getFortran(this, node);
+	}
+	
+	@Override
+	public void caseTIRCommentStmt(TIRCommentStmt node){
+		HandleCaseTIRCommentStmt commentStmt = new HandleCaseTIRCommentStmt();
+		this.SubProgram.getStatementSection().addStatement(commentStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -161,11 +171,6 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRArraySetStmt(TIRArraySetStmt node){
-		
-	}
-	
-	@Override
-	public void caseTIRCommentStmt(TIRCommentStmt node){
 		
 	}
 }

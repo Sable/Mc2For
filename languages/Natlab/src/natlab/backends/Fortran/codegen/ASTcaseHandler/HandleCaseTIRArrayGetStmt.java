@@ -20,7 +20,11 @@ public class HandleCaseTIRArrayGetStmt {
 		if (Debug) System.out.println("in an arrayget statement!");
 		
 		ArrayGetStmt stmt = new ArrayGetStmt();
-		
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		String indexList = node.getIndizes().toString();
 		String[] tokens = indexList.replace("[", "").replace("]", "").split("[,]");
 		ArrayList<String> tokensAsArray = new ArrayList<String>();

@@ -1,6 +1,7 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
 import natlab.backends.Fortran.codegen.*;
+import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 
 public class HandleCaseTIRCommentStmt {
@@ -11,14 +12,15 @@ public class HandleCaseTIRCommentStmt {
 		
 	}
 	
-	public FortranCodePrettyPrinter getFortran(FortranCodePrettyPrinter fcg, TIRCommentStmt node){
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRCommentStmt node){
 		if (Debug) System.out.println("in a comment statement");
 		/**
 		 * for Natlab, it consider blank line is also a comment statement.
 		 */
+		CommentStmt stmt = new CommentStmt();
 		if(node.getNodeString().contains("%")){
-			fcg.buf.append("c     "+node.getNodeString().replace("%", ""));			
+			stmt.setComment(node.getNodeString().replace("%", ""));			
 		}
-		return fcg;
+		return stmt;
 	}
 }

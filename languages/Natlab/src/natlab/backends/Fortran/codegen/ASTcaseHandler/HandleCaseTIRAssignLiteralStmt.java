@@ -23,6 +23,11 @@ public class HandleCaseTIRAssignLiteralStmt {
 		if (Debug) System.out.println("in an assignLiteral statement");
 		
 		AssignLiteralStmt stmt = new AssignLiteralStmt();
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		Variable var = new Variable();
 		var.setName(node.getTargetName().getVarName());
 		stmt.setVariable(var);

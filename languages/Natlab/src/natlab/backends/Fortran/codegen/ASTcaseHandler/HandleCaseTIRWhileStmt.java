@@ -19,13 +19,20 @@ public class HandleCaseTIRWhileStmt {
 		if (Debug) System.out.println(node.getCondition().getVarName());
 		
 		WhileStmt stmt = new WhileStmt();
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		stmt.setCondition(node.getCondition().getVarName());
 		
 		fcg.isIfWhileForBlock = true;
 		StatementSection whileStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = whileStmtSec;
+		fcg.indentNum = fcg.indentNum + 1;
 		fcg.iterateStatements(node.getStatements());
 		stmt.setWhileBlock(whileStmtSec);
+		fcg.indentNum = fcg.indentNum - 1;
 		fcg.isIfWhileForBlock = false;
 		return stmt;
 	}

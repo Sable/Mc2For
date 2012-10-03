@@ -19,7 +19,11 @@ public class HandleCaseTIRForStmt {
 		if (Debug) System.out.println(node.getLoopVarName().getVarName());
 		
 		ForStmt stmt = new ForStmt();
-		
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		stmt.setLoopVar(node.getLoopVarName().getVarName());
 		fcg.forStmtParameter.add(node.getLoopVarName().getVarName());
 		
@@ -39,8 +43,10 @@ public class HandleCaseTIRForStmt {
 		fcg.isIfWhileForBlock = true;
 		StatementSection forStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = forStmtSec;
+		fcg.indentNum = fcg.indentNum + 1;
 		fcg.iterateStatements(node.getStatements());
 		stmt.setForBlock(forStmtSec);
+		fcg.indentNum = fcg.indentNum - 1;
 		fcg.isIfWhileForBlock = false;
 		
 		return stmt;

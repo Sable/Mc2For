@@ -19,7 +19,11 @@ public class HandleCaseTIRArraySetStmt {
 		if (Debug) System.out.println("in an arrayset statement!");
 		
 		ArraySetStmt stmt = new ArraySetStmt();
-
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		stmt.setlhsVariable(node.getArrayName().getVarName());
 		stmt.setlhsIndex(node.getIndizes().toString().replace("[", "").replace("]", ""));
 		stmt.setrhsVariable(node.getValueName().getVarName());

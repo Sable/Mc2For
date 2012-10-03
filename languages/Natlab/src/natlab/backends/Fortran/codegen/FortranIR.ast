@@ -16,12 +16,14 @@ ShapeInfo ::= <Name: String>;
 StatementSection ::= Statement*;
 abstract Statement;
 
-AssignLiteralStmt: Statement ::= [RuntimeCheck] Variable <Literal>;
+CommentStmt: Statement ::= <Comment>;
+
+AssignLiteralStmt: Statement ::= <Indent> [RuntimeCheck] Variable <Literal>;
 RuntimeCheck ::= <Name: String>;
 
-AbstractAssignToVarStmt: Statement ::= [RuntimeCheck] <TargetVariable> <SourceVariable>;
+AbstractAssignToVarStmt: Statement ::= <Indent> [RuntimeCheck] <TargetVariable> <SourceVariable>;
 
-AbstractAssignToListStmt: Statement ::= [RuntimeCheck] Expression;
+AbstractAssignToListStmt: Statement ::= <Indent> [RuntimeCheck] Expression;
 abstract Expression;
 BinaryExpr: Expression ::= Variable* <Operand1> <Operator> <Operand2>;
 UnaryExpr: Expression ::= Variable* <Operator> <Operand>;
@@ -31,16 +33,16 @@ BuiltinConstantExpr: Expression ::= Variable* <BuiltinFunc>;
 IOOperationExpr: Expression ::= <IOOperator> <ArgsList>;
 UserDefinedFunction: Expression ::= Variable* <FuncName> <ArgsList>;
 
-Subroutines: Statement ::= <FuncName> <InputArgsList> <OutputArgsList>;
+Subroutines: Statement ::= <Indent> <FuncName> <InputArgsList> <OutputArgsList>;
 
-IfStmt: Statement ::= <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
+IfStmt: Statement ::= <Indent> <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
 
-WhileStmt: Statement ::= <Condition> WhileBlock: StatementSection;
+WhileStmt: Statement ::= <Indent> <Condition> WhileBlock: StatementSection;
 
-ForStmt: Statement ::= <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
+ForStmt: Statement ::= <Indent> <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
 Inc ::= <Name: String>;
 
-ArrayGetStmt: Statement ::= <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+ArrayGetStmt: Statement ::= <Indent> <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 lhsIndex ::= <Name: String>;
 
-ArraySetStmt: Statement ::= <lhsVariable> <lhsIndex> <rhsVariable>;
+ArraySetStmt: Statement ::= <Indent> <lhsVariable> <lhsIndex> <rhsVariable>;

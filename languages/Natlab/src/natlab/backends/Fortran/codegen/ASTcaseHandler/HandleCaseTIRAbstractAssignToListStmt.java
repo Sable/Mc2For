@@ -21,6 +21,11 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		if (Debug) System.out.println("in an abstractAssignToList  statement");
 		
 		AbstractAssignToListStmt stmt = new AbstractAssignToListStmt();
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		Expression exp = makeExpression(fcg, node);
 		stmt.setExpression(exp);
 		return stmt;
@@ -51,7 +56,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			BinaryExpr binExpr = new BinaryExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				var.setName(name.getID());
+				if(fcg.outRes.contains(name.getID())){
+					var.setName(fcg.majorName);
+				}
+				else{
+					var.setName(name.getID());
+				}
 				binExpr.addVariable(var);
 			}
 			binExpr.setOperand1(Operand1);
@@ -62,7 +72,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			UnaryExpr unExpr = new UnaryExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				var.setName(name.getID());
+				if(fcg.outRes.contains(name.getID())){
+					var.setName(fcg.majorName);
+				}
+				else{
+					var.setName(name.getID());
+				}
 				unExpr.addVariable(var);
 			}
 			unExpr.setOperand(Operand1);
@@ -74,7 +89,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			DirectBuiltinExpr dirBuiltinExpr = new DirectBuiltinExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				var.setName(name.getID());
+				if(fcg.outRes.contains(name.getID())){
+					var.setName(fcg.majorName);
+				}
+				else{
+					var.setName(name.getID());
+				}
 				dirBuiltinExpr.addVariable(var);
 			}
 			dirBuiltinExpr.setBuiltinFunc(RHSFortranOperator);
@@ -88,7 +108,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			BuiltinConstantExpr builtinConst = new BuiltinConstantExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				var.setName(name.getID());
+				if(fcg.outRes.contains(name.getID())){
+					var.setName(fcg.majorName);
+				}
+				else{
+					var.setName(name.getID());
+				}
 				builtinConst.addVariable(var);
 			}
 			builtinConst.setBuiltinFunc(RHSFortranOperator);
@@ -109,7 +134,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			UserDefinedFunction userDefFunc = new UserDefinedFunction();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				var.setName(name.getID());
+				if(fcg.outRes.contains(name.getID())){
+					var.setName(fcg.majorName);
+				}
+				else{
+					var.setName(name.getID());
+				}
 				userDefFunc.addVariable(var);
 			}
 			/**

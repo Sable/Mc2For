@@ -26,6 +26,11 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		if (Debug) System.out.println("in an abstractAssignToVar statement");
 		
 		AbstractAssignToVarStmt stmt = new AbstractAssignToVarStmt();
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		stmt.setTargetVariable(node.getTargetName().getID());
 		stmt.setSourceVariable(node.getRHS().getNodeString());
 		
