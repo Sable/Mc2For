@@ -85,6 +85,9 @@ public class CaseNewUserDefinedFunc {
 					declStmt.setVariableList(varList);
 				//}
 			}
+			/**
+			 * general situations...
+			 */
 			else{
 				if (Debug) System.out.println(variable + " = " + fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable));
 				
@@ -170,8 +173,6 @@ public class CaseNewUserDefinedFunc {
 									varFunc.setName(fcg.funcNameRep.get(variable));
 									varList.addVariable(varFunc);								
 								}
-								declStmt.setKeywordList(keywordList);
-								declStmt.setVariableList(varList);
 							}
 							else{
 								keyword.setName(tempBuf.toString());
@@ -184,9 +185,9 @@ public class CaseNewUserDefinedFunc {
 									varFunc.setName(fcg.funcNameRep.get(variable));
 									varList.addVariable(varFunc);								
 								}
-								declStmt.setKeywordList(keywordList);
-								declStmt.setVariableList(varList);
 							}
+							declStmt.setKeywordList(keywordList);
+							declStmt.setVariableList(varList);
 						}
 					}
 					else{

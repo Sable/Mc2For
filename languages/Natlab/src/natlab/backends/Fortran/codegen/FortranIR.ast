@@ -33,7 +33,7 @@ BuiltinConstantExpr: Expression ::= Variable* <BuiltinFunc>;
 IOOperationExpr: Expression ::= <IOOperator> <ArgsList>;
 UserDefinedFunction: Expression ::= Variable* <FuncName> <ArgsList>;
 
-Subroutines: Statement ::= <Indent> <FuncName> <InputArgsList> <OutputArgsList>;
+Subroutines: Expression ::= <Indent> <FuncName> <InputArgsList> <OutputArgsList>;
 
 IfStmt: Statement ::= <Indent> <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
 

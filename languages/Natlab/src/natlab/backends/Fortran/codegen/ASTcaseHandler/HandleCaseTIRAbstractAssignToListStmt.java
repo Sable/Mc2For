@@ -56,11 +56,16 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			BinaryExpr binExpr = new BinaryExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				if(fcg.outRes.contains(name.getID())){
-					var.setName(fcg.majorName);
+				if(fcg.isSubroutine==true){
+					var.setName(name.getID());
 				}
 				else{
-					var.setName(name.getID());
+					if(fcg.outRes.contains(name.getID())){
+						var.setName(fcg.majorName);
+					}
+					else{
+						var.setName(name.getID());
+					}
 				}
 				binExpr.addVariable(var);
 			}
@@ -72,11 +77,16 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			UnaryExpr unExpr = new UnaryExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				if(fcg.outRes.contains(name.getID())){
-					var.setName(fcg.majorName);
+				if(fcg.isSubroutine==true){
+					var.setName(name.getID());
 				}
 				else{
-					var.setName(name.getID());
+					if(fcg.outRes.contains(name.getID())){
+						var.setName(fcg.majorName);
+					}
+					else{
+						var.setName(name.getID());
+					}
 				}
 				unExpr.addVariable(var);
 			}
@@ -89,11 +99,16 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			DirectBuiltinExpr dirBuiltinExpr = new DirectBuiltinExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				if(fcg.outRes.contains(name.getID())){
-					var.setName(fcg.majorName);
+				if(fcg.isSubroutine==true){
+					var.setName(name.getID());
 				}
 				else{
-					var.setName(name.getID());
+					if(fcg.outRes.contains(name.getID())){
+						var.setName(fcg.majorName);
+					}
+					else{
+						var.setName(name.getID());
+					}
 				}
 				dirBuiltinExpr.addVariable(var);
 			}
@@ -108,11 +123,16 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			BuiltinConstantExpr builtinConst = new BuiltinConstantExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
-				if(fcg.outRes.contains(name.getID())){
-					var.setName(fcg.majorName);
+				if(fcg.isSubroutine==true){
+					var.setName(name.getID());
 				}
 				else{
-					var.setName(name.getID());
+					if(fcg.outRes.contains(name.getID())){
+						var.setName(fcg.majorName);
+					}
+					else{
+						var.setName(name.getID());
+					}
 				}
 				builtinConst.addVariable(var);
 			}
@@ -130,34 +150,61 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * deal with user defined functions, apparently, there is no corresponding Fortran function for this.
 			 */
 			Args = getArgsList(node);
-			ArgsListasString = getArgsListAsString(Args);
-			UserDefinedFunction userDefFunc = new UserDefinedFunction();
-			for(ast.Name name : node.getTargets().asNameList()){
-				Variable var = new Variable();
-				if(fcg.outRes.contains(name.getID())){
-					var.setName(fcg.majorName);
+			if(Args.size()==1){
+				/**
+				 * this is for functions.
+				 */
+				ArgsListasString = getArgsListAsString(Args);
+				UserDefinedFunction userDefFunc = new UserDefinedFunction();
+				for(ast.Name name : node.getTargets().asNameList()){
+					Variable var = new Variable();
+					if(fcg.isSubroutine==true){
+						var.setName(name.getID());
+					}
+					else{
+						if(fcg.outRes.contains(name.getID())){
+							var.setName(fcg.majorName);
+						}
+						else{
+							var.setName(name.getID());
+						}
+					}
+					userDefFunc.addVariable(var);
+				}
+				String funcName;
+				funcName = node.getRHS().getVarName();
+				userDefFunc.setFuncName(funcName);
+				userDefFunc.setArgsList(ArgsListasString);
+				if(fcg.funcNameRep.containsValue(funcName)){
+					/**
+					 * already has this function name, don't need to put it into the hashmap again.
+					 */
+					return userDefFunc;
 				}
 				else{
-					var.setName(name.getID());
+					String LHSName;
+					LHSName = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+					fcg.funcNameRep.put(LHSName, funcName);
+					return userDefFunc;
 				}
-				userDefFunc.addVariable(var);
 			}
-			/**
-			 * the function is a user defined function, so cannot find a mapping name or operator.
-			 * here, there are two situations:
-			 * 1, the number of target variables is 1;
-			 * 2, the number of target variables is 2.
-			 * TODO
-			 */
-			String funcName;
-			funcName = node.getRHS().getVarName();
-			userDefFunc.setFuncName(funcName);
-			userDefFunc.setArgsList(ArgsListasString);
-			String LHSName;
-			LHSName = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			//XU, a little bit trick, go back to IR to get a better solution
-			fcg.funcNameRep.put(LHSName, funcName);
-			return userDefFunc;
+			else{
+				/**
+				 * this is for subroutines.
+				 */
+				ArgsListasString = getArgsListAsString(Args);
+				Subroutines subroutine = new Subroutines();
+				ArrayList<String> outputArgsList = new ArrayList<String>();
+				for(ast.Name name : node.getTargets().asNameList()){
+					outputArgsList.add(name.getID());
+				}
+				String funcName;
+				funcName = node.getRHS().getVarName();
+				subroutine.setFuncName(funcName);
+				subroutine.setInputArgsList(ArgsListasString);
+				subroutine.setOutputArgsList(outputArgsList.toString().replace("[", "").replace("]", ""));
+				return subroutine;
+			}
 		default:
 			System.err.println("this cannot happen...");
 			return null;

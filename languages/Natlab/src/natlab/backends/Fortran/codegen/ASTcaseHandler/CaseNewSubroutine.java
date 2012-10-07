@@ -9,6 +9,18 @@ import ast.Name;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.backends.Fortran.codegen.*;
+import natlab.backends.Fortran.codegen.FortranAST.DeclStmt;
+import natlab.backends.Fortran.codegen.FortranAST.DeclarationSection;
+import natlab.backends.Fortran.codegen.FortranAST.Keyword;
+import natlab.backends.Fortran.codegen.FortranAST.KeywordList;
+import natlab.backends.Fortran.codegen.FortranAST.Parameter;
+import natlab.backends.Fortran.codegen.FortranAST.ProgramParameterList;
+import natlab.backends.Fortran.codegen.FortranAST.ProgramTitle;
+import natlab.backends.Fortran.codegen.FortranAST.ShapeInfo;
+import natlab.backends.Fortran.codegen.FortranAST.StatementSection;
+import natlab.backends.Fortran.codegen.FortranAST.SubProgram;
+import natlab.backends.Fortran.codegen.FortranAST.Variable;
+import natlab.backends.Fortran.codegen.FortranAST.VariableList;
 
 public class CaseNewSubroutine {
 	static boolean Debug = false;
@@ -18,45 +30,56 @@ public class CaseNewSubroutine {
 	}
 	
 	public FortranCodeASTGenerator newSubroutine(FortranCodeASTGenerator fcg, TIRFunction node){
-		fcg.isSubroutine = true;
+		/*
+		 * SubProgram ::= ProgramTitle DeclarationSection StatementSection;
+		 * and subroutine is like this, subroutine name(inputArgs+outputArgs) + declaration section + stmt section.
+		 * so 
+		 * 1. we try to go through the stmt section first, set the stmt section;
+		 * 2. set the title section;
+		 * 3. and then we can set the declaration sectionn,
+		 * because there may be some shadow variable we generated during the stmt transformation.
+		 * the difference between subroutine and main function is that we need inputArgs following the function name,
+		 * and declare the input and output variables with the keyword intent(in) and intent(out).
+		 */
 		if (Debug) System.out.println("this is a subroutine");
+		fcg.isSubroutine = true;
+		SubProgram subroutine = new SubProgram();
+		fcg.SubProgram = subroutine;
+		StatementSection stmtSection = new StatementSection();
+		subroutine.setStatementSection(stmtSection);
+		/**
+		 * go through all the statements.
+		 */
+		//boolean first = true;
 		fcg.iterateStatements(node.getStmts());
-		fcg.buf.append("return\nend");
 		
-		fcg.buf2.append("subroutine ");
-		fcg.buf2.append(fcg.majorName);
-		fcg.buf2.append("(");
-		boolean first = true;
-		for(Name param : node.getInputParams()){
-			if(!first) {
-				fcg.buf2.append(", ");
-			}
-			fcg.buf2.append(param.getVarName());
-			first = false;
+		ProgramTitle title = new ProgramTitle();
+		title.setProgramType("subroutine");
+		title.setProgramName(fcg.majorName);
+		ProgramParameterList argsList = new ProgramParameterList();
+		for(String arg : fcg.inArgs){
+			Parameter para = new Parameter();
+			para.setName(arg);
+			argsList.addParameter(para);
 		}
-		fcg.buf2.append(", ");
-		first = true;
-		for(Name res : node.getOutputParams()){
-			if(!first) {
-				fcg.buf2.append(", ");
-			}
-			fcg.buf2.append(res.getVarName());
-			first = false;
+		for(String arg : fcg.outRes){
+			Parameter para = new Parameter();
+			para.setName(arg);
+			argsList.addParameter(para);
 		}
-		fcg.buf2.append(")");
-		fcg.buf2.append("\nimplicit none");
+		title.setProgramParameterList(argsList);
+		subroutine.setProgramTitle(title);
 		
-		if (Debug) System.out.println(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()+"\n");
+		DeclarationSection declSection = new DeclarationSection();
 		
 		for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
-			/**
-			 * first, deal with for-loop statement variables...Fortran must declare them as integer.
-			 */
+			DeclStmt declStmt = new DeclStmt();
+			//type is already a token, don't forget.
+			KeywordList keywordList = new KeywordList();
+			ShapeInfo shapeInfo = new ShapeInfo();
+			VariableList varList = new VariableList();
 			
-			if (Debug) System.out.println("the parameters in for stmt: "+fcg.forStmtParameter);
-			
-			if(fcg.forStmtParameter.contains(variable)){
-				if (Debug) System.out.println("variable "+variable+" is a for stmt parameter.");
+			if(fcg.forStmtParameter.contains(variable)||fcg.arrayIndexParameter.contains(variable)){
 				if (Debug) System.out.println(variable + " = " + fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable));
 				
 				//complex or not others, like real, integer or something else
@@ -67,15 +90,19 @@ public class CaseNewSubroutine {
 				else{
 					buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				}*/
-				fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping("int8"));
+				declStmt.setType("\n" + fcg.FortranMap.getFortranTypeMapping("int8"));
 				//parameter
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+				/*if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 					if (Debug) System.out.println("add parameter here!");
 					fcg.buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
-				}
-				else{
-					fcg.buf2.append(" :: " + variable);
-				}
+				}*/
+				//else{
+					Variable var = new Variable();
+					var.setName(variable);
+					varList.addVariable(var);
+					declStmt.setKeywordList(keywordList);
+					declStmt.setVariableList(varList);
+				//}
 			}
 			/**
 			 * general situations...
@@ -91,19 +118,18 @@ public class CaseNewSubroutine {
 				else{
 					buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				}*/
-				fcg.buf2.append("\n" + fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				//parameter
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()&&(fcg.inArgs.contains(variable)==false)&&(fcg.outRes.contains(variable)==false)){
+				/*if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()&&(fcg.inArgs.contains(variable)==false)&&(fcg.outRes.contains(variable)==false)){
 					if (Debug) System.out.println("add parameter here!");
 					fcg.buf2.append(" , parameter :: " + variable + "=" + ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant().toString());
-				}
-				else{
+				}*/
+				//else{
 					//dimension
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
 						if (Debug) System.out.println("add dimension here!");
-						fcg.buf2.append(" , dimension(");
+						Keyword keyword = new Keyword();
 						ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
-						if (Debug) System.out.println(dim);
 						boolean conter = false;
 						boolean variableShapeIsKnown = true;
 						for(Integer intgr : dim){
@@ -116,34 +142,66 @@ public class CaseNewSubroutine {
 						 * if one of the dimension is unknown, which value is null, goes to if block.
 						 */
 						if(variableShapeIsKnown==false){
+							StringBuffer tempBuf = new StringBuffer();
+							tempBuf.append("dimension(");
 							for(int i=1; i<=dim.size(); i++){
 								if(conter){
-									fcg.buf2.append(",");
+									tempBuf.append(",");
 								}
-								fcg.buf2.append(":");
+								tempBuf.append(":");
 								conter = true;
 							}
-							fcg.buf2.append(") , allocatable :: " + variable);
+							tempBuf.append(") , allocatable :: ");
+							keyword.setName(tempBuf.toString());
+							keywordList.addKeyword(keyword);
+							if(fcg.inArgs.contains(variable)){
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("intent(in)");
+								keywordList.addKeyword(keyword2);
+							}
+							else if(fcg.outRes.contains(variable)){
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("intent(out)");
+								keywordList.addKeyword(keyword2);
+							}
+							Variable var = new Variable();
+							var.setName(variable);
+							varList.addVariable(var);
+							declStmt.setKeywordList(keywordList);
+							declStmt.setVariableList(varList);
 						}
 						
 						/**
 						 * if all the dimension is exactly known, which values are all integer, goes to else block.
 						 */
+						//currently, I put shapeInfo with the keyword dimension together, it's okay now, keep an eye on this.
 						else{
+							StringBuffer tempBuf = new StringBuffer();
+							tempBuf.append("dimension(");
 							for(Integer inte : dim){
 								if(conter){
-									fcg.buf2.append(",");
+									tempBuf.append(",");
 								}
-								fcg.buf2.append(inte.toString());
+								tempBuf.append(inte.toString());
 								conter = true;
 							}
-							fcg.buf2.append(")");
-							if(fcg.outRes.contains(variable)){
-								fcg.buf2.append(" :: " + fcg.majorName);
+							tempBuf.append(")");
+							keyword.setName(tempBuf.toString());
+							keywordList.addKeyword(keyword);
+							if(fcg.inArgs.contains(variable)){
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("intent(in)");
+								keywordList.addKeyword(keyword2);
 							}
-							else{
-								fcg.buf2.append(" :: " + variable);
+							else if(fcg.outRes.contains(variable)){
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("intent(out)");
+								keywordList.addKeyword(keyword2);
 							}
+							Variable var = new Variable();
+							varList.addVariable(var);
+							declStmt.setKeywordList(keywordList);
+							declStmt.setVariableList(varList);
 						}
 					}
 					else{
@@ -151,27 +209,66 @@ public class CaseNewSubroutine {
 						 * for subroutines, it's different from which in functions.
 						 */
 						if(fcg.inArgs.contains(variable)){
-							fcg.buf2.append(" , intent(in)");
+							Keyword keyword = new Keyword();
+							keyword.setName("intent(in)");
+							keywordList.addKeyword(keyword);
+							declStmt.setKeywordList(keywordList);
 						}
 						else if(fcg.outRes.contains(variable)){
-							fcg.buf2.append(" , intent(out)");
+							Keyword keyword = new Keyword();
+							keyword.setName("intent(out)");
+							keywordList.addKeyword(keyword);
+							declStmt.setKeywordList(keywordList);
 						}
-						fcg.buf2.append(" :: " + variable);
+						Variable var = new Variable();
+						var.setName(variable);
+						varList.addVariable(var);
+						declStmt.setVariableList(varList);
 					}
-				}
+				//}
 			}
+			declSection.addDeclStmt(declStmt);
 		}
-		fcg.buf2.append("\n");
-		fcg.buf2.append(fcg.buf);
-		try{
-			BufferedWriter out = new BufferedWriter(new FileWriter(fcg.fileDir+node.getName()+".f95"));
-			out.write(fcg.buf2.toString());
-			out.close();
+		/**
+		 * declare the function name
+		 */
+		for(String variable : fcg.funcNameRep.keySet()){
+			DeclStmt declStmt = new DeclStmt();
+			VariableList varList = new VariableList();
+			declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index)
+					.getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+			Variable var = new Variable();
+			var.setName(fcg.funcNameRep.get(variable));
+			varList.addVariable(var);
+			declStmt.setVariableList(varList);
+			declSection.addDeclStmt(declStmt);
 		}
-		catch(IOException e){
-			System.err.println("Exception ");
-
+		
+		
+		/**
+		 * declare those variables generated during the code generation,
+		 * like extra variables for runtime shape check
+		 */
+		for(String tmpVariable : fcg.tmpVariables.keySet()){
+			DeclStmt declStmt = new DeclStmt();
+			//type is already a token, don't forget.
+			KeywordList keywordList = new KeywordList();
+			ShapeInfo shapeInfo = new ShapeInfo();
+			VariableList varList = new VariableList();
+			declStmt.setType(fcg.FortranMap.getFortranTypeMapping(fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString()));
+			Keyword keyword = new Keyword();
+			keyword.setName("dimension("+fcg.tmpVariables.get(tmpVariable).getShape().toString().replace(" ", "").replace("[", "").replace("]", "")+")");
+			keywordList.addKeyword(keyword);
+			Variable var = new Variable();
+			var.setName(tmpVariable);
+			varList.addVariable(var);
+			declStmt.setKeywordList(keywordList);
+			declStmt.setVariableList(varList);
+			declSection.addDeclStmt(declStmt);
 		}
+		subroutine.setDeclarationSection(declSection);
+		subroutine.setProgramEnd("return\nend");
+		fcg.isSubroutine = false;
 		return fcg;
 	}
 }

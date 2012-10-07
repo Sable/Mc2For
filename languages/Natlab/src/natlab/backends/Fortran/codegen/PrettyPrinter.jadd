@@ -1,12 +1,15 @@
 aspect PrettyPrinter{
 	public void ASTNode.pp() {}
+	
 	public void Program.pp() {}
+	
 	public void SubProgram.pp() {
 		getProgramTitle().pp();
 		getDeclarationSection().pp();
 		getStatementSection().pp();
 		System.out.println(getProgramEnd());
 	}
+	
 	public void ProgramTitle.pp() {
 	    System.out.print(getProgramType()+" "+getProgramName());
 	    if(hasProgramParameterList()) {
@@ -16,6 +19,7 @@ aspect PrettyPrinter{
 	    }
 	    System.out.println("\nimplicit none");
 	}
+    
     public void ProgramParameterList.pp() {
         int size = getNumParameter();
         for(int i=0;i<size;i++) {
@@ -25,9 +29,11 @@ aspect PrettyPrinter{
         	}
         }
     }
+    
     public void Parameter.pp() {
     	System.out.print(getName());
     }
+    
     public void DeclarationSection.pp() {
     	int size = getNumDeclStmt();
     	for(int i=0;i<size;i++) {
@@ -35,6 +41,7 @@ aspect PrettyPrinter{
     		System.out.println("");
     	}    
     }
+    
     public void DeclStmt.pp() {
     	System.out.print(getType());
     	if(hasKeywordList()) {
@@ -48,6 +55,7 @@ aspect PrettyPrinter{
     	System.out.print(" :: ");
     	getVariableList().pp();
     }
+    
     public void KeywordList.pp() {
     	int size = getNumKeyword();
         for(int i=0;i<size;i++) {
@@ -57,12 +65,15 @@ aspect PrettyPrinter{
         	}
         }
     }
+    
     public void Keyword.pp() {
     	System.out.print(getName());
     }
+    
     public void ShapeInfo.pp() {
     	System.out.print(getName());
     }
+    
     public void VariableList.pp() {
     	int size = getNumVariable();
         for(int i=0;i<size;i++) {
@@ -72,9 +83,11 @@ aspect PrettyPrinter{
         	}
         }
     }
+    
     public void Variable.pp() {
     	System.out.print(getName());
     }
+    
     public void StatementSection.pp() {
     	int size = getNumStatement();
     	for(int i=0;i<size;i++) {
@@ -82,15 +95,18 @@ aspect PrettyPrinter{
     		System.out.println("");
     	}
     }
+    
     public void Statement.pp() {
     
     }
+    
     public void CommentStmt.pp() {
     	if(getComment()!=null){
-    		System.out.print("c   ");
+    		System.out.print("!   ");
     		System.out.print(getComment());
     	}
     }
+    
     public void AssignLiteralStmt.pp() {
     	System.out.print(getIndent());
     	if(hasRuntimeCheck()) {
@@ -99,6 +115,7 @@ aspect PrettyPrinter{
     	getVariable().pp();
     	System.out.print(" = "+getLiteral()+";");
     }
+    
     public void AbstractAssignToVarStmt.pp() {
     	System.out.print(getIndent());
     	if(hasRuntimeCheck()) {
@@ -106,6 +123,7 @@ aspect PrettyPrinter{
     	}
     	System.out.print(getTargetVariable()+" = "+getSourceVariable()+";");
     }
+    
     public void AbstractAssignToListStmt.pp() {
     	System.out.print(getIndent());
     	if(hasRuntimeCheck()) {
@@ -113,7 +131,9 @@ aspect PrettyPrinter{
     	}
     	getExpression().pp();
     }
+    
     public void Expression.pp() {}
+    
     public void BinaryExpr.pp() {
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
@@ -124,6 +144,7 @@ aspect PrettyPrinter{
     	}
     	System.out.print(" = "+getOperand1()+" "+getOperator()+" "+getOperand2()+";");
     }
+    
     public void UnaryExpr.pp() {
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
@@ -134,6 +155,7 @@ aspect PrettyPrinter{
     	}
     	System.out.print(" = "+getOperator()+" "+getOperand()+";");
     }
+    
     public void DirectBuiltinExpr.pp() {
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
@@ -144,9 +166,11 @@ aspect PrettyPrinter{
     	}
     	System.out.print(" = "+getBuiltinFunc()+"("+getArgsList()+");");
     }
+    
     public void NoDirectBuiltinExpr.pp() {
     	System.out.print(getCodeInline());
     }
+    
     public void BuiltinConstantExpr.pp() {
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
@@ -157,9 +181,11 @@ aspect PrettyPrinter{
     	}
     	System.out.print(" = "+getBuiltinFunc()+";");
     }
+    
     public void IOOperationExpr.pp() {
     	System.out.print(getIOOperator()+getArgsList()+";");
     }
+    
     public void UserDefinedFunction.pp() {
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
@@ -170,10 +196,11 @@ aspect PrettyPrinter{
     	}
     	System.out.print(" = "+getFuncName()+"("+getArgsList()+");");
     }
+    
     public void Subroutines.pp() {
-    	System.out.print(getIndent());
     	System.out.print("call "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
     }
+    
     public void IfStmt.pp() {
     	System.out.print(getIndent());
     	System.out.print("if ("+getCondition()+") then\n");
@@ -185,6 +212,7 @@ aspect PrettyPrinter{
     	}
     	System.out.print("endif");
     }
+    
     public void WhileStmt.pp() {
    	 	System.out.print(getIndent());
     	System.out.print("do while ("+getCondition()+")");
@@ -192,6 +220,7 @@ aspect PrettyPrinter{
     	getWhileBlock().pp();
     	System.out.print("enddo");   	
     }
+    
     public void ForStmt.pp() {
     	System.out.print(getIndent());
     	System.out.print("do "+getLoopVar()+" = "+getLowBoundary()+" , ");
@@ -204,9 +233,11 @@ aspect PrettyPrinter{
     	getForBlock().pp();
     	System.out.print("enddo");    	
     }
+    
     public void Inc.pp() {
     	System.out.print(getName());
     }
+    
     public void ArrayGetStmt.pp() {
     	System.out.print(getIndent());
     	System.out.print(getlhsVariable());
@@ -217,9 +248,11 @@ aspect PrettyPrinter{
     	}
     	System.out.print(" = "+getrhsVariable()+"("+getrhsIndex()+");");
     }
+    
     public void lhsIndex.pp() {
     	System.out.print(getName());
     }
+    
     public void ArraySetStmt.pp() {
     	System.out.print(getIndent());
     	System.out.print(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
