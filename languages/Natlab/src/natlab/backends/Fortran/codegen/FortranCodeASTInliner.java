@@ -57,7 +57,7 @@ public class FortranCodeASTInliner {
 
 			StringBuffer tmpBuf = new StringBuffer();
 			for(int i=1; i<=secondDimensionInt; i++){
-				tmpBuf.append(LHS+"_columnTmp(1,"+i+") = 1;");
+				tmpBuf.append("mc_"+LHS+"_column(1,"+i+") = 1;");
 				if(i<secondDimensionInt){
 					tmpBuf.append("\n");
 				}
@@ -67,7 +67,7 @@ public class FortranCodeASTInliner {
 					.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(0)).getSingleton())).getConstant().getValue();
 			int firstDimensionInt = (int) firstDimensionDbl;
 			for(int i=1; i<=firstDimensionInt; i++){
-				tmpBuf.append(LHS+"("+i+",:) = "+LHS+"_columnTmp(1,:);");
+				tmpBuf.append(LHS+"("+i+",:) = "+"mc_"+LHS+"_column(1,:);");
 				if(i<firstDimensionInt){
 					tmpBuf.append("\n");
 				}
@@ -77,7 +77,7 @@ public class FortranCodeASTInliner {
 			shape.add(secondDimensionInt);
 			BasicMatrixValue tmp = 
 					new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape));
-			fcg.tmpVariables.put(LHS+"_columnTmp", tmp);
+			fcg.tmpVariables.put("mc_"+LHS+"_column", tmp);
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		return noDirBuiltinExpr;
