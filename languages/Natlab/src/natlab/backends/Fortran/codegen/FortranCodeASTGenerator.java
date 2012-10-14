@@ -166,11 +166,23 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
-		
+		HandleCaseTIRArrayGetStmt arrGetStmt = new HandleCaseTIRArrayGetStmt();
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(arrGetStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(arrGetStmt.getFortran(this, node));
+		}
 	}
 	
 	@Override
 	public void caseTIRArraySetStmt(TIRArraySetStmt node){
-		
+		HandleCaseTIRArraySetStmt arrSetStmt = new HandleCaseTIRArraySetStmt();
+		if(this.isIfWhileForBlock==true){
+			this.stmtSecForIfWhileForBlock.addStatement(arrSetStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(arrSetStmt.getFortran(this, node));
+		}
 	}
 }

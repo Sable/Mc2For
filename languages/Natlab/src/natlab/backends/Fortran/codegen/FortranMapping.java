@@ -46,12 +46,12 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("minus", "-");
 		FortranBinOperatorMap.put("mtimes", "*");
 		FortranBinOperatorMap.put("mrdivide", "/");
-		FortranBinOperatorMap.put("mldivide", "\\");//may be as a method 
+		FortranBinOperatorMap.put("mldivide", "\\");
 		FortranBinOperatorMap.put("mpower", "^");
-		FortranBinOperatorMap.put("times", ".*");//may be as a method 
-		FortranBinOperatorMap.put("rdivide", "./");//may be as a method 
-		FortranBinOperatorMap.put("ldivide", ".\\");//may be as a method 
-		FortranBinOperatorMap.put("power", ".^");//may be as a method 
+		FortranBinOperatorMap.put("times", ".*");
+		FortranBinOperatorMap.put("rdivide", "./");
+		FortranBinOperatorMap.put("ldivide", ".\\");
+		FortranBinOperatorMap.put("power", ".^");
 		FortranBinOperatorMap.put("and", ".and.");
 		FortranBinOperatorMap.put("or", ".or.");
 		FortranBinOperatorMap.put("lt", ".lt.");
@@ -60,10 +60,9 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("ge", ".ge.");
 		FortranBinOperatorMap.put("eq", ".eq.");
 		FortranBinOperatorMap.put("ne", ".ne.");
-		FortranBinOperatorMap.put("transpose", ".'");//may be as a method 
-		FortranBinOperatorMap.put("ctranspose", "'");//may be as a method 
+		FortranBinOperatorMap.put("transpose", ".'");
+		FortranBinOperatorMap.put("ctranspose", "'"); 
 		FortranBinOperatorMap.put("not", "~");
-		FortranBinOperatorMap.put("colon", ":");//may be as a method 
 		
 	}
 	
@@ -86,6 +85,7 @@ public class FortranMapping {
 		FortranNoDirectBuiltinSet.add("vertcat");
 		FortranNoDirectBuiltinSet.add("ones");
 		FortranNoDirectBuiltinSet.add("zeros");
+		FortranNoDirectBuiltinSet.add("colon");
 	}
 	
 	private void makeFortranBuiltinConstMap(){
