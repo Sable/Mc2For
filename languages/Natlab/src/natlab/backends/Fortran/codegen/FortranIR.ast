@@ -42,7 +42,7 @@ WhileStmt: Statement ::= <Indent> <Condition> WhileBlock: StatementSection;
 ForStmt: Statement ::= <Indent> <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
 Inc ::= <Name: String>;
 
-ArrayGetStmt: Statement ::= <Indent> <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+ArrayGetStmt: Statement ::= <Indent> [RuntimeCheck] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 lhsIndex ::= <Name: String>;
 
-ArraySetStmt: Statement ::= <Indent> <lhsVariable> <lhsIndex> <rhsVariable>;
+ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] <lhsVariable> <lhsIndex> <rhsVariable>;

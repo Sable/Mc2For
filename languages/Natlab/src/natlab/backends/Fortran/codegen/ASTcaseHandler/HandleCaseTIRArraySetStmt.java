@@ -1,5 +1,7 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
+import java.util.ArrayList;
+
 import ast.Name;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
@@ -24,12 +26,26 @@ public class HandleCaseTIRArraySetStmt {
 			indent = indent + fcg.indent;
 		}
 		stmt.setIndent(indent);
+		
+		ArrayList<String> args = new ArrayList<String>();
+		int numArgs = node.getLHS().getChild(1).getNumChild();
+		for (int i=0;i<numArgs;i++){
+			args.add(node.getLHS().getChild(1).getChild(i).getNodeString());
+		}
+		
 		stmt.setlhsVariable(node.getArrayName().getVarName());
 		stmt.setlhsIndex(node.getIndizes().toString().replace("[", "").replace("]", ""));
 		stmt.setrhsVariable(node.getValueName().getVarName());
-		for(Name index : node.getIndizes().asNameList()){
-			fcg.arrayIndexParameter.add(index.getVarName());
+		
+		for(String indexName : args){
+			if(indexName.equals(":")){
+				//ignore this
+			}
+			else{
+				fcg.arrayIndexParameter.add(indexName);
+			}
 		}
+		
 		return stmt;
 	}
 }

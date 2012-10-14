@@ -8,6 +8,7 @@ import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
+import natlab.tame.valueanalysis.components.shape.Shape;
 
 public class HandleCaseTIRAssignLiteralStmt {
 
@@ -32,12 +33,13 @@ public class HandleCaseTIRAssignLiteralStmt {
 		var.setName(node.getTargetName().getVarName());
 		stmt.setVariable(var);
 		
-		if(node.getRHS().getRValue() instanceof IntLiteralExpr){
+		stmt.setLiteral(node.getRHS().getNodeString());
+		/*if(node.getRHS().getRValue() instanceof IntLiteralExpr){
 			stmt.setLiteral(((IntLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString());
 		}
 		else{
 			stmt.setLiteral(((FPLiteralExpr)node.getRHS().getRValue()).getValue().getValue().toString());
-		}
+		}*/
 		
 		/**
 		 * literal assignment target variable should be a constant, if it's not a constant, we need allocate it as a 1 by 1 array.
@@ -46,13 +48,11 @@ public class HandleCaseTIRAssignLiteralStmt {
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
 		else{
-			ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape().getDimensions());
-			try{
-				for(Integer intgr : dim){
-					String test = intgr.toString();
-				}
+			ArrayList<Integer> dims = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape().getDimensions());
+			if(Shape.isDimensionExactlyKnow(dims)){
+				
 			}
-			catch(Exception e){
+			else{
 				RuntimeCheck rtc = new RuntimeCheck();
 				rtc.setName("allocate("+node.getTargetName().getVarName()+"(1, 1));");
 				stmt.setRuntimeCheck(rtc);

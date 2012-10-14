@@ -210,7 +210,7 @@ aspect PrettyPrinter{
     		System.out.print("else\n");
     		getElseBlock().pp();
     	}
-    	System.out.print("endif");
+    	System.out.print(getIndent()+"endif");
     }
     
     public void WhileStmt.pp() {
@@ -218,7 +218,7 @@ aspect PrettyPrinter{
     	System.out.print("do while ("+getCondition()+")");
     	System.out.print("\n");
     	getWhileBlock().pp();
-    	System.out.print("enddo");   	
+    	System.out.print(getIndent()+"enddo");   	
     }
     
     public void ForStmt.pp() {
@@ -231,7 +231,7 @@ aspect PrettyPrinter{
     	System.out.print(getUpperBoundary());
     	System.out.print("\n");
     	getForBlock().pp();
-    	System.out.print("enddo");    	
+    	System.out.print(getIndent()+"enddo");    	
     }
     
     public void Inc.pp() {
@@ -240,6 +240,9 @@ aspect PrettyPrinter{
     
     public void ArrayGetStmt.pp() {
     	System.out.print(getIndent());
+    	if(hasRuntimeCheck()) {
+    		System.out.println(getRuntimeCheck());
+    	}
     	System.out.print(getlhsVariable());
     	if(haslhsIndex()) {
     		System.out.print("(");
@@ -255,6 +258,9 @@ aspect PrettyPrinter{
     
     public void ArraySetStmt.pp() {
     	System.out.print(getIndent());
+    	if(hasRuntimeCheck()) {
+    		System.out.println(getRuntimeCheck());
+    	}
     	System.out.print(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
     }
 }

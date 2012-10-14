@@ -100,7 +100,7 @@ public class CaseNewSubroutine {
 					Variable var = new Variable();
 					var.setName(variable);
 					varList.addVariable(var);
-					declStmt.setKeywordList(keywordList);
+					//declStmt.setKeywordList(keywordList);
 					declStmt.setVariableList(varList);
 				//}
 			}
@@ -252,19 +252,29 @@ public class CaseNewSubroutine {
 		for(String tmpVariable : fcg.tmpVariables.keySet()){
 			DeclStmt declStmt = new DeclStmt();
 			//type is already a token, don't forget.
-			KeywordList keywordList = new KeywordList();
 			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
 			declStmt.setType(fcg.FortranMap.getFortranTypeMapping(fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString()));
-			Keyword keyword = new Keyword();
-			keyword.setName("dimension("+fcg.tmpVariables.get(tmpVariable).getShape().toString().replace(" ", "").replace("[", "").replace("]", "")+")");
-			keywordList.addKeyword(keyword);
-			Variable var = new Variable();
-			var.setName(tmpVariable);
-			varList.addVariable(var);
-			declStmt.setKeywordList(keywordList);
-			declStmt.setVariableList(varList);
-			declSection.addDeclStmt(declStmt);
+			if(fcg.tmpVariables.get(tmpVariable).getShape().isScalar()){
+
+				Variable var = new Variable();
+				var.setName(tmpVariable);
+				varList.addVariable(var);
+				declStmt.setVariableList(varList);
+				declSection.addDeclStmt(declStmt);
+			}
+			else{
+				KeywordList keywordList = new KeywordList();
+				Keyword keyword = new Keyword();
+				keyword.setName("dimension("+fcg.tmpVariables.get(tmpVariable).getShape().toString().replace(" ", "").replace("[", "").replace("]", "")+")");
+				keywordList.addKeyword(keyword);
+				declStmt.setKeywordList(keywordList);
+				Variable var = new Variable();
+				var.setName(tmpVariable);
+				varList.addVariable(var);
+				declStmt.setVariableList(varList);
+				declSection.addDeclStmt(declStmt);
+			}
 		}
 		subroutine.setDeclarationSection(declSection);
 		subroutine.setProgramEnd("return\nend");

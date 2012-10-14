@@ -41,32 +41,33 @@ public class HandleCaseTIRArrayGetStmt {
 		ArrayList<Integer> dimension = new ArrayList<Integer>(arrayShape.getDimensions());
 		
 		if(args.size()==1){
-			Shape indexShape = ((HasShape)(fcg.analysis.getNodeList()
-					.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(0)).getSingleton())).getShape();
 			if(args.contains(":")){
 				//TODO
 			}
-			else if(indexShape.isScalar()){
-				Constant index = ((HasConstant)(fcg.analysis.getNodeList()
-						.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(0)).getSingleton())).getConstant();
-				double doubleIndex = (Double)index.getValue();
-				int intIndex = (int)doubleIndex;
-				int firstIndex = intIndex/dimension.get(1)+1;
-				int secondIndex = intIndex%dimension.get(1);
-				stmt.setlhsVariable(lhsVariable);
-				stmt.setrhsVariable(rhsArrayName);
-				stmt.setrhsIndex(Integer.toString(firstIndex)+","+Integer.toString(secondIndex));
-			}
 			else{
-				//TODO
+				Shape indexShape = ((HasShape)(fcg.analysis.getNodeList()
+						.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(0)).getSingleton())).getShape();
+				if(indexShape.isScalar()){
+					Constant index = ((HasConstant)(fcg.analysis.getNodeList()
+							.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(0)).getSingleton())).getConstant();
+					double doubleIndex = (Double)index.getValue();
+					int intIndex = (int)doubleIndex;
+					int firstIndex = intIndex/dimension.get(1)+1;
+					int secondIndex = intIndex%dimension.get(1);
+					stmt.setlhsVariable(lhsVariable);
+					stmt.setrhsVariable(rhsArrayName);
+					stmt.setrhsIndex(Integer.toString(firstIndex)+","+Integer.toString(secondIndex));
+				}
+				else{
+					//TODO
+				}
 			}
 		}
 		else if(args.size()==2){
 			for(int i=0;i<2;i++){
-				System.out.println(args.get(i));
+				if (Debug) System.out.println(args.get(i));
 				if(args.get(i).equals(":")){
 					//do nothing
-					System.out.println(args.get(i));
 				}
 				else if(((HasConstant)(fcg.analysis.getNodeList()
 						.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(i)).getSingleton())).getConstant()!=null){
@@ -79,15 +80,23 @@ public class HandleCaseTIRArrayGetStmt {
 					Shape index = ((HasShape)(fcg.analysis.getNodeList()
 							.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(i)).getSingleton())).getShape();
 					ArrayList<Integer> dims = new ArrayList<Integer>(index.getDimensions());
-					String newIndex = "";
-					for(int j=0;j<dims.size();j++){
-						newIndex = newIndex + dims.get(j).toString();
-						if((j+1)!=dims.size()){
-							newIndex = newIndex + ":";
+					if(Shape.isDimensionExactlyKnow(dims)){
+						String newIndex = "";
+						for(int j=0;j<dims.size();j++){
+							newIndex = newIndex + dims.get(j).toString();
+							if((j+1)!=dims.size()){
+								newIndex = newIndex + ":";
+							}
 						}
+						args.remove(i);
+						args.add(i, newIndex);
 					}
-					args.remove(i);
-					args.add(i, newIndex);
+					else{
+						/**
+						 * insert rumtime check!!!
+						 */
+						
+					}
 				}
 			}
 			if(args.contains(":")){

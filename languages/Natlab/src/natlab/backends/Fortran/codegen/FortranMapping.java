@@ -48,10 +48,10 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("mrdivide", "/");
 		FortranBinOperatorMap.put("mldivide", "\\");
 		FortranBinOperatorMap.put("mpower", "^");
-		FortranBinOperatorMap.put("times", ".*");
-		FortranBinOperatorMap.put("rdivide", "./");
-		FortranBinOperatorMap.put("ldivide", ".\\");
-		FortranBinOperatorMap.put("power", ".^");
+		FortranBinOperatorMap.put("times", "*");
+		FortranBinOperatorMap.put("rdivide", "/");
+		FortranBinOperatorMap.put("ldivide", "\\");
+		FortranBinOperatorMap.put("power", "**");
 		FortranBinOperatorMap.put("and", ".and.");
 		FortranBinOperatorMap.put("or", ".or.");
 		FortranBinOperatorMap.put("lt", ".lt.");
@@ -60,8 +60,6 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("ge", ".ge.");
 		FortranBinOperatorMap.put("eq", ".eq.");
 		FortranBinOperatorMap.put("ne", ".ne.");
-		FortranBinOperatorMap.put("transpose", ".'");
-		FortranBinOperatorMap.put("ctranspose", "'"); 
 		FortranBinOperatorMap.put("not", "~");
 		
 	}
@@ -78,6 +76,8 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("cos", "cos");
 		FortranDirectBuiltinMap.put("sum", "sum");
 		FortranDirectBuiltinMap.put("size", "size");
+		FortranDirectBuiltinMap.put("exp", "exp");
+		FortranDirectBuiltinMap.put("transpose", "transpose");
 	}
 	
 	private void makeFortranNoDirectBuiltinSet(){
