@@ -13,7 +13,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		String fileDir = "/home/xu/for_test/McFor/mcfor_test/";
-	    String fileIn = fileDir+"nb1d/drv_nb1d.m";
+	    String fileIn = fileDir+"adpt/drv_adpt.m";
 		/*String fileDir = "/home/xu/for_test/";
 	    String fileIn = fileDir+"hello.m";*/
 	    GenericFile gFile = GenericFile.create(fileIn);
