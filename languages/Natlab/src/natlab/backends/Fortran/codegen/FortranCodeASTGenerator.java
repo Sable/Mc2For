@@ -100,12 +100,18 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
-		HandleCaseTIRAssignLiteralStmt assignLiteralStmt = new HandleCaseTIRAssignLiteralStmt();
-		if(this.isIfWhileForBlock==true){
-			this.stmtSecForIfWhileForBlock.addStatement(assignLiteralStmt.getFortran(this, node));
+		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
+				get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
+			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
 		else{
-			this.SubProgram.getStatementSection().addStatement(assignLiteralStmt.getFortran(this, node));			
+			HandleCaseTIRAssignLiteralStmt assignLiteralStmt = new HandleCaseTIRAssignLiteralStmt();
+			if(this.isIfWhileForBlock==true){
+				this.stmtSecForIfWhileForBlock.addStatement(assignLiteralStmt.getFortran(this, node));
+			}
+			else{
+				this.SubProgram.getStatementSection().addStatement(assignLiteralStmt.getFortran(this, node));			
+			}			
 		}
 	}
 	

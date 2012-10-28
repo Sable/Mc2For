@@ -6,6 +6,7 @@ import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
+import natlab.tame.valueanalysis.components.constant.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.backends.Fortran.codegen.ASTcaseHandler.*;
 
@@ -29,9 +30,20 @@ public class FortranCodeASTInliner {
 			int argsNum = args.size();
 			StringBuffer tmpBuf = new StringBuffer();
 			for(int i=1; i<=argsNum; i++){
-				tmpBuf.append(indent+LHS+"(1,"+i+") = "+args.get(i-1)+";");
-				if(i<argsNum){
-					tmpBuf.append("\n");	
+				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(args.get(i-1)).getSingleton())).isConstant()){
+					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(i-1)).getSingleton())).getConstant();
+					tmpBuf.append(indent+LHS+"(1,"+i+") = "+c+";");
+					if(i<argsNum){
+						tmpBuf.append("\n");	
+					}	
+				}
+				else{
+					tmpBuf.append(indent+LHS+"(1,"+i+") = "+args.get(i-1)+";");
+					if(i<argsNum){
+						tmpBuf.append("\n");	
+					}					
 				}
 			}
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
@@ -70,9 +82,27 @@ public class FortranCodeASTInliner {
 		   	    enddo
 		      enddo
 		     */
-			tmpBuf.append(indent+"do mc_tmp_"+LHS+"_i = 1,"+args.get(0)+"\n");
-			tmpBuf.append(indent+fcg.indent+"do mc_tmp_"+LHS+"_j = 1,"+args.get(1)+"\n");
-			tmpBuf.append(indent+fcg.indent+fcg.indent+LHS+"(mc_tmp_"+LHS+"_i,mc_tmp_"+LHS+"_j) = 1;\n");
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+					get(args.get(0)).getSingleton())).isConstant()){
+				DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(args.get(0)).getSingleton())).getConstant();
+				int ci = c.getValue().intValue();
+				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1,"+ci+"\n");
+			}
+			else{
+				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1,"+args.get(0)+"\n");
+			}
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+					get(args.get(1)).getSingleton())).isConstant()){
+				DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(args.get(1)).getSingleton())).getConstant();
+				int ci = c.getValue().intValue();
+				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1,"+ci+"\n");
+			}
+			else{
+				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1,"+args.get(1)+"\n");
+			}
+			tmpBuf.append(indent+fcg.indent+fcg.indent+LHS+"(tmp_"+LHS+"_i,tmp_"+LHS+"_j) = 1;\n");
 			tmpBuf.append(indent+fcg.indent+"enddo\n");
 			tmpBuf.append(indent+"enddo");
 			
@@ -81,8 +111,8 @@ public class FortranCodeASTInliner {
 			shape.add(1);
 			BasicMatrixValue tmp = 
 					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
-			fcg.tmpVariables.put("mc_tmp_"+LHS+"_i", tmp);
-			fcg.tmpVariables.put("mc_tmp_"+LHS+"_j", tmp);
+			fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
+			fcg.tmpVariables.put("tmp_"+LHS+"_j", tmp);
 			fcg.forStmtParameter.add(args.get(0));
 			fcg.forStmtParameter.add(args.get(1));
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
@@ -103,9 +133,9 @@ public class FortranCodeASTInliner {
 		   	    enddo
 		      enddo
 		     */
-			tmpBuf.append(indent+"do mc_tmp_"+LHS+"_i = 1,"+args.get(0)+"\n");
-			tmpBuf.append(indent+fcg.indent+"do mc_tmp_"+LHS+"_j = 1,"+args.get(1)+"\n");
-			tmpBuf.append(indent+fcg.indent+fcg.indent+LHS+"(mc_tmp_"+LHS+"_i,mc_tmp_"+LHS+"_j) = 0;\n");
+			tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1,"+args.get(0)+"\n");
+			tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1,"+args.get(1)+"\n");
+			tmpBuf.append(indent+fcg.indent+fcg.indent+LHS+"(tmp_"+LHS+"_i,tmp_"+LHS+"_j) = 0;\n");
 			tmpBuf.append(indent+fcg.indent+"enddo\n");
 			tmpBuf.append(indent+"enddo");
 			
@@ -114,8 +144,8 @@ public class FortranCodeASTInliner {
 			shape.add(1);
 			BasicMatrixValue tmp = 
 					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
-			fcg.tmpVariables.put("mc_tmp_"+LHS+"_i", tmp);
-			fcg.tmpVariables.put("mc_tmp_"+LHS+"_j", tmp);
+			fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
+			fcg.tmpVariables.put("tmp_"+LHS+"_j", tmp);
 			fcg.forStmtParameter.add(args.get(0));
 			fcg.forStmtParameter.add(args.get(1));
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());

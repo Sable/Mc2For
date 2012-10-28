@@ -69,6 +69,9 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				}
 				binExpr.addVariable(var);
 			}
+			/**
+			 * check whether they are constant, if true, replace them with their values.
+			 */
 			binExpr.setOperand1(Operand1);
 			binExpr.setOperand2(Operand2);
 			binExpr.setOperator(RHSFortranOperator);

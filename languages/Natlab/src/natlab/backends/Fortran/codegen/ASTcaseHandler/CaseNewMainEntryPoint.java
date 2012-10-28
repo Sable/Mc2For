@@ -41,13 +41,16 @@ public class CaseNewMainEntryPoint {
 		DeclarationSection declSection = new DeclarationSection();
 		
 		for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
-			DeclStmt declStmt = new DeclStmt();
-			//type is already a token, don't forget.
-			KeywordList keywordList = new KeywordList();
-			ShapeInfo shapeInfo = new ShapeInfo();
-			VariableList varList = new VariableList();
-			
-			if(fcg.forStmtParameter.contains(variable)||fcg.arrayIndexParameter.contains(variable)){
+
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+				if (Debug) System.out.println("do constant folding, no declaration.");
+			}
+			else if(fcg.forStmtParameter.contains(variable)||fcg.arrayIndexParameter.contains(variable)){
+				DeclStmt declStmt = new DeclStmt();
+				//type is already a token, don't forget.
+				KeywordList keywordList = new KeywordList();
+				ShapeInfo shapeInfo = new ShapeInfo();
+				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + " = " + fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable));
 				
 				//complex or not others, like real, integer or something else
@@ -78,8 +81,14 @@ public class CaseNewMainEntryPoint {
 					//declStmt.setKeywordList(keywordList);
 					declStmt.setVariableList(varList);
 				//}
+					declSection.addDeclStmt(declStmt);
 			}
 			else{
+				DeclStmt declStmt = new DeclStmt();
+				//type is already a token, don't forget.
+				KeywordList keywordList = new KeywordList();
+				ShapeInfo shapeInfo = new ShapeInfo();
+				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + " = " + fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable));
 				
 				//complex or not others, like real, integer or something else
@@ -205,8 +214,8 @@ public class CaseNewMainEntryPoint {
 						declStmt.setVariableList(varList);
 					}
 				//}
+					declSection.addDeclStmt(declStmt);
 			}
-			declSection.addDeclStmt(declStmt);
 		}
 		/**
 		 * declare those variables generated during the code generation,

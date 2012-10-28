@@ -12,7 +12,7 @@ import natlab.tame.valueanalysis.components.shape.Shape;
 
 public class HandleCaseTIRAssignLiteralStmt {
 
-	static boolean Debug = false;
+	static boolean Debug = true;
 	
 	public HandleCaseTIRAssignLiteralStmt(){
 		
@@ -44,19 +44,14 @@ public class HandleCaseTIRAssignLiteralStmt {
 		/**
 		 * literal assignment target variable should be a constant, if it's not a constant, we need allocate it as a 1 by 1 array.
 		 */
-		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
-			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
+		ArrayList<Integer> dims = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape().getDimensions());
+		if(Shape.isDimensionExactlyKnow(dims)){
+			
 		}
 		else{
-			ArrayList<Integer> dims = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape().getDimensions());
-			if(Shape.isDimensionExactlyKnow(dims)){
-				
-			}
-			else{
-				RuntimeCheck rtc = new RuntimeCheck();
-				rtc.setName("allocate("+node.getTargetName().getVarName()+"(1, 1));");
-				stmt.setRuntimeCheck(rtc);
-			}
+			RuntimeCheck rtc = new RuntimeCheck();
+			rtc.setName("allocate("+node.getTargetName().getVarName()+"(1, 1));");
+			stmt.setRuntimeCheck(rtc);
 		}
 		return stmt;
 	}

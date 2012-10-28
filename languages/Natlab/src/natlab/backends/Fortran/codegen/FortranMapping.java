@@ -3,13 +3,13 @@ package natlab.backends.Fortran.codegen;
 import java.util.*;
 
 public class FortranMapping {
-	private static HashMap<String, String> FortranTypeMap = new HashMap();
-	private static HashMap<String, String> FortranBinOperatorMap = new HashMap();
-	private static HashMap<String, String> FortranUnOperatorMap = new HashMap();
-	private static HashMap<String, String> FortranDirectBuiltinMap = new HashMap();
+	private static HashMap<String, String> FortranTypeMap = new HashMap<String, String>();
+	private static HashMap<String, String> FortranBinOperatorMap = new HashMap<String, String>();
+	private static HashMap<String, String> FortranUnOperatorMap = new HashMap<String, String>();
+	private static HashMap<String, String> FortranDirectBuiltinMap = new HashMap<String, String>();
 	private static Set<String> FortranNoDirectBuiltinSet = new HashSet<String>();
-	private static HashMap<String, String> FortranBuiltinConstMap = new HashMap();
-	private static HashMap<String, String> FortranIOOperationMap = new HashMap();
+	private static HashMap<String, String> FortranBuiltinConstMap = new HashMap<String, String>();
+	private static HashMap<String, String> FortranIOOperationMap = new HashMap<String, String>();
 	
 	public FortranMapping(){
 		makeFortranTypeMap();
