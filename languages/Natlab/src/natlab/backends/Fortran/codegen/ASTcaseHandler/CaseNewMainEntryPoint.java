@@ -139,7 +139,7 @@ public class CaseNewMainEntryPoint {
 								tempBuf.append(":");
 								conter = true;
 							}
-							tempBuf.append(") , allocatable :: ");
+							tempBuf.append(") , allocatable");
 							keyword.setName(tempBuf.toString());
 							keywordList.addKeyword(keyword);
 							Variable var = new Variable();

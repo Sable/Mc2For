@@ -6,6 +6,7 @@ import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
+import natlab.tame.valueanalysis.components.constant.Constant;
 
 public class HandleCaseTIRAbstractAssignToListStmt {
 
@@ -72,8 +73,22 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			/**
 			 * check whether they are constant, if true, replace them with their values.
 			 */
-			binExpr.setOperand1(Operand1);
-			binExpr.setOperand2(Operand2);
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant()){
+				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(Operand1).getSingleton())).getConstant();
+				binExpr.setOperand1(c.toString());
+			}
+			else{
+				binExpr.setOperand1(Operand1);				
+			}
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand2).getSingleton())).isConstant()){
+				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(Operand2).getSingleton())).getConstant();
+				binExpr.setOperand2(c.toString());
+			}
+			else{
+				binExpr.setOperand2(Operand2);				
+			}
 			binExpr.setOperator(RHSFortranOperator);
 			return binExpr;
 		case 2:
