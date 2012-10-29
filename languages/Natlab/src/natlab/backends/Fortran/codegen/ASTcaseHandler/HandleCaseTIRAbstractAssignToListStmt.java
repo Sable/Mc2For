@@ -32,8 +32,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		return stmt;
 	}
 	
-	/**********************HELPER METHODS***********************************/
-	public Expression makeExpression(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
+	public static Expression makeExpression(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		/** 
 		 * Change for built-ins with n args.
 		 * Currently it handles general case built-ins with one or two args only.
@@ -71,7 +70,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				binExpr.addVariable(var);
 			}
 			/**
-			 * check whether they are constant, if true, replace them with their values.
+			 * insert constant variable replacement check.
 			 */
 			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant()){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
@@ -108,11 +107,35 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				}
 				unExpr.addVariable(var);
 			}
-			unExpr.setOperand(Operand1);
+			/**
+			 * insert constant variable replacement check.
+			 */
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant()){
+				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(Operand1).getSingleton())).getConstant();
+				unExpr.setOperand(c.toString());
+			}
+			else{
+				unExpr.setOperand(Operand1);				
+			}
 			unExpr.setOperator(RHSFortranOperator);
 			return unExpr;
 		case 3:
 			Args = getArgsList(node);
+			/**
+			 * insert constant variable replacement check.
+			 */
+			for(int i=0;i<Args.size();i++){
+				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant()){
+					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(Args.get(i)).getSingleton())).getConstant();
+					Args.remove(i);
+					Args.add(i, c.toString());
+				}
+				else{
+					//do nothing.				
+				}
+			}
 			ArgsListasString = getArgsListAsString(Args);
 			DirectBuiltinExpr dirBuiltinExpr = new DirectBuiltinExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
@@ -135,9 +158,21 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			return dirBuiltinExpr;
 		case 4:
 			NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();
+			/**
+			 * insert constant variable replacement check in corresponding inline code.
+			 */
 			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node);
 			return noDirBuiltinExpr;
 		case 5:
+			/**
+			 * this is for assign an built-in constant to a variable, for example:
+			 * a = pi, and because of we are doing constant variable replacement,
+			 * we kind of need to ignore this expression, because this is also a 
+			 * kind of constant assignment.
+			 * 
+			 * the question is how to ignore this, because we have to return some expression,
+			 * so, we cannot do anything here. My solution is go to the FortranCodeASTGenerator class.
+			 */
 			BuiltinConstantExpr builtinConst = new BuiltinConstantExpr();
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
@@ -158,6 +193,20 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			return builtinConst;
 		case 6:
 			Args = getArgsList(node);
+			/**
+			 * insert constant variable replacement check.
+			 */
+			for(int i=0;i<Args.size();i++){
+				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant()){
+					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(Args.get(i)).getSingleton())).getConstant();
+					Args.remove(i);
+					Args.add(i, c.toString());
+				}
+				else{
+					//do nothing.				
+				}
+			}
 			ArgsListasString = getArgsListAsString(Args);
 			IOOperationExpr ioExpr = new IOOperationExpr();
 			ioExpr.setArgsList(ArgsListasString);
@@ -168,6 +217,20 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * deal with user defined functions, apparently, there is no corresponding Fortran function for this.
 			 */
 			Args = getArgsList(node);
+			/**
+			 * insert constant variable replacement check.
+			 */
+			for(int i=0;i<Args.size();i++){
+				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant()){
+					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(Args.get(i)).getSingleton())).getConstant();
+					Args.remove(i);
+					Args.add(i, c.toString());
+				}
+				else{
+					//do nothing.				
+				}
+			}
 			if(Args.size()==1){
 				/**
 				 * this is for functions.
@@ -229,47 +292,47 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		}
 	}
 	
-	public int getRHSCaseNumber(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
+	public static int getRHSCaseNumber(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		String RHSMatlabOperator;
 		RHSMatlabOperator = node.getRHS().getVarName();
 		if(true==fcg.FortranMap.isFortranBinOperator(RHSMatlabOperator)){
-			return 1; //"binop";
+			return 1;
 		}
 		else if(true==fcg.FortranMap.isFortranUnOperator(RHSMatlabOperator)){
-			return 2; //"unop";
+			return 2;
 		}
 		else if(true==fcg.FortranMap.isFortranDirectBuiltin(RHSMatlabOperator)){
-			return 3; // "directBuiltin";
+			return 3;
 		}
 		else if(true ==fcg.FortranMap.isFortranNoDirectBuiltin(RHSMatlabOperator)){
-			return 4; // "noDirectBuiltin";
+			return 4;
 		}
 		else if(true==fcg.FortranMap.isBuiltinConst(RHSMatlabOperator)){
-			return 5; // "builtinConst";
+			return 5;
 		}
 		else if(true==fcg.FortranMap.isFortranIOOperation(RHSMatlabOperator)){
-			return 6; // "IOOPeration";
+			return 6;
 		}
 		else{
 			return 7; // "user defined function";
 		}
 	}
 	
-	public String getOperand1(TIRAbstractAssignToListStmt node){
+	public static String getOperand1(TIRAbstractAssignToListStmt node){
 		if(node.getRHS().getChild(1).getNumChild() >= 1)
 			return node.getRHS().getChild(1).getChild(0).getNodeString();
 		else
 			return "";
 	}
 	
-	public String getOperand2(TIRAbstractAssignToListStmt node){
+	public static String getOperand2(TIRAbstractAssignToListStmt node){
 		if(node.getRHS().getChild(1).getNumChild() >= 2)
 			return node.getRHS().getChild(1).getChild(1).getNodeString();
 		else
 			return "";
 	}
 	
-	public String getRHSMappingFortranOperator(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
+	public static String getRHSMappingFortranOperator(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		String RHSFortranOperator;
 		String RHSMatlabOperator;
 		RHSMatlabOperator = node.getRHS().getVarName();
@@ -294,6 +357,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		}
 		return RHSFortranOperator;
 	}
+	
 	public static ArrayList<String> getArgsList(TIRAbstractAssignToListStmt node){
 		ArrayList<String> Args = new ArrayList<String>();
 		int numArgs = node.getRHS().getChild(1).getNumChild();
@@ -303,7 +367,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		return Args;
 	}
 
-	public String getArgsListAsString(ArrayList<String> Args){
+	public static String getArgsListAsString(ArrayList<String> Args){
 		String prefix ="";
 		String argListasString="";
 		for(String arg : Args){

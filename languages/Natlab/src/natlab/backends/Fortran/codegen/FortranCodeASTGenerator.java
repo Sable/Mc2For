@@ -100,13 +100,16 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRAssignLiteralStmt(TIRAssignLiteralStmt node){
+		/**
+		 * insert constant variable replacement check.
+		 */
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
 				get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
 		else{
 			HandleCaseTIRAssignLiteralStmt assignLiteralStmt = new HandleCaseTIRAssignLiteralStmt();
-			if(this.isIfWhileForBlock==true){
+			if(this.isIfWhileForBlock){
 				this.stmtSecForIfWhileForBlock.addStatement(assignLiteralStmt.getFortran(this, node));
 			}
 			else{
@@ -118,7 +121,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRAbstractAssignToVarStmt(TIRAbstractAssignToVarStmt node){
 		HandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = new HandleCaseTIRAbstractAssignToVarStmt();
-		if(this.isIfWhileForBlock==true){
+		if(this.isIfWhileForBlock){
 			this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToVarStmt.getFortran(this, node));
 		}
 		else{
@@ -129,18 +132,26 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
 		HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new HandleCaseTIRAbstractAssignToListStmt();
-		if(this.isIfWhileForBlock==true){
+		if(this.isIfWhileForBlock){
 			this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt.getFortran(this, node));
 		}
 		else{
-			this.SubProgram.getStatementSection().addStatement(abstractAssignToListStmt.getFortran(this, node));
+			/**
+			 * insert constant variable replacement check.
+			 */
+			if(HandleCaseTIRAbstractAssignToListStmt.makeExpression(this, node) instanceof BuiltinConstantExpr){
+				if (Debug) System.out.println("this is a constant variable assignment.");
+			}
+			else{
+				this.SubProgram.getStatementSection().addStatement(abstractAssignToListStmt.getFortran(this, node));
+			}
 		}
 	}
 	
 	@Override
 	public void caseTIRIfStmt(TIRIfStmt node){
 		HandleCaseTIRIfStmt ifStmt = new HandleCaseTIRIfStmt();
-		if(this.isIfWhileForBlock==true){
+		if(this.isIfWhileForBlock){
 			this.stmtSecForIfWhileForBlock.addStatement(ifStmt.getFortran(this, node));
 		}
 		else{
@@ -151,7 +162,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRWhileStmt(TIRWhileStmt node){
 		HandleCaseTIRWhileStmt whileStmt = new HandleCaseTIRWhileStmt();
-		if(this.isIfWhileForBlock==true){
+		if(this.isIfWhileForBlock){
 			this.stmtSecForIfWhileForBlock.addStatement(whileStmt.getFortran(this, node));
 		}
 		else{
@@ -162,7 +173,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRForStmt(TIRForStmt node){
 		HandleCaseTIRForStmt forStmt = new HandleCaseTIRForStmt();
-		if(this.isIfWhileForBlock==true){
+		if(this.isIfWhileForBlock){
 			this.stmtSecForIfWhileForBlock.addStatement(forStmt.getFortran(this, node));
 		}
 		else{
@@ -173,7 +184,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
 		HandleCaseTIRArrayGetStmt arrGetStmt = new HandleCaseTIRArrayGetStmt();
-		if(this.isIfWhileForBlock==true){
+		if(this.isIfWhileForBlock){
 			this.stmtSecForIfWhileForBlock.addStatement(arrGetStmt.getFortran(this, node));
 		}
 		else{
@@ -184,7 +195,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRArraySetStmt(TIRArraySetStmt node){
 		HandleCaseTIRArraySetStmt arrSetStmt = new HandleCaseTIRArraySetStmt();
-		if(this.isIfWhileForBlock==true){
+		if(this.isIfWhileForBlock){
 			this.stmtSecForIfWhileForBlock.addStatement(arrSetStmt.getFortran(this, node));
 		}
 		else{

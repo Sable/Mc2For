@@ -257,10 +257,14 @@ aspect PrettyPrinter{
     }
     
     public void ArraySetStmt.pp() {
+    	StringBuffer sb = new StringBuffer();
+    	sb.append(getIndent());
     	System.out.print(getIndent());
     	if(hasRuntimeCheck()) {
+    	    sb.append(getRuntimeCheck()+"\n");
     		System.out.println(getRuntimeCheck());
     	}
+    	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
     	System.out.print(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
     }
 }

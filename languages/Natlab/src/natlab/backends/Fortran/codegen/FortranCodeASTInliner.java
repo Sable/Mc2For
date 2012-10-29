@@ -30,6 +30,9 @@ public class FortranCodeASTInliner {
 			int argsNum = args.size();
 			StringBuffer tmpBuf = new StringBuffer();
 			for(int i=1; i<=argsNum; i++){
+				/**
+				 * need constant variable replacement check.
+				 */
 				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(i-1)).getSingleton())).isConstant()){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
@@ -48,6 +51,7 @@ public class FortranCodeASTInliner {
 			}
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
+		
 		else if(node.getRHS().getVarName().equals("vertcat")){
 			String indent = new String();
 			for(int i=0; i<fcg.indentNum; i++){
@@ -59,13 +63,25 @@ public class FortranCodeASTInliner {
 			int argsNum = args.size();
 			StringBuffer tmpBuf = new StringBuffer();
 			for(int i=1; i<=argsNum; i++){
-				tmpBuf.append(indent+LHS+"("+i+",:) = "+args.get(i-1)+"(1,:);");
+				/**
+				 * need constant variable replacement check.
+				 */
+				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(args.get(i-1)).getSingleton())).isConstant()){
+					DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(i-1)).getSingleton())).getConstant();
+					tmpBuf.append(indent+LHS+"("+i+",1) = "+c.toString()+";");
+				}
+				else{
+					tmpBuf.append(indent+LHS+"("+i+",:) = "+args.get(i-1)+"(1,:);");					
+				}
 				if(i<argsNum){
 					tmpBuf.append("\n");
 				}
 			}
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
+		
 		else if(node.getRHS().getVarName().equals("ones")){
 			String indent = new String();
 			for(int i=0; i<fcg.indentNum; i++){
@@ -82,25 +98,28 @@ public class FortranCodeASTInliner {
 		   	    enddo
 		      enddo
 		     */
+			/**
+			 * need constant variable replacement check.
+			 */
 			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 					get(args.get(0)).getSingleton())).isConstant()){
 				DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(0)).getSingleton())).getConstant();
 				int ci = c.getValue().intValue();
-				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1,"+ci+"\n");
+				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1 , "+ci+"\n");
 			}
 			else{
-				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1,"+args.get(0)+"\n");
+				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1 , "+args.get(0)+"\n");
 			}
 			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 					get(args.get(1)).getSingleton())).isConstant()){
 				DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(1)).getSingleton())).getConstant();
 				int ci = c.getValue().intValue();
-				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1,"+ci+"\n");
+				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1 , "+ci+"\n");
 			}
 			else{
-				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1,"+args.get(1)+"\n");
+				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1 , "+args.get(1)+"\n");
 			}
 			tmpBuf.append(indent+fcg.indent+fcg.indent+LHS+"(tmp_"+LHS+"_i,tmp_"+LHS+"_j) = 1;\n");
 			tmpBuf.append(indent+fcg.indent+"enddo\n");
@@ -117,6 +136,7 @@ public class FortranCodeASTInliner {
 			fcg.forStmtParameter.add(args.get(1));
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
+		
 		else if(node.getRHS().getVarName().equals("zeros")){
 			String indent = new String();
 			for(int i=0; i<fcg.indentNum; i++){
@@ -133,8 +153,29 @@ public class FortranCodeASTInliner {
 		   	    enddo
 		      enddo
 		     */
-			tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1,"+args.get(0)+"\n");
-			tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1,"+args.get(1)+"\n");
+			/**
+			 * need constant variable replacement check.
+			 */
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+					get(args.get(0)).getSingleton())).isConstant()){
+				DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(args.get(0)).getSingleton())).getConstant();
+				int ci = c.getValue().intValue();
+				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1 , "+ci+"\n");
+			}
+			else{
+				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1 , "+args.get(0)+"\n");
+			}
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+					get(args.get(1)).getSingleton())).isConstant()){
+				DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(args.get(1)).getSingleton())).getConstant();
+				int ci = c.getValue().intValue();
+				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1 , "+ci+"\n");
+			}
+			else{
+				tmpBuf.append(indent+fcg.indent+"do tmp_"+LHS+"_j = 1 , "+args.get(1)+"\n");
+			}
 			tmpBuf.append(indent+fcg.indent+fcg.indent+LHS+"(tmp_"+LHS+"_i,tmp_"+LHS+"_j) = 0;\n");
 			tmpBuf.append(indent+fcg.indent+"enddo\n");
 			tmpBuf.append(indent+"enddo");
@@ -150,6 +191,7 @@ public class FortranCodeASTInliner {
 			fcg.forStmtParameter.add(args.get(1));
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
+		
 		else{
 			/**
 			 * for those no direct builtins which not be implemented yet 
