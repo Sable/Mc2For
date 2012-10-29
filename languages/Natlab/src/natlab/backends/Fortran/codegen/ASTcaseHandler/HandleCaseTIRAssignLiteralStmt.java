@@ -44,7 +44,8 @@ public class HandleCaseTIRAssignLiteralStmt {
 		/**
 		 * literal assignment target variable should be a constant, if it's not a constant, we need allocate it as a 1 by 1 array.
 		 */
-		ArrayList<Integer> dims = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape().getDimensions());
+		ArrayList<Integer> dims = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis()
+				.getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape().getDimensions());
 		if(Shape.isDimensionExactlyKnow(dims)){
 			
 		}

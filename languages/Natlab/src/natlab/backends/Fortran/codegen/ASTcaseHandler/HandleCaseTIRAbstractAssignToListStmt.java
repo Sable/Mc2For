@@ -17,6 +17,9 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 	}
 	/**
 	 * AbstractAssignToListStmt: Statement ::= [RuntimeCheck] Variable* Expression;
+	 * for each statement, currently, we need to insert two check:
+	 * 1. for rhs, constant variable replacement check;
+	 * 2. for lhs, do we need to inline allocate code check.
 	 */
 	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		if (Debug) System.out.println("in an abstractAssignToList  statement");
