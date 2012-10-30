@@ -7,6 +7,7 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.aggrvalue.*;
+import natlab.tame.valueanalysis.components.constant.Constant;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
 import natlab.tame.classes.reference.*;
 
@@ -34,12 +35,33 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 			indent = indent + fcg.indent;
 		}
 		stmt.setIndent(indent);
-		stmt.setTargetVariable(node.getTargetName().getID());
-		stmt.setSourceVariable(node.getRHS().getNodeString());
+		/**
+		 * insert function name variable replacement check.
+		 */
+		if(fcg.outRes.contains(node.getTargetName().getID())){
+			stmt.setTargetVariable(fcg.majorName);
+		}
+		else{
+			stmt.setTargetVariable(node.getTargetName().getID());
+		}
 		/**
 		 * insert constant variable replacement check.
 		 */
-		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getID()).getSingleton())).isConstant()){
+		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
+				.get(node.getRHS().getNodeString()).getSingleton())).isConstant()){
+			if (Debug) System.out.println(node.getTargetName().getID()+" is a constant");
+			Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+					get(node.getRHS().getNodeString()).getSingleton())).getConstant();
+			stmt.setSourceVariable(c.toString());
+		}
+		else{
+			stmt.setSourceVariable(node.getRHS().getNodeString());
+		}
+		/**
+		 * insert runtime shape allocate check.
+		 */
+		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
+				.get(node.getTargetName().getID()).getSingleton())).isConstant()){
 			if (Debug) System.out.println(node.getTargetName().getID()+" is a constant");
 		}
 		else{

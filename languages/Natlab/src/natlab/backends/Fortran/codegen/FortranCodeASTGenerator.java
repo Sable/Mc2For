@@ -120,27 +120,50 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseTIRAbstractAssignToVarStmt(TIRAbstractAssignToVarStmt node){
-		HandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = new HandleCaseTIRAbstractAssignToVarStmt();
-		if(this.isIfWhileForBlock){
-			this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToVarStmt.getFortran(this, node));
+		/**
+		 * insert constant variable replacement check.
+		 */
+		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
+				get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
+			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
 		else{
-			this.SubProgram.getStatementSection().addStatement(abstractAssignToVarStmt.getFortran(this, node));
+			HandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = new HandleCaseTIRAbstractAssignToVarStmt();
+			if(this.isIfWhileForBlock){
+				this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToVarStmt.getFortran(this, node));
+			}
+			else{
+				this.SubProgram.getStatementSection().addStatement(abstractAssignToVarStmt.getFortran(this, node));
+			}
 		}
 	}
 
 	@Override
 	public void caseTIRAbstractAssignToListStmt(TIRAbstractAssignToListStmt node){
-		HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new HandleCaseTIRAbstractAssignToListStmt();
-		if(this.isIfWhileForBlock){
-			this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt.getFortran(this, node));
+		/**
+		 * insert constant variable replacement check.
+		 * p.s. need to check whether the expression is io expression,
+		 * because io expression doesn't have target variable
+		 */
+		if((HandleCaseTIRAbstractAssignToListStmt.makeExpression(this, node) instanceof IOOperationExpr)==false){
+			if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
+					get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
+				if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
+			}
+			else{
+				HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new HandleCaseTIRAbstractAssignToListStmt();
+				if(this.isIfWhileForBlock){
+					this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt.getFortran(this, node));
+				}
+				else{
+					this.SubProgram.getStatementSection().addStatement(abstractAssignToListStmt.getFortran(this, node));
+				}
+			}
 		}
 		else{
-			/**
-			 * insert constant variable replacement check.
-			 */
-			if(HandleCaseTIRAbstractAssignToListStmt.makeExpression(this, node) instanceof BuiltinConstantExpr){
-				if (Debug) System.out.println("this is a constant variable assignment.");
+			HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new HandleCaseTIRAbstractAssignToListStmt();
+			if(this.isIfWhileForBlock){
+				this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt.getFortran(this, node));
 			}
 			else{
 				this.SubProgram.getStatementSection().addStatement(abstractAssignToListStmt.getFortran(this, node));

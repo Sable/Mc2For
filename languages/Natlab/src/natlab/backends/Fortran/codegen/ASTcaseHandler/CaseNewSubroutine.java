@@ -74,7 +74,8 @@ public class CaseNewSubroutine {
 		
 		for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
 			
-			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
+					.get(variable).getSingleton())).isConstant()&&(fcg.inArgs.contains(variable)==false)&&(fcg.outRes.contains(variable)==false)){
 				if (Debug) System.out.println("do constant folding, no declaration.");
 			}
 			else if(fcg.forStmtParameter.contains(variable)||fcg.arrayIndexParameter.contains(variable)){

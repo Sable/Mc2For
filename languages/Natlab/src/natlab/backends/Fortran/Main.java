@@ -47,7 +47,6 @@ public class Main {
 			System.out.println(sb);
 			try{
 				String pFilename = prg.getSubProgram(i).getProgramTitle().getProgramName();
-				System.out.println(pFilename);
 				BufferedWriter out = new BufferedWriter(new FileWriter(fileDir+pFilename+".f95"));  
 		        out.write(sb.toString());  
 		        out.flush();  
