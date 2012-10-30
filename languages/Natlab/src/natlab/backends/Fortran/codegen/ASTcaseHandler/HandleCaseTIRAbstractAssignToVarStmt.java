@@ -36,19 +36,20 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		}
 		stmt.setIndent(indent);
 		/**
-		 * insert function name variable replacement check.
+		 * for lhs, insert function name variable replacement check.
 		 */
-		if(fcg.outRes.contains(node.getTargetName().getID())){
+		if((fcg.outRes.contains(node.getTargetName().getID()))&&(fcg.isSubroutine==false)){
 			stmt.setTargetVariable(fcg.majorName);
 		}
 		else{
 			stmt.setTargetVariable(node.getTargetName().getID());
 		}
 		/**
-		 * insert constant variable replacement check.
+		 * for rhs, insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
-				.get(node.getRHS().getNodeString()).getSingleton())).isConstant()){
+				.get(node.getRHS().getNodeString()).getSingleton())).isConstant()
+				&&(fcg.inArgs.contains(node.getRHS().getNodeString())==false)){
 			if (Debug) System.out.println(node.getTargetName().getID()+" is a constant");
 			Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 					get(node.getRHS().getNodeString()).getSingleton())).getConstant();
@@ -58,7 +59,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 			stmt.setSourceVariable(node.getRHS().getNodeString());
 		}
 		/**
-		 * insert runtime shape allocate check.
+		 * for lhs, insert runtime shape allocate check.
 		 */
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
 				.get(node.getTargetName().getID()).getSingleton())).isConstant()){

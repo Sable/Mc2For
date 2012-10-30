@@ -104,7 +104,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-				get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
+				get(node.getTargetName().getVarName()).getSingleton())).isConstant()
+				&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
 		else{
@@ -124,7 +125,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-				get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
+				get(node.getTargetName().getVarName()).getSingleton())).isConstant()
+				&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
 		else{
@@ -145,9 +147,15 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * p.s. need to check whether the expression is io expression,
 		 * because io expression doesn't have target variable
 		 */
+		/**
+		 * one more problem, for this case, the lhs is a list of variable.
+		 * And because node.getTargetName().getVarName() can only return the first variable,
+		 * we need use node.getTargets().asNameList().
+		 */
 		if((HandleCaseTIRAbstractAssignToListStmt.makeExpression(this, node) instanceof IOOperationExpr)==false){
 			if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-					get(node.getTargetName().getVarName()).getSingleton())).isConstant()){
+					get(node.getTargetName().getVarName()).getSingleton())).isConstant()
+					&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 				if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 			}
 			else{
