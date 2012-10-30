@@ -36,7 +36,9 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		stmt.setIndent(indent);
 		stmt.setTargetVariable(node.getTargetName().getID());
 		stmt.setSourceVariable(node.getRHS().getNodeString());
-		
+		/**
+		 * insert constant variable replacement check.
+		 */
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getID()).getSingleton())).isConstant()){
 			if (Debug) System.out.println(node.getTargetName().getID()+" is a constant");
 		}

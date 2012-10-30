@@ -1,5 +1,7 @@
 package natlab.backends.Fortran;
 
+import java.io.*;
+
 import natlab.tame.BasicTamerTool;
 import natlab.tame.valueanalysis.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
@@ -12,10 +14,10 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 public class Main {
 	
 	public static void main(String[] args) {
-		String fileDir = "/home/xu/for_test/McFor/mcfor_test/";
-	    String fileIn = fileDir+"adpt/drv_adpt.m";
-		/*String fileDir = "/home/xu/for_test/";
-	    String fileIn = fileDir+"hello.m";*/
+		/*String fileDir = "/home/xu/for_test/McFor/mcfor_test/";
+	    String fileIn = fileDir+"adpt/drv_adpt.m";*/
+		String fileDir = "/home/xu/for_test/";
+	    String fileIn = fileDir+"hello.m";
 	    GenericFile gFile = GenericFile.create(fileIn);
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		BasicTamerTool tool = new BasicTamerTool();
@@ -40,7 +42,19 @@ public class Main {
 			System.out.println("\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
 			prg.setSubProgram(FortranCodeASTGenerator.FortranProgramGen(analysis, size, i, fileDir), i);
 			System.out.println("\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-			prg.getSubProgram(i).pp();
+			StringBuffer sb = new StringBuffer();
+			prg.getSubProgram(i).pp(sb);
+			System.out.println(sb);
+			try{
+				String pFilename = prg.getSubProgram(i).getProgramTitle().getProgramName();
+				System.out.println(pFilename);
+				BufferedWriter out = new BufferedWriter(new FileWriter(fileDir+pFilename+".f95"));  
+		        out.write(sb.toString());  
+		        out.flush();  
+		        out.close(); 
+			}catch(IOException e){
+				System.err.println(e);
+			}
 		}
 	}
 }

@@ -1,270 +1,266 @@
 aspect PrettyPrinter{
-	public void ASTNode.pp() {}
+	public void ASTNode.pp(StringBuffer sb) {}
 	
-	public void Program.pp() {}
+	public void Program.pp(StringBuffer sb) {}
 	
-	public void SubProgram.pp() {
-		getProgramTitle().pp();
-		getDeclarationSection().pp();
-		getStatementSection().pp();
-		System.out.println(getProgramEnd());
+	public void SubProgram.pp(StringBuffer sb) {
+		getProgramTitle().pp(sb);
+		getDeclarationSection().pp(sb);
+		getStatementSection().pp(sb);
+		sb.append(getProgramEnd()+"\n");
 	}
 	
-	public void ProgramTitle.pp() {
-	    System.out.print(getProgramType()+" "+getProgramName());
+	public void ProgramTitle.pp(StringBuffer sb) {
+	    sb.append(getProgramType()+" "+getProgramName());
 	    if(hasProgramParameterList()) {
-	    	System.out.print("(");
-	    	getProgramParameterList().pp();
-	    	System.out.print(")");
+	    	sb.append("(");
+	    	getProgramParameterList().pp(sb);
+	    	sb.append(")");
 	    }
-	    System.out.println("\nimplicit none");
+	    sb.append("\nimplicit none\n");
 	}
     
-    public void ProgramParameterList.pp() {
+    public void ProgramParameterList.pp(StringBuffer sb) {
         int size = getNumParameter();
         for(int i=0;i<size;i++) {
-        	getParameter(i).pp();
+        	getParameter(i).pp(sb);
         	if(i<size-1) {
-        		System.out.print(",");
+        		sb.append(",");
         	}
         }
     }
     
-    public void Parameter.pp() {
-    	System.out.print(getName());
+    public void Parameter.pp(StringBuffer sb) {
+    	sb.append(getName());
     }
     
-    public void DeclarationSection.pp() {
+    public void DeclarationSection.pp(StringBuffer sb) {
     	int size = getNumDeclStmt();
     	for(int i=0;i<size;i++) {
-    		getDeclStmt(i).pp();
-    		System.out.println("");
+    		getDeclStmt(i).pp(sb);
+    		sb.append("\n");
     	}    
     }
     
-    public void DeclStmt.pp() {
-    	System.out.print(getType());
+    public void DeclStmt.pp(StringBuffer sb) {
+    	sb.append(getType());
     	if(hasKeywordList()) {
-    	    System.out.print(" , ");
-    		getKeywordList().pp();
+    	    sb.append(" , ");
+    		getKeywordList().pp(sb);
     	}
     	if(hasShapeInfo()) {
-    		System.out.print(" , ");
-    		getShapeInfo().pp();
+    		sb.append(" , ");
+    		getShapeInfo().pp(sb);
     	}
-    	System.out.print(" :: ");
-    	getVariableList().pp();
+    	sb.append(" :: ");
+    	getVariableList().pp(sb);
     }
     
-    public void KeywordList.pp() {
+    public void KeywordList.pp(StringBuffer sb) {
     	int size = getNumKeyword();
         for(int i=0;i<size;i++) {
-        	getKeyword(i).pp();
+        	getKeyword(i).pp(sb);
         	if(i<size-1) {
-        		System.out.print(" , ");
+        		sb.append(" , ");
         	}
         }
     }
     
-    public void Keyword.pp() {
-    	System.out.print(getName());
+    public void Keyword.pp(StringBuffer sb) {
+    	sb.append(getName());
     }
     
-    public void ShapeInfo.pp() {
-    	System.out.print(getName());
+    public void ShapeInfo.pp(StringBuffer sb) {
+    	sb.append(getName());
     }
     
-    public void VariableList.pp() {
+    public void VariableList.pp(StringBuffer sb) {
     	int size = getNumVariable();
         for(int i=0;i<size;i++) {
-        	getVariable(i).pp();
+        	getVariable(i).pp(sb);
         	if(i<size-1) {
-        		System.out.print(", ");
+        		sb.append(", ");
         	}
         }
     }
     
-    public void Variable.pp() {
-    	System.out.print(getName());
+    public void Variable.pp(StringBuffer sb) {
+    	sb.append(getName());
     }
     
-    public void StatementSection.pp() {
+    public void StatementSection.pp(StringBuffer sb) {
     	int size = getNumStatement();
     	for(int i=0;i<size;i++) {
-    		getStatement(i).pp();
-    		System.out.println("");
+    		getStatement(i).pp(sb);
+    		sb.append("\n");
     	}
     }
     
-    public void Statement.pp() {
+    public void Statement.pp(StringBuffer sb) {
     
     }
     
-    public void CommentStmt.pp() {
+    public void CommentStmt.pp(StringBuffer sb) {
     	if(getComment()!=null){
-    		System.out.print("!   ");
-    		System.out.print(getComment());
+    		sb.append("!   ");
+    		sb.append(getComment());
     	}
     }
     
-    public void AssignLiteralStmt.pp() {
-    	System.out.print(getIndent());
-    	if(hasRuntimeCheck()) {
-    		System.out.println(getRuntimeCheck());
-    	}
-    	getVariable().pp();
-    	System.out.print(" = "+getLiteral()+";");
-    }
-    
-    public void AbstractAssignToVarStmt.pp() {
-    	System.out.print(getIndent());
-    	if(hasRuntimeCheck()) {
-    		System.out.println(getRuntimeCheck());
-    	}
-    	System.out.print(getTargetVariable()+" = "+getSourceVariable()+";");
-    }
-    
-    public void AbstractAssignToListStmt.pp() {
-    	System.out.print(getIndent());
-    	if(hasRuntimeCheck()) {
-    		System.out.println(getRuntimeCheck());
-    	}
-    	getExpression().pp();
-    }
-    
-    public void Expression.pp() {}
-    
-    public void BinaryExpr.pp() {
-    	int size = getNumVariable();
-    	for(int i=0;i<size;i++) {
-    		getVariable(i).pp();
-    		if(i<size-1) {
-        		System.out.print(",");
-        	}
-    	}
-    	System.out.print(" = "+getOperand1()+" "+getOperator()+" "+getOperand2()+";");
-    }
-    
-    public void UnaryExpr.pp() {
-    	int size = getNumVariable();
-    	for(int i=0;i<size;i++) {
-    		getVariable(i).pp();
-    		if(i<size-1) {
-        		System.out.print(",");
-        	}
-    	}
-    	System.out.print(" = "+getOperator()+" "+getOperand()+";");
-    }
-    
-    public void DirectBuiltinExpr.pp() {
-    	int size = getNumVariable();
-    	for(int i=0;i<size;i++) {
-    		getVariable(i).pp();
-    		if(i<size-1) {
-        		System.out.print(",");
-        	}
-    	}
-    	System.out.print(" = "+getBuiltinFunc()+"("+getArgsList()+");");
-    }
-    
-    public void NoDirectBuiltinExpr.pp() {
-    	System.out.print(getCodeInline());
-    }
-    
-    public void BuiltinConstantExpr.pp() {
-    	int size = getNumVariable();
-    	for(int i=0;i<size;i++) {
-    		getVariable(i).pp();
-    		if(i<size-1) {
-        		System.out.print(",");
-        	}
-    	}
-    	System.out.print(" = "+getBuiltinFunc()+";");
-    }
-    
-    public void IOOperationExpr.pp() {
-    	System.out.print(getIOOperator()+getArgsList()+";");
-    }
-    
-    public void UserDefinedFunction.pp() {
-    	int size = getNumVariable();
-    	for(int i=0;i<size;i++) {
-    		getVariable(i).pp();
-    		if(i<size-1) {
-        		System.out.print(",");
-        	}
-    	}
-    	System.out.print(" = "+getFuncName()+"("+getArgsList()+");");
-    }
-    
-    public void Subroutines.pp() {
-    	System.out.print("call "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
-    }
-    
-    public void IfStmt.pp() {
-    	System.out.print(getIndent());
-    	System.out.print("if ("+getCondition()+") then\n");
-    	getIfBlock().pp();
-    	if(hasElseBlock()) {
-    		System.out.print(getIndent());
-    		System.out.print("else\n");
-    		getElseBlock().pp();
-    	}
-    	System.out.print(getIndent()+"endif");
-    }
-    
-    public void WhileStmt.pp() {
-   	 	System.out.print(getIndent());
-    	System.out.print("do while ("+getCondition()+")");
-    	System.out.print("\n");
-    	getWhileBlock().pp();
-    	System.out.print(getIndent()+"enddo");   	
-    }
-    
-    public void ForStmt.pp() {
-    	System.out.print(getIndent());
-    	System.out.print("do "+getLoopVar()+" = "+getLowBoundary()+" , ");
-    	if(hasInc()) {
-    		getInc().pp();
-    		System.out.print(" , ");
-    	}
-    	System.out.print(getUpperBoundary());
-    	System.out.print("\n");
-    	getForBlock().pp();
-    	System.out.print(getIndent()+"enddo");    	
-    }
-    
-    public void Inc.pp() {
-    	System.out.print(getName());
-    }
-    
-    public void ArrayGetStmt.pp() {
-    	System.out.print(getIndent());
-    	if(hasRuntimeCheck()) {
-    		System.out.println(getRuntimeCheck());
-    	}
-    	System.out.print(getlhsVariable());
-    	if(haslhsIndex()) {
-    		System.out.print("(");
-    		getlhsIndex().pp();
-    		System.out.print(")");
-    	}
-    	System.out.print(" = "+getrhsVariable()+"("+getrhsIndex()+");");
-    }
-    
-    public void lhsIndex.pp() {
-    	System.out.print(getName());
-    }
-    
-    public void ArraySetStmt.pp() {
-    	StringBuffer sb = new StringBuffer();
+    public void AssignLiteralStmt.pp(StringBuffer sb) {
     	sb.append(getIndent());
-    	System.out.print(getIndent());
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
+    	}
+    	getVariable().pp(sb);
+    	sb.append(" = "+getLiteral()+";");
+    }
+    
+    public void AbstractAssignToVarStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
+    	}
+    	sb.append(getTargetVariable()+" = "+getSourceVariable()+";");
+    }
+    
+    public void AbstractAssignToListStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
+    	}
+    	getExpression().pp(sb);
+    }
+    
+    public void Expression.pp(StringBuffer sb) {}
+    
+    public void BinaryExpr.pp(StringBuffer sb) {
+    	int size = getNumVariable();
+    	for(int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if(i<size-1) {
+        		sb.append(",");
+        	}
+    	}
+    	sb.append(" = "+getOperand1()+" "+getOperator()+" "+getOperand2()+";");
+    }
+    
+    public void UnaryExpr.pp(StringBuffer sb) {
+    	int size = getNumVariable();
+    	for(int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if(i<size-1) {
+        		sb.append(",");
+        	}
+    	}
+    	sb.append(" = "+getOperator()+" "+getOperand()+";");
+    }
+    
+    public void DirectBuiltinExpr.pp(StringBuffer sb) {
+    	int size = getNumVariable();
+    	for(int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if(i<size-1) {
+        		sb.append(",");
+        	}
+    	}
+    	sb.append(" = "+getBuiltinFunc()+"("+getArgsList()+");");
+    }
+    
+    public void NoDirectBuiltinExpr.pp(StringBuffer sb) {
+    	sb.append(getCodeInline());
+    }
+    
+    public void BuiltinConstantExpr.pp(StringBuffer sb) {
+    	int size = getNumVariable();
+    	for(int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if(i<size-1) {
+        		sb.append(",");
+        	}
+    	}
+    	sb.append(" = "+getBuiltinFunc()+";");
+    }
+    
+    public void IOOperationExpr.pp(StringBuffer sb) {
+    	sb.append(getIOOperator()+getArgsList()+";");
+    }
+    
+    public void UserDefinedFunction.pp(StringBuffer sb) {
+    	int size = getNumVariable();
+    	for(int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if(i<size-1) {
+        		sb.append(",");
+        	}
+    	}
+    	sb.append(" = "+getFuncName()+"("+getArgsList()+");");
+    }
+    
+    public void Subroutines.pp(StringBuffer sb) {
+    	sb.append("call "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
+    }
+    
+    public void IfStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	sb.append("if ("+getCondition()+") then\n");
+    	getIfBlock().pp(sb);
+    	if(hasElseBlock()) {
+    		sb.append(getIndent());
+    		sb.append("else\n");
+    		getElseBlock().pp(sb);
+    	}
+    	sb.append(getIndent()+"endif");
+    }
+    
+    public void WhileStmt.pp(StringBuffer sb) {
+   	 	sb.append(getIndent());
+    	sb.append("do while ("+getCondition()+")");
+    	sb.append("\n");
+    	getWhileBlock().pp(sb);
+    	sb.append(getIndent()+"enddo");   	
+    }
+    
+    public void ForStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	sb.append("do "+getLoopVar()+" = "+getLowBoundary()+" , ");
+    	if(hasInc()) {
+    		getInc().pp(sb);
+    		sb.append(" , ");
+    	}
+    	sb.append(getUpperBoundary());
+    	sb.append("\n");
+    	getForBlock().pp(sb);
+    	sb.append(getIndent()+"enddo");    	
+    }
+    
+    public void Inc.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void ArrayGetStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
+    	}
+    	sb.append(getlhsVariable());
+    	if(haslhsIndex()) {
+    		sb.append("(");
+    		getlhsIndex().pp(sb);
+    		sb.append(")");
+    	}
+    	sb.append(" = "+getrhsVariable()+"("+getrhsIndex()+");");
+    }
+    
+    public void lhsIndex.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void ArraySetStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
     	if(hasRuntimeCheck()) {
     	    sb.append(getRuntimeCheck()+"\n");
-    		System.out.println(getRuntimeCheck());
     	}
     	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
-    	System.out.print(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
     }
 }

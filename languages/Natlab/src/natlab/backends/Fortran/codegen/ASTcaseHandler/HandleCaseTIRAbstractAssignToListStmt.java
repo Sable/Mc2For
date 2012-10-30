@@ -234,7 +234,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					//do nothing.				
 				}
 			}
-			if(Args.size()==1){
+			if(node.getTargets().asNameList().size()==1){
 				/**
 				 * this is for functions.
 				 */
