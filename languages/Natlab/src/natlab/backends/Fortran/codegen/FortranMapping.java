@@ -86,6 +86,7 @@ public class FortranMapping {
 		FortranNoDirectBuiltinSet.add("ones");
 		FortranNoDirectBuiltinSet.add("zeros");
 		FortranNoDirectBuiltinSet.add("colon");
+		FortranNoDirectBuiltinSet.add("randperm");
 	}
 	
 	private void makeFortranBuiltinConstMap(){

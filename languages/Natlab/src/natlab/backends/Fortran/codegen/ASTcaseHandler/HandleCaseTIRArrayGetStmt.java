@@ -50,13 +50,20 @@ public class HandleCaseTIRArrayGetStmt {
 				if(indexShape.isScalar()){
 					Constant index = ((HasConstant)(fcg.analysis.getNodeList()
 							.get(fcg.index).getAnalysis().getCurrentOutSet().get(args.get(0)).getSingleton())).getConstant();
-					double doubleIndex = (Double)index.getValue();
-					int intIndex = (int)doubleIndex;
-					int firstIndex = intIndex/dimension.get(1)+1;
-					int secondIndex = intIndex%dimension.get(1);
-					stmt.setlhsVariable(lhsVariable);
-					stmt.setrhsVariable(rhsArrayName);
-					stmt.setrhsIndex(Integer.toString(firstIndex)+","+Integer.toString(secondIndex));
+					if(index==null){
+						stmt.setlhsVariable(lhsVariable);
+						stmt.setrhsVariable(rhsArrayName);
+						stmt.setrhsIndex(args.get(0));
+					}
+					else{
+						double doubleIndex = (Double)index.getValue();
+						int intIndex = (int)doubleIndex;
+						int firstIndex = intIndex/dimension.get(1)+1;
+						int secondIndex = intIndex%dimension.get(1);
+						stmt.setlhsVariable(lhsVariable);
+						stmt.setrhsVariable(rhsArrayName);
+						stmt.setrhsIndex(Integer.toString(firstIndex));						
+					}
 				}
 				else{
 					//TODO

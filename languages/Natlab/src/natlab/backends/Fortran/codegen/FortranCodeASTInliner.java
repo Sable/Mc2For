@@ -311,6 +311,23 @@ public class FortranCodeASTInliner {
 				noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 			}
 		}
+		
+		else if(node.getRHS().getVarName().equals("randperm")){
+			/*
+			 * a=randperm(6) will get a=[1,4,3,6,5,2],
+			 * 
+			 */
+			String indent = new String();
+			for(int i=0; i<fcg.indentNum; i++){
+				indent = indent + fcg.indent;
+			}
+			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+			ArrayList<String> args = new ArrayList<String>();
+			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+			int argsNum = args.size();
+			StringBuffer tmpBuf = new StringBuffer();
+		}
+		
 		else{
 			/**
 			 * for those no direct builtins which not be implemented yet 

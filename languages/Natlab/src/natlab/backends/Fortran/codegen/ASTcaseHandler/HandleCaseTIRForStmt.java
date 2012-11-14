@@ -3,6 +3,8 @@ package natlab.backends.Fortran.codegen.ASTcaseHandler;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
+import natlab.tame.valueanalysis.components.constant.Constant;
+import natlab.tame.valueanalysis.components.constant.HasConstant;
 
 public class HandleCaseTIRForStmt {
 
@@ -27,17 +29,51 @@ public class HandleCaseTIRForStmt {
 		stmt.setLoopVar(node.getLoopVarName().getVarName());
 		fcg.forStmtParameter.add(node.getLoopVarName().getVarName());
 		
-		stmt.setLowBoundary(node.getLowerName().getVarName());
-		fcg.forStmtParameter.add(node.getLowerName().getVarName());
+		if(((HasConstant)(fcg.analysis.getNodeList()
+				.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getLowerName().getVarName()).getSingleton())).getConstant()!=null){
+			Constant lower = ((HasConstant)(fcg.analysis.getNodeList()
+					.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getLowerName().getVarName()).getSingleton())).getConstant();
+			double doubleLower = (Double) lower.getValue();
+			int intLower = (int) doubleLower;
+			stmt.setLowBoundary(Integer.toString(intLower));
+			fcg.forStmtParameter.add(node.getLowerName().getVarName());
+		}
+		else{
+			stmt.setLowBoundary(node.getLowerName().getVarName());
+			fcg.forStmtParameter.add(node.getLowerName().getVarName());			
+		}
 		
-		stmt.setUpperBoundary(node.getUpperName().getVarName());
-		fcg.forStmtParameter.add(node.getUpperName().getVarName());
+		if(((HasConstant)(fcg.analysis.getNodeList()
+				.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getUpperName().getVarName()).getSingleton())).getConstant()!=null){
+			Constant upper = ((HasConstant)(fcg.analysis.getNodeList()
+					.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getUpperName().getVarName()).getSingleton())).getConstant();
+			double doubleUpper = (Double) upper.getValue();
+			int intUpper = (int) doubleUpper;
+			stmt.setUpperBoundary(Integer.toString(intUpper));
+			fcg.forStmtParameter.add(node.getUpperName().getVarName());
+		}
+		else{
+			stmt.setUpperBoundary(node.getUpperName().getVarName());
+			fcg.forStmtParameter.add(node.getUpperName().getVarName());			
+		}
 		
 		Inc inc = new Inc();
 		if(node.getIncName()!=null){
-			inc.setName(node.getIncName().getVarName());
-			fcg.forStmtParameter.add(node.getIncName().getVarName());
-			stmt.setInc(inc);
+			if(((HasConstant)(fcg.analysis.getNodeList()
+					.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getIncName().getVarName()).getSingleton())).getConstant()!=null){
+				Constant increment = ((HasConstant)(fcg.analysis.getNodeList()
+						.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getIncName().getVarName()).getSingleton())).getConstant();
+				double doubleInc = (Double) increment.getValue();
+				int intInc = (int) doubleInc;
+				inc.setName(Integer.toBinaryString(intInc));
+				fcg.forStmtParameter.add(node.getIncName().getVarName());
+				stmt.setInc(inc);
+			}
+			else{
+				inc.setName(node.getIncName().getVarName());
+				fcg.forStmtParameter.add(node.getIncName().getVarName());
+				stmt.setInc(inc);				
+			}
 		}
 		
 		fcg.isIfWhileForBlock = true;
