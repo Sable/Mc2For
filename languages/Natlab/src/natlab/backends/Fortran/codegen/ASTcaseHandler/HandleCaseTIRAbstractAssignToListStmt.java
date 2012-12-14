@@ -234,7 +234,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					//do nothing.				
 				}
 			}
-			if(node.getTargets().asNameList().size()==1){
+			if((node.getTargets().asNameList().size()==1)&&(hasArrayAsInput(fcg,Args)==false)){
 				/**
 				 * this is for functions.
 				 */
@@ -386,5 +386,19 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		}
 		else
 		return StrLit;
+	}
+	
+	public static boolean hasArrayAsInput(FortranCodeASTGenerator fcg, ArrayList<String> Args){
+		boolean result = false;
+		for(String inArg : Args){
+			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+					get(inArg)).getSingleton()).getShape().isScalar()==true){
+				//do nothing
+			}
+			else{
+				result = true;
+			}
+		}
+		return result;
 	}
 }

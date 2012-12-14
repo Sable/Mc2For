@@ -326,6 +326,25 @@ public class FortranCodeASTInliner {
 			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
 			int argsNum = args.size();
 			StringBuffer tmpBuf = new StringBuffer();
+			if(argsNum==1){
+				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+						get(args.get(0)).getSingleton())).isConstant()){
+					DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(0)).getSingleton())).getConstant();
+					int ci = c.getValue().intValue();
+					tmpBuf.append("call randperm("+ci+","+LHS+")");
+				}
+				else{
+					tmpBuf.append("call randperm("+args.get(0)+","+LHS+")");
+				}
+			}
+			else if(argsNum==2){
+				//TODO
+			}
+			else{
+				//TODO this should be an error, throw exception?
+			}
+			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
 		else{

@@ -1,15 +1,8 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-
 import ast.Name;
 import natlab.backends.Fortran.codegen.*;
-import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
-import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 
 public class HandleCaseTIRFunction {
 	static boolean Debug =false;
@@ -37,8 +30,9 @@ public class HandleCaseTIRFunction {
 		/**
 		 * deal with functions, not subroutine, because in Fortran, functions can essentially only return one value.
 		 * actually, I can also convert 1-output functions in Matlab to subroutines...
+		 * moreover, if there are arrays in input arguments, we should convert it to subroutine.
 		 */
-		else if(fcg.outRes.size()==1){
+		else if((fcg.outRes.size()==1)&&(fcg.hasArrayAsInput()==false)){
 			CaseNewUserDefinedFunc userDefFunc = new CaseNewUserDefinedFunc();
 			userDefFunc.newUserDefinedFunc(fcg, node);
 		}

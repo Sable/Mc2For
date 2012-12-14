@@ -47,7 +47,7 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("mtimes", "*");
 		FortranBinOperatorMap.put("mrdivide", "/");
 		FortranBinOperatorMap.put("mldivide", "\\");
-		FortranBinOperatorMap.put("mpower", "^");
+		FortranBinOperatorMap.put("mpower", "**");
 		FortranBinOperatorMap.put("times", "*");
 		FortranBinOperatorMap.put("rdivide", "/");
 		FortranBinOperatorMap.put("ldivide", "\\");
@@ -78,6 +78,8 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("size", "size");
 		FortranDirectBuiltinMap.put("exp", "exp");
 		FortranDirectBuiltinMap.put("transpose", "transpose");
+		FortranDirectBuiltinMap.put("ceil", "ceiling");
+		FortranDirectBuiltinMap.put("true", ".true.");
 	}
 	
 	private void makeFortranNoDirectBuiltinSet(){

@@ -58,8 +58,7 @@ public class HandleCaseTIRArrayGetStmt {
 					else{
 						double doubleIndex = (Double)index.getValue();
 						int intIndex = (int)doubleIndex;
-						int firstIndex = intIndex/dimension.get(1)+1;
-						int secondIndex = intIndex%dimension.get(1);
+						int firstIndex = intIndex/dimension.get(1);
 						stmt.setlhsVariable(lhsVariable);
 						stmt.setrhsVariable(rhsArrayName);
 						stmt.setrhsIndex(Integer.toString(firstIndex));						

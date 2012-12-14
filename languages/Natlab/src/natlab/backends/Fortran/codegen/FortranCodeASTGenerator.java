@@ -69,7 +69,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		this.indent = "   ";
 		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
 	}
-	
+	/******************HELPER METHODS**************************/
 	public static SubProgram FortranProgramGen(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
 		return new FortranCodeASTGenerator(analysis, callgraphSize, index, fileDir).SubProgram;
@@ -81,6 +81,20 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		}
 	}
 	
+	public boolean hasArrayAsInput(){
+		boolean result = false;
+		for(String inArg : this.inArgs){
+			if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
+					get(inArg)).getSingleton()).getShape().isScalar()==true){
+				//do nothing
+			}
+			else{
+				result = true;
+			}
+		}
+		return result;
+	}
+	/******************AST NODE OVERRIDE***********************/
 	@Override
 	public void caseASTNode(ASTNode node){
 		
@@ -125,7 +139,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-				get(node.getTargetName().getVarName()).getSingleton())).isConstant()
+				get(node.getTargetName().getVarName())).getSingleton()).getShape().isConstant()
 				&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
