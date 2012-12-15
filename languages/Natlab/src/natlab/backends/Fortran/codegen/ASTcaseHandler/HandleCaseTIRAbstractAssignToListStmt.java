@@ -60,7 +60,17 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
 				if(fcg.isSubroutine==true){
-					var.setName(name.getID());
+					/**
+					 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+					 */
+					if(fcg.inArgs.contains(name.getID())){
+						if (Debug) System.out.println("subroutine's input "+name.getID()+" has been modified!");
+						fcg.inputHasChanged.add(name.getID());
+						var.setName(name.getID()+"_backup");						
+					}
+					else{
+						var.setName(name.getID());
+					}
 				}
 				else{
 					if(fcg.outRes.contains(name.getID())){
@@ -82,7 +92,13 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				binExpr.setOperand1(c.toString());
 			}
 			else{
-				binExpr.setOperand1(Operand1);				
+				if(fcg.inputHasChanged.contains(Operand1))
+				{
+					binExpr.setOperand1(Operand1+"_backup");
+				}
+				else{
+					binExpr.setOperand1(Operand1);		
+				}		
 			}
 			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand2).getSingleton())).isConstant())
 					&&(fcg.inArgs.contains(Operand2)==false)){
@@ -115,7 +131,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			/**
 			 * insert constant variable replacement check.
 			 */
-			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant()){
+			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant())
+					&&(fcg.inArgs.contains(Operand1)==false)){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(Operand1).getSingleton())).getConstant();
 				unExpr.setOperand(c.toString());
@@ -131,7 +148,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * insert constant variable replacement check.
 			 */
 			for(int i=0;i<Args.size();i++){
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant()){
+				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+						&&(fcg.inArgs.contains(Args.get(i))==false)){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(Args.get(i)).getSingleton())).getConstant();
 					Args.remove(i);
@@ -202,7 +220,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * insert constant variable replacement check.
 			 */
 			for(int i=0;i<Args.size();i++){
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant()){
+				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+						&&(fcg.inArgs.contains(Args.get(i))==false)){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(Args.get(i)).getSingleton())).getConstant();
 					Args.remove(i);
@@ -219,14 +238,15 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			return ioExpr;
 		case 7:
 			/**
-			 * deal with user defined functions, apparently, there is no corresponding Fortran function for this.
+			 * deal with user defined subprogram, apparently, there is no corresponding Fortran built-in function for this.
 			 */
 			Args = getArgsList(node);
 			/**
 			 * insert constant variable replacement check.
 			 */
 			for(int i=0;i<Args.size();i++){
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant()){
+				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+						&&(fcg.inArgs.contains(Args.get(i))==false)){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(Args.get(i)).getSingleton())).getConstant();
 					Args.remove(i);

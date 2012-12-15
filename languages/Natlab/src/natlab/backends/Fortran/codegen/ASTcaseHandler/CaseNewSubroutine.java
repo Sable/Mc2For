@@ -1,11 +1,7 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
-import ast.Name;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.backends.Fortran.codegen.*;

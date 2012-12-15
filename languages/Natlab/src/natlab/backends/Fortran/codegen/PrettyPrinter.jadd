@@ -261,6 +261,6 @@ aspect PrettyPrinter{
     	if(hasRuntimeCheck()) {
     	    sb.append(getRuntimeCheck()+"\n");
     	}
-    	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable());
+    	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable()+";");
     }
 }

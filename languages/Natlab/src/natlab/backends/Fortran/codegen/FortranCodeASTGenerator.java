@@ -2,6 +2,7 @@ package natlab.backends.Fortran.codegen;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import ast.ASTNode;
 
@@ -38,8 +39,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public ArrayList<String> outRes;
 	public HashMap<String, String> funcNameRep;//the key of this hashmap is the user defined function name, 
 	                                           //and the value is the corresponding substitute variable name.
-	
 	public boolean isSubroutine;//this boolean value help the compiler to distinguish subroutine with function.
+	public HashSet<String> inputHasChanged;
 	public HashMap<String, BasicMatrixValue> tmpVariables;//to store those temporary variables which are used in Fortran code generation.
 	public boolean isIfWhileForBlock;                                                        //The key is name, and the value is its shape.
 	public StatementSection stmtSecForIfWhileForBlock;
@@ -61,6 +62,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		this.outRes = new ArrayList<String>();
 		this.funcNameRep = new HashMap<String,String>();
 		this.isSubroutine = false;
+		this.inputHasChanged = new HashSet<String>();
 		this.tmpVariables = new HashMap<String,BasicMatrixValue>();
 		this.isIfWhileForBlock = false;
 		this.stmtSecForIfWhileForBlock = new StatementSection();
@@ -139,7 +141,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-				get(node.getTargetName().getVarName())).getSingleton()).getShape().isConstant()
+				get(node.getTargetName().getVarName())).getSingleton()).isConstant()
 				&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
