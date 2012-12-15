@@ -75,7 +75,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			/**
 			 * insert constant variable replacement check.
 			 */
-			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant()){
+			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant())
+					&&(fcg.inArgs.contains(Operand1)==false)){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(Operand1).getSingleton())).getConstant();
 				binExpr.setOperand1(c.toString());
@@ -83,7 +84,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			else{
 				binExpr.setOperand1(Operand1);				
 			}
-			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand2).getSingleton())).isConstant()){
+			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand2).getSingleton())).isConstant())
+					&&(fcg.inArgs.contains(Operand2)==false)){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(Operand2).getSingleton())).getConstant();
 				binExpr.setOperand2(c.toString());
@@ -391,7 +393,11 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 	public static boolean hasArrayAsInput(FortranCodeASTGenerator fcg, ArrayList<String> Args){
 		boolean result = false;
 		for(String inArg : Args){
-			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+			if((fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+					get(inArg))==null){
+				//do nothing
+			}
+			else if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 					get(inArg)).getSingleton()).getShape().isScalar()==true){
 				//do nothing
 			}
