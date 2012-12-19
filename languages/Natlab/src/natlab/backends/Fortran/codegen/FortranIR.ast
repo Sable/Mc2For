@@ -25,7 +25,8 @@ AbstractAssignToVarStmt: Statement ::= <Indent> [RuntimeCheck] <TargetVariable> 
 
 AbstractAssignToListStmt: Statement ::= <Indent> [RuntimeCheck] Expression;
 abstract Expression;
-BinaryExpr: Expression ::= Variable* <Operand1> <Operator> <Operand2>;
+BackupVar ::= <Name: String>;
+BinaryExpr: Expression ::= BackupVar* Variable* <Operand1> <Operator> <Operand2>;
 UnaryExpr: Expression ::= Variable* <Operator> <Operand>;
 DirectBuiltinExpr: Expression ::= Variable* <BuiltinFunc> <ArgsList>;
 NoDirectBuiltinExpr: Expression ::= <CodeInline>;

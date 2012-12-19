@@ -160,7 +160,7 @@ public class CaseNewSubroutine {
 							tempBuf.append(") , allocatable");
 							keyword.setName(tempBuf.toString());
 							keywordList.addKeyword(keyword);
-							if(fcg.inArgs.contains(variable)){
+							if((fcg.inArgs.contains(variable))&&(fcg.inputHasChanged.contains(variable)==false)){
 								Keyword keyword2 = new Keyword();
 								keyword2.setName("intent(in)");
 								keywordList.addKeyword(keyword2);
@@ -194,7 +194,7 @@ public class CaseNewSubroutine {
 							tempBuf.append(")");
 							keyword.setName(tempBuf.toString());
 							keywordList.addKeyword(keyword);
-							if(fcg.inArgs.contains(variable)){
+							if((fcg.inArgs.contains(variable))&&(fcg.inputHasChanged.contains(variable)==false)){
 								Keyword keyword2 = new Keyword();
 								keyword2.setName("intent(in)");
 								keywordList.addKeyword(keyword2);
@@ -207,6 +207,11 @@ public class CaseNewSubroutine {
 							Variable var = new Variable();
 							var.setName(variable);
 							varList.addVariable(var);
+							if(fcg.inputHasChanged.contains(variable)){
+								Variable varBackup = new Variable();
+								varBackup.setName(variable+"_backup");
+								varList.addVariable(varBackup);
+							}
 							declStmt.setKeywordList(keywordList);
 							declStmt.setVariableList(varList);
 						}
@@ -215,7 +220,7 @@ public class CaseNewSubroutine {
 						/**
 						 * for subroutines, it's different from which in functions.
 						 */
-						if(fcg.inArgs.contains(variable)){
+						if((fcg.inArgs.contains(variable))&&(fcg.inputHasChanged.contains(variable)==false)){
 							Keyword keyword = new Keyword();
 							keyword.setName("intent(in)");
 							keywordList.addKeyword(keyword);

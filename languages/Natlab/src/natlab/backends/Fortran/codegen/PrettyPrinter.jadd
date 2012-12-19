@@ -134,7 +134,17 @@ aspect PrettyPrinter{
     
     public void Expression.pp(StringBuffer sb) {}
     
+    public void BackupVar.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
     public void BinaryExpr.pp(StringBuffer sb) {
+    	if(getNumBackupVar()!=0) {
+    		int size = getNumBackupVar();
+    		for(int i=0;i<size;i++) {
+    			getBackupVar(i).pp(sb);
+    		}
+    	}
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);

@@ -41,6 +41,19 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		if((fcg.outRes.contains(node.getTargetName().getID()))&&(fcg.isSubroutine==false)){
 			stmt.setTargetVariable(fcg.majorName);
 		}
+		else if(fcg.inArgs.contains(node.getTargetName().getID())){
+			if(fcg.inputHasChanged.contains(node.getTargetName().getID())){
+				System.out.println("encounter "+node.getTargetName().getID()+" again.");
+				stmt.setTargetVariable(node.getTargetName().getID()+"_backup");
+			}
+			else{
+				System.out.println("first time encounter "+node.getTargetName().getID());
+				fcg.inputHasChanged.add(node.getTargetName().getID());
+				BackupVar backupVar = new BackupVar();
+				backupVar.setName(node.getTargetName().getID()+"_backup = "+node.getTargetName().getID()+";\n");
+				stmt.setTargetVariable(node.getTargetName().getID()+"_backup");
+			}
+		}
 		else{
 			stmt.setTargetVariable(node.getTargetName().getID());
 		}
@@ -56,7 +69,12 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 			stmt.setSourceVariable(c.toString());
 		}
 		else{
-			stmt.setSourceVariable(node.getRHS().getNodeString());
+			if(fcg.inputHasChanged.contains(node.getRHS().getNodeString())){
+				stmt.setSourceVariable(node.getRHS().getNodeString()+"_backup");
+			}
+			else{
+				stmt.setSourceVariable(node.getRHS().getNodeString());
+			}
 		}
 		/**
 		 * for lhs, insert runtime shape allocate check.

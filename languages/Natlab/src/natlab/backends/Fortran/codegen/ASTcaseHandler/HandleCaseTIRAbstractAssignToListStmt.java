@@ -65,8 +65,22 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					 */
 					if(fcg.inArgs.contains(name.getID())){
 						if (Debug) System.out.println("subroutine's input "+name.getID()+" has been modified!");
-						fcg.inputHasChanged.add(name.getID());
-						var.setName(name.getID()+"_backup");						
+						/**
+						 * here we need to detect whether it is the first time this variable put in the set,
+						 * because we only want to back up them once.
+						 */
+						if(fcg.inputHasChanged.contains(name.getID())){
+							//do nothing.
+							if (Debug) System.out.println("encounter "+name.getID()+" again.");
+						}
+						else{
+							if (Debug) System.out.println("first time encounter "+name.getID());
+							fcg.inputHasChanged.add(name.getID());
+							BackupVar backupVar = new BackupVar();
+							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							binExpr.addBackupVar(backupVar);
+						}
+						var.setName(name.getID()+"_backup");
 					}
 					else{
 						var.setName(name.getID());
@@ -92,8 +106,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				binExpr.setOperand1(c.toString());
 			}
 			else{
-				if(fcg.inputHasChanged.contains(Operand1))
-				{
+				if(fcg.inputHasChanged.contains(Operand1)){
 					binExpr.setOperand1(Operand1+"_backup");
 				}
 				else{
@@ -107,7 +120,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				binExpr.setOperand2(c.toString());
 			}
 			else{
-				binExpr.setOperand2(Operand2);				
+				if(fcg.inputHasChanged.contains(Operand2)){
+					binExpr.setOperand1(Operand2+"_backup");
+				}
+				else{
+					binExpr.setOperand2(Operand2);				
+				}
 			}
 			binExpr.setOperator(RHSFortranOperator);
 			return binExpr;
@@ -228,7 +246,14 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					Args.add(i, c.toString());
 				}
 				else{
-					//do nothing.				
+					if(fcg.inputHasChanged.contains(Args.get(i))){
+						String ArgsNew = Args.get(i)+"_backup";
+						Args.remove(i);
+						Args.add(i, ArgsNew);
+					}
+					else{
+						//do nothing
+					}
 				}
 			}
 			ArgsListasString = getArgsListAsString(Args);

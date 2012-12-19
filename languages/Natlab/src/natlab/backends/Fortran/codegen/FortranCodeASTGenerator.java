@@ -168,7 +168,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * And because node.getTargetName().getVarName() can only return the first variable,
 		 * we need use node.getTargets().asNameList().
 		 */
-		if((HandleCaseTIRAbstractAssignToListStmt.makeExpression(this, node) instanceof IOOperationExpr)==false){
+		if((HandleCaseTIRAbstractAssignToListStmt.getRHSCaseNumber(this, node)==6)==false){
 			if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
 					get(node.getTargetName().getVarName()).getSingleton())).isConstant()
 					&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
