@@ -156,6 +156,12 @@ aspect PrettyPrinter{
     }
     
     public void UnaryExpr.pp(StringBuffer sb) {
+    	if(getNumBackupVar()!=0) {
+    		int size = getNumBackupVar();
+    		for(int i=0;i<size;i++) {
+    			getBackupVar(i).pp(sb);
+    		}
+    	}
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -167,6 +173,12 @@ aspect PrettyPrinter{
     }
     
     public void DirectBuiltinExpr.pp(StringBuffer sb) {
+    	if(getNumBackupVar()!=0) {
+    		int size = getNumBackupVar();
+    		for(int i=0;i<size;i++) {
+    			getBackupVar(i).pp(sb);
+    		}
+    	}
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -182,6 +194,12 @@ aspect PrettyPrinter{
     }
     
     public void BuiltinConstantExpr.pp(StringBuffer sb) {
+    	if(getNumBackupVar()!=0) {
+    		int size = getNumBackupVar();
+    		for(int i=0;i<size;i++) {
+    			getBackupVar(i).pp(sb);
+    		}
+    	}
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -197,6 +215,12 @@ aspect PrettyPrinter{
     }
     
     public void UserDefinedFunction.pp(StringBuffer sb) {
+    	if(getNumBackupVar()!=0) {
+    		int size = getNumBackupVar();
+    		for(int i=0;i<size;i++) {
+    			getBackupVar(i).pp(sb);
+    		}
+    	}
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);

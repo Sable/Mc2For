@@ -134,7 +134,31 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
 				if(fcg.isSubroutine==true){
-					var.setName(name.getID());
+					/**
+					 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+					 */
+					if(fcg.inArgs.contains(name.getID())){
+						if (Debug) System.out.println("subroutine's input "+name.getID()+" has been modified!");
+						/**
+						 * here we need to detect whether it is the first time this variable put in the set,
+						 * because we only want to back up them once.
+						 */
+						if(fcg.inputHasChanged.contains(name.getID())){
+							//do nothing.
+							if (Debug) System.out.println("encounter "+name.getID()+" again.");
+						}
+						else{
+							if (Debug) System.out.println("first time encounter "+name.getID());
+							fcg.inputHasChanged.add(name.getID());
+							BackupVar backupVar = new BackupVar();
+							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							unExpr.addBackupVar(backupVar);
+						}
+						var.setName(name.getID()+"_backup");
+					}
+					else{
+						var.setName(name.getID());
+					}
 				}
 				else{
 					if(fcg.outRes.contains(name.getID())){
@@ -156,7 +180,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				unExpr.setOperand(c.toString());
 			}
 			else{
-				unExpr.setOperand(Operand1);				
+				if(fcg.inputHasChanged.contains(Operand1)){
+					unExpr.setOperand(Operand1+"_backup");				
+				}
+				else{
+					unExpr.setOperand(Operand1);
+				}
 			}
 			unExpr.setOperator(RHSFortranOperator);
 			return unExpr;

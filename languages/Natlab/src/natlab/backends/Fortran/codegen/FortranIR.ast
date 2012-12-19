@@ -27,12 +27,12 @@ AbstractAssignToListStmt: Statement ::= <Indent> [RuntimeCheck] Expression;
 abstract Expression;
 BackupVar ::= <Name: String>;
 BinaryExpr: Expression ::= BackupVar* Variable* <Operand1> <Operator> <Operand2>;
-UnaryExpr: Expression ::= Variable* <Operator> <Operand>;
-DirectBuiltinExpr: Expression ::= Variable* <BuiltinFunc> <ArgsList>;
+UnaryExpr: Expression ::= BackupVar* Variable* <Operator> <Operand>;
+DirectBuiltinExpr: Expression ::= BackupVar* Variable* <BuiltinFunc> <ArgsList>;
 NoDirectBuiltinExpr: Expression ::= <CodeInline>;
-BuiltinConstantExpr: Expression ::= Variable* <BuiltinFunc>;
+BuiltinConstantExpr: Expression ::= BackupVar* Variable* <BuiltinFunc>;
 IOOperationExpr: Expression ::= <IOOperator> <ArgsList>;
-UserDefinedFunction: Expression ::= Variable* <FuncName> <ArgsList>;
+UserDefinedFunction: Expression ::= BackupVar* Variable* <FuncName> <ArgsList>;
 
 Subroutines: Expression ::= <Indent> <FuncName> <InputArgsList> <OutputArgsList>;
 
