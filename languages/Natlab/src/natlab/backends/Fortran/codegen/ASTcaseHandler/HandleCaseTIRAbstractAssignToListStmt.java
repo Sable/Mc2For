@@ -190,6 +190,46 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			unExpr.setOperator(RHSFortranOperator);
 			return unExpr;
 		case 3:
+			DirectBuiltinExpr dirBuiltinExpr = new DirectBuiltinExpr();
+			for(ast.Name name : node.getTargets().asNameList()){
+				Variable var = new Variable();
+				if(fcg.isSubroutine==true){
+					/**
+					 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+					 */
+					if(fcg.inArgs.contains(name.getID())){
+						if (Debug) System.out.println("subroutine's input "+name.getID()+" has been modified!");
+						/**
+						 * here we need to detect whether it is the first time this variable put in the set,
+						 * because we only want to back up them once.
+						 */
+						if(fcg.inputHasChanged.contains(name.getID())){
+							//do nothing.
+							if (Debug) System.out.println("encounter "+name.getID()+" again.");
+						}
+						else{
+							if (Debug) System.out.println("first time encounter "+name.getID());
+							fcg.inputHasChanged.add(name.getID());
+							BackupVar backupVar = new BackupVar();
+							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							dirBuiltinExpr.addBackupVar(backupVar);
+						}
+						var.setName(name.getID()+"_backup");
+					}
+					else{
+						var.setName(name.getID());
+					}
+				}
+				else{
+					if(fcg.outRes.contains(name.getID())){
+						var.setName(fcg.majorName);
+					}
+					else{
+						var.setName(name.getID());
+					}
+				}
+				dirBuiltinExpr.addVariable(var);
+			}
 			Args = getArgsList(node);
 			/**
 			 * insert constant variable replacement check.
@@ -203,26 +243,17 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					Args.add(i, c.toString());
 				}
 				else{
-					//do nothing.				
+					if(fcg.inputHasChanged.contains(Args.get(i))){
+						String ArgsNew = Args.get(i)+"_backup";
+						Args.remove(i);
+						Args.add(i, ArgsNew);
+					}
+					else{
+						//do nothing
+					}
 				}
 			}
 			ArgsListasString = getArgsListAsString(Args);
-			DirectBuiltinExpr dirBuiltinExpr = new DirectBuiltinExpr();
-			for(ast.Name name : node.getTargets().asNameList()){
-				Variable var = new Variable();
-				if(fcg.isSubroutine==true){
-					var.setName(name.getID());
-				}
-				else{
-					if(fcg.outRes.contains(name.getID())){
-						var.setName(fcg.majorName);
-					}
-					else{
-						var.setName(name.getID());
-					}
-				}
-				dirBuiltinExpr.addVariable(var);
-			}
 			dirBuiltinExpr.setBuiltinFunc(RHSFortranOperator);
 			dirBuiltinExpr.setArgsList(ArgsListasString);
 			return dirBuiltinExpr;
@@ -235,7 +266,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			return noDirBuiltinExpr;
 		case 5:
 			/**
-			 * this is for assign an built-in constant to a variable, for example:
+			 * this is for assigning an built-in constant to a variable, for example:
 			 * a = pi, and because of we are doing constant variable replacement,
 			 * we kind of need to ignore this expression, because this is also a 
 			 * kind of constant assignment.
@@ -247,7 +278,31 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
 				if(fcg.isSubroutine==true){
-					var.setName(name.getID());
+					/**
+					 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+					 */
+					if(fcg.inArgs.contains(name.getID())){
+						if (Debug) System.out.println("subroutine's input "+name.getID()+" has been modified!");
+						/**
+						 * here we need to detect whether it is the first time this variable put in the set,
+						 * because we only want to back up them once.
+						 */
+						if(fcg.inputHasChanged.contains(name.getID())){
+							//do nothing.
+							if (Debug) System.out.println("encounter "+name.getID()+" again.");
+						}
+						else{
+							if (Debug) System.out.println("first time encounter "+name.getID());
+							fcg.inputHasChanged.add(name.getID());
+							BackupVar backupVar = new BackupVar();
+							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							builtinConst.addBackupVar(backupVar);
+						}
+						var.setName(name.getID()+"_backup");
+					}
+					else{
+						var.setName(name.getID());
+					}
 				}
 				else{
 					if(fcg.outRes.contains(name.getID())){
@@ -295,31 +350,39 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * deal with user defined subprogram, apparently, there is no corresponding Fortran built-in function for this.
 			 */
 			Args = getArgsList(node);
-			/**
-			 * insert constant variable replacement check.
-			 */
-			for(int i=0;i<Args.size();i++){
-				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
-						&&(fcg.inArgs.contains(Args.get(i))==false)){
-					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(Args.get(i)).getSingleton())).getConstant();
-					Args.remove(i);
-					Args.add(i, c.toString());
-				}
-				else{
-					//do nothing.				
-				}
-			}
 			if((node.getTargets().asNameList().size()==1)&&(hasArrayAsInput(fcg,Args)==false)){
 				/**
 				 * this is for functions.
 				 */
-				ArgsListasString = getArgsListAsString(Args);
 				UserDefinedFunction userDefFunc = new UserDefinedFunction();
 				for(ast.Name name : node.getTargets().asNameList()){
 					Variable var = new Variable();
 					if(fcg.isSubroutine==true){
-						var.setName(name.getID());
+						/**
+						 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+						 */
+						if(fcg.inArgs.contains(name.getID())){
+							if (Debug) System.out.println("subroutine's input "+name.getID()+" has been modified!");
+							/**
+							 * here we need to detect whether it is the first time this variable put in the set,
+							 * because we only want to back up them once.
+							 */
+							if(fcg.inputHasChanged.contains(name.getID())){
+								//do nothing.
+								if (Debug) System.out.println("encounter "+name.getID()+" again.");
+							}
+							else{
+								if (Debug) System.out.println("first time encounter "+name.getID());
+								fcg.inputHasChanged.add(name.getID());
+								BackupVar backupVar = new BackupVar();
+								backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+								userDefFunc.addBackupVar(backupVar);
+							}
+							var.setName(name.getID()+"_backup");
+						}
+						else{
+							var.setName(name.getID());
+						}
 					}
 					else{
 						if(fcg.outRes.contains(name.getID())){
@@ -331,6 +394,29 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					}
 					userDefFunc.addVariable(var);
 				}
+				/**
+				 * insert constant variable replacement check.
+				 */
+				for(int i=0;i<Args.size();i++){
+					if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+							&&(fcg.inArgs.contains(Args.get(i))==false)){
+						Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(Args.get(i)).getSingleton())).getConstant();
+						Args.remove(i);
+						Args.add(i, c.toString());
+					}
+					else{
+						if(fcg.inputHasChanged.contains(Args.get(i))){
+							String ArgsNew = Args.get(i)+"_backup";
+							Args.remove(i);
+							Args.add(i, ArgsNew);
+						}
+						else{
+							//do nothing
+						}				
+					}
+				}
+				ArgsListasString = getArgsListAsString(Args);
 				String funcName;
 				funcName = node.getRHS().getVarName();
 				userDefFunc.setFuncName(funcName);
@@ -352,12 +438,58 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				/**
 				 * this is for subroutines.
 				 */
-				ArgsListasString = getArgsListAsString(Args);
 				Subroutines subroutine = new Subroutines();
 				ArrayList<String> outputArgsList = new ArrayList<String>();
 				for(ast.Name name : node.getTargets().asNameList()){
-					outputArgsList.add(name.getID());
+					/**
+					 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+					 */
+					if(fcg.inArgs.contains(name.getID())){
+						if (Debug) System.out.println("subroutine's input "+name.getID()+" has been modified!");
+						/**
+						 * here we need to detect whether it is the first time this variable put in the set,
+						 * because we only want to back up them once.
+						 */
+						if(fcg.inputHasChanged.contains(name.getID())){
+							//do nothing.
+							if (Debug) System.out.println("encounter "+name.getID()+" again.");
+						}
+						else{
+							if (Debug) System.out.println("first time encounter "+name.getID());
+							fcg.inputHasChanged.add(name.getID());
+							BackupVar backupVar = new BackupVar();
+							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							subroutine.addBackupVar(backupVar);
+						}
+						outputArgsList.add(name.getID()+"_backup");
+					}
+					else{
+						outputArgsList.add(name.getID());
+					}
 				}
+				/**
+				 * insert constant variable replacement check.
+				 */
+				for(int i=0;i<Args.size();i++){
+					if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+							&&(fcg.inArgs.contains(Args.get(i))==false)){
+						Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(Args.get(i)).getSingleton())).getConstant();
+						Args.remove(i);
+						Args.add(i, c.toString());
+					}
+					else{
+						if(fcg.inputHasChanged.contains(Args.get(i))){
+							String ArgsNew = Args.get(i)+"_backup";
+							Args.remove(i);
+							Args.add(i, ArgsNew);
+						}
+						else{
+							//do nothing
+						}				
+					}
+				}
+				ArgsListasString = getArgsListAsString(Args);
 				String funcName;
 				funcName = node.getRHS().getVarName();
 				subroutine.setFuncName(funcName);

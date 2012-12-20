@@ -34,7 +34,7 @@ BuiltinConstantExpr: Expression ::= BackupVar* Variable* <BuiltinFunc>;
 IOOperationExpr: Expression ::= <IOOperator> <ArgsList>;
 UserDefinedFunction: Expression ::= BackupVar* Variable* <FuncName> <ArgsList>;
 
-Subroutines: Expression ::= <Indent> <FuncName> <InputArgsList> <OutputArgsList>;
+Subroutines: Expression ::= <Indent> BackupVar* <FuncName> <InputArgsList> <OutputArgsList>;
 
 IfStmt: Statement ::= <Indent> <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
 
