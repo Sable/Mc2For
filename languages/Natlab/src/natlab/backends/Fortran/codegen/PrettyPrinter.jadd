@@ -112,6 +112,9 @@ aspect PrettyPrinter{
     	if(hasRuntimeCheck()) {
     		sb.append(getRuntimeCheck()+"\n");
     	}
+    	if(hasBackupVar()) {
+    		getBackupVar().pp(sb);
+    	}
     	getVariable().pp(sb);
     	sb.append(" = "+getLiteral()+";");
     }
@@ -120,6 +123,9 @@ aspect PrettyPrinter{
     	sb.append(getIndent());
     	if(hasRuntimeCheck()) {
     		sb.append(getRuntimeCheck()+"\n");
+    	}
+    	if(hasBackupVar()) {
+    		getBackupVar().pp(sb);
     	}
     	sb.append(getTargetVariable()+" = "+getSourceVariable()+";");
     }
@@ -283,6 +289,9 @@ aspect PrettyPrinter{
     	if(hasRuntimeCheck()) {
     		sb.append(getRuntimeCheck()+"\n");
     	}
+    	if(hasBackupVar()) {
+    		getBackupVar().pp(sb);
+    	}
     	sb.append(getlhsVariable());
     	if(haslhsIndex()) {
     		sb.append("(");
@@ -300,6 +309,9 @@ aspect PrettyPrinter{
     	sb.append(getIndent());
     	if(hasRuntimeCheck()) {
     	    sb.append(getRuntimeCheck()+"\n");
+    	}
+    	if(hasBackupVar()) {
+    		getBackupVar().pp(sb);
     	}
     	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable()+";");
     }

@@ -12,7 +12,7 @@ import natlab.tame.valueanalysis.components.shape.Shape;
 
 public class HandleCaseTIRAssignLiteralStmt {
 
-	static boolean Debug = false;
+	static boolean Debug = true;
 	
 	public HandleCaseTIRAssignLiteralStmt(){
 		
@@ -30,7 +30,38 @@ public class HandleCaseTIRAssignLiteralStmt {
 		}
 		stmt.setIndent(indent);
 		Variable var = new Variable();
-		var.setName(node.getTargetName().getVarName());
+		//TODO need more consideration, what if the input argument is an array, but inside subroutine, 
+		//it has been assigned a constant, this problem also relates to different shape var merging problem.
+		if(fcg.isSubroutine==true){
+			/**
+			 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+			 */
+			if(fcg.inArgs.contains(node.getTargetName().getVarName())){
+				if (Debug) System.out.println("subroutine's input "+node.getTargetName().getVarName()+" has been modified!");
+				/**
+				 * here we need to detect whether it is the first time this variable put in the set,
+				 * because we only want to back up them once.
+				 */
+				if(fcg.inputHasChanged.contains(node.getTargetName().getVarName())){
+					//do nothing.
+					if (Debug) System.out.println("encounter "+node.getTargetName().getVarName()+" again.");
+				}
+				else{
+					if (Debug) System.out.println("first time encounter "+node.getTargetName().getVarName());
+					fcg.inputHasChanged.add(node.getTargetName().getVarName());
+					BackupVar backupVar = new BackupVar();
+					backupVar.setName(node.getTargetName().getVarName()+"_backup = "+node.getTargetName().getVarName()+";\n");
+					stmt.setBackupVar(backupVar);
+				}
+				var.setName(node.getTargetName().getVarName()+"_backup");
+			}
+			else{
+				var.setName(node.getTargetName().getVarName());
+			}
+		}
+		else{
+			var.setName(node.getTargetName().getVarName());
+		}
 		stmt.setVariable(var);
 		
 		stmt.setLiteral(node.getRHS().getNodeString());

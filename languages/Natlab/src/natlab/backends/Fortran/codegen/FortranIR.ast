@@ -18,10 +18,10 @@ abstract Statement;
 
 CommentStmt: Statement ::= <Comment>;
 
-AssignLiteralStmt: Statement ::= <Indent> [RuntimeCheck] Variable <Literal>;
+AssignLiteralStmt: Statement ::= <Indent> [RuntimeCheck] [BackupVar] Variable <Literal>;
 RuntimeCheck ::= <Name: String>;
 
-AbstractAssignToVarStmt: Statement ::= <Indent> [RuntimeCheck] <TargetVariable> <SourceVariable>;
+AbstractAssignToVarStmt: Statement ::= <Indent> [RuntimeCheck] [BackupVar] <TargetVariable> <SourceVariable>;
 
 AbstractAssignToListStmt: Statement ::= <Indent> [RuntimeCheck] Expression;
 abstract Expression;
@@ -43,7 +43,7 @@ WhileStmt: Statement ::= <Indent> <Condition> WhileBlock: StatementSection;
 ForStmt: Statement ::= <Indent> <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
 Inc ::= <Name: String>;
 
-ArrayGetStmt: Statement ::= <Indent> [RuntimeCheck] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+ArrayGetStmt: Statement ::= <Indent> [RuntimeCheck] [BackupVar] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 lhsIndex ::= <Name: String>;
 
-ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] <lhsVariable> <lhsIndex> <rhsVariable>;
+ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] [BackupVar] <lhsVariable> <lhsIndex> <rhsVariable>;

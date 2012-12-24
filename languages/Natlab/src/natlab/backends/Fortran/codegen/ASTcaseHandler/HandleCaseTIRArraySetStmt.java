@@ -2,7 +2,6 @@ package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
 import java.util.ArrayList;
 
-import ast.Name;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
@@ -29,13 +28,37 @@ public class HandleCaseTIRArraySetStmt {
 		}
 		stmt.setIndent(indent);
 		
-		ArrayList<String> args = new ArrayList<String>();
-		int numArgs = node.getLHS().getChild(1).getNumChild();
-		for (int i=0;i<numArgs;i++){
-			args.add(node.getLHS().getChild(1).getChild(i).getNodeString());
+		if(fcg.isSubroutine==true){
+			/**
+			 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+			 */
+			if(fcg.inArgs.contains(node.getArrayName().getVarName())){
+				if (Debug) System.out.println("subroutine's input "+node.getArrayName().getVarName()+" has been modified!");
+				/**
+				 * here we need to detect whether it is the first time this variable put in the set,
+				 * because we only want to back up them once.
+				 */
+				if(fcg.inputHasChanged.contains(node.getArrayName().getVarName())){
+					//do nothing.
+					if (Debug) System.out.println("encounter "+node.getArrayName().getVarName()+" again.");
+				}
+				else{
+					if (Debug) System.out.println("first time encounter "+node.getArrayName().getVarName());
+					fcg.inputHasChanged.add(node.getArrayName().getVarName());
+					BackupVar backupVar = new BackupVar();
+					backupVar.setName(node.getArrayName().getVarName()+"_backup = "+node.getArrayName().getVarName()+";\n");
+					stmt.setBackupVar(backupVar);
+				}
+				stmt.setlhsVariable(node.getArrayName().getVarName()+"_backup");
+			}
+			else{
+				stmt.setlhsVariable(node.getArrayName().getVarName());
+			}
+		}
+		else{
+			stmt.setlhsVariable(node.getArrayName().getVarName());
 		}
 		
-		stmt.setlhsVariable(node.getArrayName().getVarName());
 		/**
 		 * insert constant variable replacement check for LHS array index.
 		 */
@@ -50,7 +73,9 @@ public class HandleCaseTIRArraySetStmt {
 					.get(indexArray.get(i)).getSingleton())).isConstant())){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(indexArray.get(i)).getSingleton())).getConstant();
-				indexBuffer.append(c.toString());
+				double dc = (Double) c.getValue();
+				int ic = (int) dc;
+				indexBuffer.append(ic);
 			}
 			else{
 				indexBuffer.append(indexArray.get(i));
@@ -76,7 +101,7 @@ public class HandleCaseTIRArraySetStmt {
 			stmt.setrhsVariable(node.getValueName().getVarName());
 		}
 		
-		for(String indexName : args){
+		for(String indexName : indexArray){
 			if(indexName.equals(":")){
 				//ignore this
 			}

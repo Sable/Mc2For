@@ -38,24 +38,40 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		/**
 		 * for lhs, insert function name variable replacement check.
 		 */
-		if((fcg.outRes.contains(node.getTargetName().getID()))&&(fcg.isSubroutine==false)){
-			stmt.setTargetVariable(fcg.majorName);
-		}
-		else if(fcg.inArgs.contains(node.getTargetName().getID())){
-			if(fcg.inputHasChanged.contains(node.getTargetName().getID())){
-				System.out.println("encounter "+node.getTargetName().getID()+" again.");
+		if(fcg.isSubroutine==true){
+			/**
+			 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+			 */
+			if(fcg.inArgs.contains(node.getTargetName().getID())){
+				if (Debug) System.out.println("subroutine's input "+node.getTargetName().getID()+" has been modified!");
+				/**
+				 * here we need to detect whether it is the first time this variable put in the set,
+				 * because we only want to back up them once.
+				 */
+				if(fcg.inputHasChanged.contains(node.getTargetName().getID())){
+					//do nothing.
+					if (Debug) System.out.println("encounter "+node.getTargetName().getID()+" again.");
+				}
+				else{
+					if (Debug) System.out.println("first time encounter "+node.getTargetName().getID());
+					fcg.inputHasChanged.add(node.getTargetName().getID());
+					BackupVar backupVar = new BackupVar();
+					backupVar.setName(node.getTargetName().getID()+"_backup = "+node.getTargetName().getID()+";\n");
+					stmt.setBackupVar(backupVar);
+				}
 				stmt.setTargetVariable(node.getTargetName().getID()+"_backup");
 			}
 			else{
-				System.out.println("first time encounter "+node.getTargetName().getID());
-				fcg.inputHasChanged.add(node.getTargetName().getID());
-				BackupVar backupVar = new BackupVar();
-				backupVar.setName(node.getTargetName().getID()+"_backup = "+node.getTargetName().getID()+";\n");
-				stmt.setTargetVariable(node.getTargetName().getID()+"_backup");
+				stmt.setTargetVariable(node.getTargetName().getID());
 			}
 		}
 		else{
-			stmt.setTargetVariable(node.getTargetName().getID());
+			if(fcg.outRes.contains(node.getTargetName().getID())){
+				stmt.setTargetVariable(fcg.majorName);
+			}
+			else{
+				stmt.setTargetVariable(node.getTargetName().getID());
+			}
 		}
 		/**
 		 * for rhs, insert constant variable replacement check.
@@ -78,6 +94,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		}
 		/**
 		 * for lhs, insert runtime shape allocate check.
+		 * TODO need more concerns.
 		 */
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
 				.get(node.getTargetName().getID()).getSingleton())).isConstant()){

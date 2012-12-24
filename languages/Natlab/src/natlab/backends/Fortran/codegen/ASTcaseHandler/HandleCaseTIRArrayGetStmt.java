@@ -28,17 +28,48 @@ public class HandleCaseTIRArrayGetStmt {
 		}
 		stmt.setIndent(indent);
 		
-		ArrayList<String> args = new ArrayList<String>();
-		args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-		
 		//TODO I need know the array's shape and index' shape!
+		//TODO need know exactly all the mapping from matlab array index to fortran array index
 		String lhsVariable = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+		if(fcg.isSubroutine==true){
+			/**
+			 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+			 */
+			if(fcg.inArgs.contains(lhsVariable)){
+				if (Debug) System.out.println("subroutine's input "+lhsVariable+" has been modified!");
+				/**
+				 * here we need to detect whether it is the first time this variable put in the set,
+				 * because we only want to back up them once.
+				 */
+				if(fcg.inputHasChanged.contains(lhsVariable)){
+					//do nothing.
+					if (Debug) System.out.println("encounter "+lhsVariable+" again.");
+				}
+				else{
+					if (Debug) System.out.println("first time encounter "+lhsVariable);
+					fcg.inputHasChanged.add(lhsVariable);
+					BackupVar backupVar = new BackupVar();
+					backupVar.setName(lhsVariable+"_backup = "+lhsVariable+";\n");
+					stmt.setBackupVar(backupVar);
+				}
+				lhsVariable = lhsVariable+"_backup";
+			}
+			else{
+				//do nothing
+			}
+		}
+		else{
+			//do nothing
+		}
 		String lhsIndexString;
 		String rhsArrayName = node.getArrayName().getVarName();
 		
-		Shape arrayShape = ((HasShape)(fcg.analysis.getNodeList()
-		.get(fcg.index).getAnalysis().getCurrentOutSet().get(rhsArrayName).getSingleton())).getShape();
+		Shape arrayShape = ((HasShape)(fcg.analysis.getNodeList().get(fcg.index)
+				.getAnalysis().getCurrentOutSet().get(rhsArrayName).getSingleton())).getShape();
 		ArrayList<Integer> dimension = new ArrayList<Integer>(arrayShape.getDimensions());
+		
+		ArrayList<String> args = new ArrayList<String>();
+		args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
 		
 		if(args.size()==1){
 			if(args.contains(":")){
