@@ -79,7 +79,6 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("exp", "exp");
 		FortranDirectBuiltinMap.put("transpose", "transpose");
 		FortranDirectBuiltinMap.put("ceil", "ceiling");
-		FortranDirectBuiltinMap.put("true", ".true.");
 	}
 	
 	private void makeFortranNoDirectBuiltinSet(){
@@ -93,7 +92,9 @@ public class FortranMapping {
 	
 	private void makeFortranBuiltinConstMap(){
 		//TODO create a categorical map here 
-		FortranBuiltinConstMap.put("pi", "Math.PI");	
+		FortranBuiltinConstMap.put("pi", "Math.PI");
+		FortranBuiltinConstMap.put("true", ".true.");
+		FortranBuiltinConstMap.put("false", ".false.");
 	}
 	
 	private void makeFortranIOOperationMap(){

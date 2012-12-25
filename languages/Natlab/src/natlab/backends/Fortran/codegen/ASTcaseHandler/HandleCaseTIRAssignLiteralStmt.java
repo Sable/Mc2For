@@ -12,7 +12,7 @@ import natlab.tame.valueanalysis.components.shape.Shape;
 
 public class HandleCaseTIRAssignLiteralStmt {
 
-	static boolean Debug = true;
+	static boolean Debug = false;
 	
 	public HandleCaseTIRAssignLiteralStmt(){
 		
