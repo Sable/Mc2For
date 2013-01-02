@@ -3,7 +3,8 @@ package natlab.backends.Fortran.codegen.ASTcaseHandler;
 import java.util.ArrayList;
 
 import natlab.tame.tir.TIRFunction;
-import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
+import natlab.tame.valueanalysis.components.constant.*;
+import natlab.tame.valueanalysis.components.shape.*;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 
@@ -42,7 +43,8 @@ public class CaseNewMainEntryPoint {
 		
 		for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
 
-			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
+			if((((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getConstant()!=null)
+					||(fcg.tmpVarAsArrayIndex.containsKey(variable))){
 				if (Debug) System.out.println("do constant folding, no declaration.");
 			}
 			else if(fcg.forStmtParameter.contains(variable)||fcg.arrayIndexParameter.contains(variable)){
@@ -99,7 +101,7 @@ public class CaseNewMainEntryPoint {
 				else{
 					buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				}*/
-				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				//parameter
 				/*if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()){
 					if (Debug) System.out.println("add parameter here!");
@@ -114,10 +116,10 @@ public class CaseNewMainEntryPoint {
 				}*/
 				//else{
 					//dimension
-					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
+					if(((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
 						if (Debug) System.out.println("add dimension here!");
 						Keyword keyword = new Keyword();
-						ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
+						ArrayList<Integer> dim = new ArrayList<Integer>(((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 						boolean conter = false;
 						boolean variableShapeIsKnown = true;
 						for(Integer intgr : dim){

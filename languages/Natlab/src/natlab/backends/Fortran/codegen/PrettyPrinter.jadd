@@ -196,7 +196,9 @@ aspect PrettyPrinter{
     }
     
     public void NoDirectBuiltinExpr.pp(StringBuffer sb) {
-    	sb.append(getCodeInline());
+    	if(getCodeInline()!=null) {
+	    	sb.append(getCodeInline());
+	    }
     }
     
     public void BuiltinConstantExpr.pp(StringBuffer sb) {

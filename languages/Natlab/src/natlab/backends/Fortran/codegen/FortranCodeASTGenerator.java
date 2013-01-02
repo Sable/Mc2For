@@ -37,16 +37,20 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public String majorName;
 	public ArrayList<String> inArgs;
 	public ArrayList<String> outRes;
-	public HashMap<String, String> funcNameRep;//the key of this hashmap is the user defined function name, 
-	                                           //and the value is the corresponding substitute variable name.
-	public boolean isSubroutine;//this boolean value help the compiler to distinguish subroutine with function.
+	//funcNameRep: the key of this hashmap is the user defined function name, and the value is the corresponding substitute variable name.
+	public HashMap<String, String> funcNameRep;
+	//isSubroutine: this boolean value help the compiler to distinguish subroutine with function.
+	public boolean isSubroutine;
 	public HashSet<String> inputHasChanged;
-	public HashMap<String, BasicMatrixValue> tmpVariables;//to store those temporary variables which are used in Fortran code generation.
-	public boolean isIfWhileForBlock;                                                        //The key is name, and the value is its shape.
+	//tmpVariables: to store those temporary variables which are used in Fortran code generation. The key is name, and the value is its shape.
+	public HashMap<String, BasicMatrixValue> tmpVariables;
+	public boolean isIfWhileForBlock;          
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram SubProgram;
 	public int indentNum;
 	public String indent;
+	//tmpVarAsArrayIndex: the key is the name of the temp variable which is used as array index and the value is the range of those variables.
+	public HashMap<String, ArrayList<String>> tmpVarAsArrayIndex; 
 	static boolean Debug = false;
 	
 	public FortranCodeASTGenerator(ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, int callgraphSize, int index, String fileDir){
@@ -69,6 +73,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		this.SubProgram = new SubProgram();
 		this.indentNum = 0;
 		this.indent = "   ";
+		this.tmpVarAsArrayIndex = new HashMap<String, ArrayList<String>>();
 		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
 	}
 	/******************HELPER METHODS**************************/

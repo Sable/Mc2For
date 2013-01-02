@@ -97,6 +97,9 @@ public class HandleCaseTIRArrayGetStmt {
 				}
 				else{
 					//TODO
+					stmt.setlhsVariable(lhsVariable);
+					stmt.setrhsVariable(rhsArrayName);
+					stmt.setrhsIndex(args.get(0));
 				}
 			}
 		}
@@ -160,12 +163,17 @@ public class HandleCaseTIRArrayGetStmt {
 			}
 		}
 		
-		for(String indexName : args){
-			if(indexName.equals(":")){
+		for(ast.Name indexName : node.getIndizes().asNameList()){
+			if(indexName.getID().equals(":")){
 				//ignore this
 			}
 			else{
-				fcg.arrayIndexParameter.add(indexName);
+				if(indexName.tmpVar){
+					
+				}
+				else{
+					fcg.arrayIndexParameter.add(indexName.getID());
+				}
 			}
 		}
 		return stmt;

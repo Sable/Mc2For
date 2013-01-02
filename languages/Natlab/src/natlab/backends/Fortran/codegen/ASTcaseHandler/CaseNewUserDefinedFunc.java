@@ -1,12 +1,10 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import natlab.tame.tir.*;
-import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
+import natlab.tame.valueanalysis.components.constant.*;
+import natlab.tame.valueanalysis.components.shape.*;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 
@@ -55,8 +53,9 @@ public class CaseNewUserDefinedFunc {
 				
 		for(String variable : fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().keySet()){
 			
-			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
-					.get(variable).getSingleton())).isConstant()&&(fcg.inArgs.contains(variable)==false)){
+			if((((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
+					.get(variable).getSingleton())).getConstant()!=null&&(fcg.inArgs.contains(variable)==false))
+					||(fcg.tmpVarAsArrayIndex.containsKey(variable))){
 				/**
 				 * for function, we need to take care of input args, the declaration of input args cannot be ignored.
 				 */
@@ -112,7 +111,7 @@ public class CaseNewUserDefinedFunc {
 				else{
 					buf.append("\n" + FortranMap.getFortranTypeMapping(((AdvancedMatrixValue)(this.analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				}*/
-				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
+				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(((fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getMatlabClass().toString()));
 				//parameter
 				/*if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).isConstant()&&(fcg.inArgs.contains(variable)==false)&&(fcg.outRes.contains(variable)==false)){
 					if (Debug) System.out.println("add parameter here!");
@@ -120,10 +119,10 @@ public class CaseNewUserDefinedFunc {
 				}*/
 				//else{
 					//dimension
-					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
+					if(((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
 						if (Debug) System.out.println("add dimension here!");
 						Keyword keyword = new Keyword();
-						ArrayList<Integer> dim = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
+						ArrayList<Integer> dim = new ArrayList<Integer>(((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
 						boolean conter = false;
 						boolean variableShapeIsKnown = true;
 						for(Integer intgr : dim){

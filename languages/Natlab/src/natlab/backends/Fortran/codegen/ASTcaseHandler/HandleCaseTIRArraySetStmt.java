@@ -7,6 +7,7 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.constant.Constant;
+import natlab.tame.valueanalysis.components.constant.HasConstant;
 
 public class HandleCaseTIRArraySetStmt {
 
@@ -69,8 +70,8 @@ public class HandleCaseTIRArraySetStmt {
 		}
 		StringBuffer indexBuffer = new StringBuffer();
 		for(int i=0;i<indexArray.size();i++){
-			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
-					.get(indexArray.get(i)).getSingleton())).isConstant())){
+			if(((HasConstant)(fcg.analysis.getNodeList()
+					.get(fcg.index).getAnalysis().getCurrentOutSet().get(indexArray.get(i)).getSingleton())).getConstant()!=null){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(indexArray.get(i)).getSingleton())).getConstant();
 				double dc = (Double) c.getValue();

@@ -194,121 +194,150 @@ public class FortranCodeASTInliner {
 		
 		else if(node.getRHS().getVarName().equals("colon")){
 			/*
-			 * a=1:10 -> a=[1,2,3,...,10]
-			 * a=1:2:10 -> a=[1,3,5,...,9]
-			 * so, depends on the number of input parameters, there are two transformations.
+			 * Depending on the fact that whether the target variable is temporary, 
+			 * we have two solutions for colon.
+			 * 1. if it is a temporary variable, it means that this variable will be used as an index in the future;
+			 * 2. if it is not a temporary variable, it means that this variable is made on purpose, we should leave it as people expected.
 			 */
-			String indent = new String();
-			for(int i=0; i<fcg.indentNum; i++){
-				indent = indent + fcg.indent;
+			//one more thing, we assume that the number of target variables of colon is only one.
+			if(node.getTargets().asNameList().get(0).tmpVar){
+				//TODO store the range information of this temp variable for later use.
+				ArrayList<String> args = new ArrayList<String>();
+				args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+				for(int i=0;i<args.size();i++){
+					if(((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(i)).getSingleton())).getConstant()!=null){
+						DoubleConstant c = (DoubleConstant) ((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(args.get(i)).getSingleton())).getConstant();
+						int ci = c.getValue().intValue();
+						args.remove(i);
+						args.add(i, String.valueOf(ci));
+					}
+					else{
+						//do nothing
+					}
+				}
+				fcg.tmpVarAsArrayIndex.put(node.getTargets().asNameList().get(0).getID(), args);
 			}
-			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			ArrayList<String> args = new ArrayList<String>();
-			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-			int argsNum = args.size();
-			if(argsNum==2){
-				StringBuffer tmpBuf = new StringBuffer();
-				/* a = arg1:arg2
-				 * -->
-				 * do tmp_a_i = arg1,arg2
-			  	 *   a(1,tmp_a_i) = tmp_a_i;
-			     * enddo
-			     */
-				/**
-				 * need constant variable replacement check.
+			else{
+				/*
+				 * a=1:10 -> a=[1,2,3,...,10]
+				 * a=1:2:10 -> a=[1,3,5,...,9]
+				 * so, depends on the number of input parameters, there are two transformations.
 				 */
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(0)).getSingleton())).isConstant()){
-					DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(0)).getSingleton())).getConstant();
-					int ci = c.getValue().intValue();
-					tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+ci);
+				String indent = new String();
+				for(int i=0; i<fcg.indentNum; i++){
+					indent = indent + fcg.indent;
 				}
-				else{
-					tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+args.get(0));
+				String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+				ArrayList<String> args = new ArrayList<String>();
+				args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+				int argsNum = args.size();
+				if(argsNum==2){
+					StringBuffer tmpBuf = new StringBuffer();
+					/* a = arg1:arg2
+					 * -->
+					 * do tmp_a_i = arg1,arg2
+				  	 *   a(1,tmp_a_i) = tmp_a_i;
+				     * enddo
+				     */
+					/**
+					 * need constant variable replacement check.
+					 */
+					if(((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(0)).getSingleton())).getConstant()!=null){
+						DoubleConstant c = (DoubleConstant) ((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(args.get(0)).getSingleton())).getConstant();
+						int ci = c.getValue().intValue();
+						tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+ci);
+					}
+					else{
+						tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+args.get(0));
+					}
+					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(1)).getSingleton())).isConstant()){
+						DoubleConstant c = (DoubleConstant)((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(args.get(1)).getSingleton())).getConstant();
+						int ci = c.getValue().intValue();
+						tmpBuf.append(","+ci+"\n");
+					}
+					else{
+						tmpBuf.append(","+args.get(1)+"\n");
+					}
+					tmpBuf.append(fcg.indent+fcg.indent+LHS+"(1,tmp_"+LHS+"_i) = tmp_"+LHS+"_i;\n");
+					tmpBuf.append(indent+"enddo");
+					
+					ArrayList<Integer> shape = new ArrayList<Integer>();
+					shape.add(1);
+					shape.add(1);
+					BasicMatrixValue tmp = 
+							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+					fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
+					fcg.forStmtParameter.add(args.get(0));
+					fcg.forStmtParameter.add(args.get(1));
+					noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 				}
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(1)).getSingleton())).isConstant()){
-					DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(1)).getSingleton())).getConstant();
-					int ci = c.getValue().intValue();
-					tmpBuf.append(","+ci+"\n");
+				else if(argsNum==3){
+					StringBuffer tmpBuf = new StringBuffer();
+					/* a = lower:inc:upper
+					 * -->
+					 * tmp_a_index = 1;
+					 * do tmp_a_i = lower,upper,inc
+				  	 *   a(1,tmp_a_index) = tmp_a_i;
+				  	 *   tmp_a_index=tmp_a_index+1;
+				     * enddo
+				     */
+					tmpBuf.append("tmp_"+LHS+"_index = 1;\n");
+					/**
+					 * need constant variable replacement check.
+					 */
+					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(0)).getSingleton())).isConstant()){
+						DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(args.get(0)).getSingleton())).getConstant();
+						int ci = c.getValue().intValue();
+						tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+ci);
+					}
+					else{
+						tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+args.get(0));
+					}
+					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(2)).getSingleton())).isConstant()){
+						DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(args.get(2)).getSingleton())).getConstant();
+						int ci = c.getValue().intValue();
+						tmpBuf.append(","+ci);
+					}
+					else{
+						tmpBuf.append(","+args.get(1));
+					}
+					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+							get(args.get(1)).getSingleton())).isConstant()){
+						DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
+								get(args.get(1)).getSingleton())).getConstant();
+						int ci = c.getValue().intValue();
+						tmpBuf.append(","+ci+"\n");
+					}
+					else{
+						tmpBuf.append(","+args.get(1)+"\n");
+					}
+					tmpBuf.append(fcg.indent+fcg.indent+LHS+"(1,tmp_"+LHS+"_index) = tmp_"+LHS+"_i;\n");
+					tmpBuf.append(fcg.indent+fcg.indent+"tmp_"+LHS+"_index = tmp_"+LHS+"_index+1;\n");
+					tmpBuf.append(indent+"enddo");
+					
+					ArrayList<Integer> shape = new ArrayList<Integer>();
+					shape.add(1);
+					shape.add(1);
+					BasicMatrixValue tmp = 
+							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+					fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
+					fcg.tmpVariables.put("tmp_"+LHS+"_index", tmp);
+					fcg.forStmtParameter.add(args.get(0));
+					fcg.forStmtParameter.add(args.get(1));
+					fcg.forStmtParameter.add(args.get(2));
+					noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 				}
-				else{
-					tmpBuf.append(","+args.get(1)+"\n");
-				}
-				tmpBuf.append(fcg.indent+fcg.indent+LHS+"(1,tmp_"+LHS+"_i) = tmp_"+LHS+"_i;\n");
-				tmpBuf.append(indent+"enddo");
 				
-				ArrayList<Integer> shape = new ArrayList<Integer>();
-				shape.add(1);
-				shape.add(1);
-				BasicMatrixValue tmp = 
-						new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
-				fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
-				fcg.forStmtParameter.add(args.get(0));
-				fcg.forStmtParameter.add(args.get(1));
-				noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
-			}
-			else if(argsNum==3){
-				StringBuffer tmpBuf = new StringBuffer();
-				/* a = lower:inc:upper
-				 * -->
-				 * tmp_a_index = 1;
-				 * do tmp_a_i = lower,upper,inc
-			  	 *   a(1,tmp_a_index) = tmp_a_i;
-			  	 *   tmp_a_index=tmp_a_index+1;
-			     * enddo
-			     */
-				tmpBuf.append("tmp_"+LHS+"_index = 1;\n");
-				/**
-				 * need constant variable replacement check.
-				 */
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(0)).getSingleton())).isConstant()){
-					DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(0)).getSingleton())).getConstant();
-					int ci = c.getValue().intValue();
-					tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+ci);
-				}
-				else{
-					tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+args.get(0));
-				}
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(2)).getSingleton())).isConstant()){
-					DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(2)).getSingleton())).getConstant();
-					int ci = c.getValue().intValue();
-					tmpBuf.append(","+ci);
-				}
-				else{
-					tmpBuf.append(","+args.get(1));
-				}
-				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(1)).getSingleton())).isConstant()){
-					DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(1)).getSingleton())).getConstant();
-					int ci = c.getValue().intValue();
-					tmpBuf.append(","+ci+"\n");
-				}
-				else{
-					tmpBuf.append(","+args.get(1)+"\n");
-				}
-				tmpBuf.append(fcg.indent+fcg.indent+LHS+"(1,tmp_"+LHS+"_index) = tmp_"+LHS+"_i;\n");
-				tmpBuf.append(fcg.indent+fcg.indent+"tmp_"+LHS+"_index = tmp_"+LHS+"_index+1;\n");
-				tmpBuf.append(indent+"enddo");
-				
-				ArrayList<Integer> shape = new ArrayList<Integer>();
-				shape.add(1);
-				shape.add(1);
-				BasicMatrixValue tmp = 
-						new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
-				fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
-				fcg.tmpVariables.put("tmp_"+LHS+"_index", tmp);
-				fcg.forStmtParameter.add(args.get(0));
-				fcg.forStmtParameter.add(args.get(1));
-				fcg.forStmtParameter.add(args.get(2));
-				noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 			}
 		}
 		
