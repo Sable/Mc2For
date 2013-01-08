@@ -141,7 +141,7 @@ aspect PrettyPrinter{
     public void Expression.pp(StringBuffer sb) {}
     
     public void BackupVar.pp(StringBuffer sb) {
-    	sb.append(getName());
+    	sb.append(getBlock());
     }
     
     public void BinaryExpr.pp(StringBuffer sb) {
@@ -294,6 +294,9 @@ aspect PrettyPrinter{
     	if(hasBackupVar()) {
     		getBackupVar().pp(sb);
     	}
+    	if(hasArrayConvert()) {
+    		getArrayConvert().pp(sb);
+    	}
     	sb.append(getlhsVariable());
     	if(haslhsIndex()) {
     		sb.append("(");
@@ -305,6 +308,10 @@ aspect PrettyPrinter{
     
     public void lhsIndex.pp(StringBuffer sb) {
     	sb.append(getName());
+    }
+    
+    public void ArrayConvert.pp(StringBuffer sb) {
+    	sb.append(getBlock());
     }
     
     public void ArraySetStmt.pp(StringBuffer sb) {

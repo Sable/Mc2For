@@ -17,7 +17,7 @@ public class HandleCaseTIRArraySetStmt {
 		
 	}
 	/**
-	 * Statement ::= <lhsVariable> <lhsIndex> <rhsVariable>;
+	 * ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] [BackupVar] <lhsVariable> <lhsIndex> <rhsVariable>;
 	 */
 	public Statement getFortran(FortranCodeASTGenerator fcg, TIRArraySetStmt node){
 		if (Debug) System.out.println("in an arrayset statement!");
@@ -29,37 +29,38 @@ public class HandleCaseTIRArraySetStmt {
 		}
 		stmt.setIndent(indent);
 		
+		String lhsArrayName = node.getArrayName().getVarName();
 		if(fcg.isSubroutine==true){
 			/**
 			 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
 			 */
-			if(fcg.inArgs.contains(node.getArrayName().getVarName())){
-				if (Debug) System.out.println("subroutine's input "+node.getArrayName().getVarName()+" has been modified!");
+			if(fcg.inArgs.contains(lhsArrayName)){
+				if (Debug) System.out.println("subroutine's input "+lhsArrayName+" has been modified!");
 				/**
 				 * here we need to detect whether it is the first time this variable put in the set,
 				 * because we only want to back up them once.
 				 */
-				if(fcg.inputHasChanged.contains(node.getArrayName().getVarName())){
+				if(fcg.inputHasChanged.contains(lhsArrayName)){
 					//do nothing.
-					if (Debug) System.out.println("encounter "+node.getArrayName().getVarName()+" again.");
+					if (Debug) System.out.println("encounter "+lhsArrayName+" again.");
 				}
 				else{
-					if (Debug) System.out.println("first time encounter "+node.getArrayName().getVarName());
-					fcg.inputHasChanged.add(node.getArrayName().getVarName());
+					if (Debug) System.out.println("first time encounter "+lhsArrayName);
+					fcg.inputHasChanged.add(lhsArrayName);
 					BackupVar backupVar = new BackupVar();
-					backupVar.setName(node.getArrayName().getVarName()+"_backup = "+node.getArrayName().getVarName()+";\n");
+					backupVar.setBlock(lhsArrayName+"_backup = "+node.getArrayName().getVarName()+";\n");
 					stmt.setBackupVar(backupVar);
 				}
-				stmt.setlhsVariable(node.getArrayName().getVarName()+"_backup");
+				lhsArrayName = lhsArrayName+"_backup";
 			}
 			else{
-				stmt.setlhsVariable(node.getArrayName().getVarName());
+				//do nothing
 			}
 		}
 		else{
-			stmt.setlhsVariable(node.getArrayName().getVarName());
+			//do nothing
 		}
-		
+		stmt.setlhsVariable(lhsArrayName);
 		/**
 		 * insert constant variable replacement check for LHS array index.
 		 */
@@ -70,7 +71,10 @@ public class HandleCaseTIRArraySetStmt {
 		}
 		StringBuffer indexBuffer = new StringBuffer();
 		for(int i=0;i<indexArray.size();i++){
-			if(((HasConstant)(fcg.analysis.getNodeList()
+			if(indexArray.get(i).equals(":")){
+				indexBuffer.append(":");
+			}
+			else if(((HasConstant)(fcg.analysis.getNodeList()
 					.get(fcg.index).getAnalysis().getCurrentOutSet().get(indexArray.get(i)).getSingleton())).getConstant()!=null){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(indexArray.get(i)).getSingleton())).getConstant();

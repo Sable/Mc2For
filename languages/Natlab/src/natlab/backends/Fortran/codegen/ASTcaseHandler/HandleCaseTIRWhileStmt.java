@@ -25,15 +25,22 @@ public class HandleCaseTIRWhileStmt {
 		}
 		stmt.setIndent(indent);
 		stmt.setCondition(node.getCondition().getVarName());
+		/**
+		 * backup this pointer! and make fcg.stmtSecForIFWhileForBlock point back after iterate for block.
+		 */
+		StatementSection backup = fcg.stmtSecForIfWhileForBlock;
 		
-		fcg.isIfWhileForBlock = true;
+		fcg.inIfWhileForBlock = true;
 		StatementSection whileStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = whileStmtSec;
-		fcg.indentNum = fcg.indentNum + 1;
+		fcg.indentNum++;
 		fcg.iterateStatements(node.getStatements());
 		stmt.setWhileBlock(whileStmtSec);
-		fcg.indentNum = fcg.indentNum - 1;
-		fcg.isIfWhileForBlock = false;
+		fcg.indentNum--;
+		fcg.inIfWhileForBlock = false;
+		
+		fcg.stmtSecForIfWhileForBlock = backup;
+		
 		return stmt;
 	}
 }

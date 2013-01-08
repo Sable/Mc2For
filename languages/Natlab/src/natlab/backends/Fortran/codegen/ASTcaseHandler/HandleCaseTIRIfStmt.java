@@ -25,24 +25,37 @@ public class HandleCaseTIRIfStmt{
 		}
 		stmt.setIndent(indent);
 		stmt.setCondition(node.getConditionVarName().getID());
+		/**
+		 * backup this pointer! and make fcg.stmtSecForIFWhileForBlock point back after iterate for block.
+		 */
+		StatementSection backup = fcg.stmtSecForIfWhileForBlock;
 		
-		fcg.isIfWhileForBlock = true;
+		fcg.inIfWhileForBlock = true;
 		StatementSection ifStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = ifStmtSec;
-		fcg.indentNum = fcg.indentNum + 1;
+		fcg.indentNum++;
 		fcg.iterateStatements(node.getIfStameents());
 		stmt.setIfBlock(ifStmtSec);
-		fcg.indentNum = fcg.indentNum - 1;
-		fcg.isIfWhileForBlock = false;
-
-		fcg.isIfWhileForBlock = true;
+		fcg.indentNum--;
+		fcg.inIfWhileForBlock = false;
+		
+		fcg.stmtSecForIfWhileForBlock = backup;
+		
+		/**
+		 * backup this pointer! and make fcg.stmtSecForIFWhileForBlock point back after iterate for block.
+		 */
+		StatementSection backup2 = fcg.stmtSecForIfWhileForBlock;
+		fcg.inIfWhileForBlock = true;
 		StatementSection elseStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = elseStmtSec;
-		fcg.indentNum = fcg.indentNum + 1;
+		fcg.indentNum++;
 		fcg.iterateStatements(node.getElseStatements());
 		stmt.setElseBlock(elseStmtSec);
-		fcg.indentNum = fcg.indentNum - 1;
-		fcg.isIfWhileForBlock = false;
+		fcg.indentNum--;
+		fcg.inIfWhileForBlock = false;
+		
+		fcg.stmtSecForIfWhileForBlock = backup2;
+		
 		return stmt;
 	}
 	

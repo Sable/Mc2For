@@ -50,7 +50,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 					if (Debug) System.out.println("first time encounter "+node.getTargetName().getVarName());
 					fcg.inputHasChanged.add(node.getTargetName().getVarName());
 					BackupVar backupVar = new BackupVar();
-					backupVar.setName(node.getTargetName().getVarName()+"_backup = "+node.getTargetName().getVarName()+";\n");
+					backupVar.setBlock(node.getTargetName().getVarName()+"_backup = "+node.getTargetName().getVarName()+";\n");
 					stmt.setBackupVar(backupVar);
 				}
 				var.setName(node.getTargetName().getVarName()+"_backup");
@@ -82,7 +82,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 		}
 		else{
 			RuntimeCheck rtc = new RuntimeCheck();
-			rtc.setName("allocate("+node.getTargetName().getVarName()+"(1, 1));");
+			rtc.setBlock("allocate("+node.getTargetName().getVarName()+"(1, 1));");
 			stmt.setRuntimeCheck(rtc);
 		}
 		return stmt;

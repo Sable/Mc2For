@@ -56,7 +56,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 					if (Debug) System.out.println("first time encounter "+node.getTargetName().getID());
 					fcg.inputHasChanged.add(node.getTargetName().getID());
 					BackupVar backupVar = new BackupVar();
-					backupVar.setName(node.getTargetName().getID()+"_backup = "+node.getTargetName().getID()+";\n");
+					backupVar.setBlock(node.getTargetName().getID()+"_backup = "+node.getTargetName().getID()+";\n");
 					stmt.setBackupVar(backupVar);
 				}
 				stmt.setTargetVariable(node.getTargetName().getID()+"_backup");
@@ -123,10 +123,10 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 				//TODO inline runtime check code for RHS
 				if((lhsShapeIsknown == false)&&(rhsShapeIsKnown == false)){
 					RuntimeCheck rtc1 = new RuntimeCheck();
-					rtc1.setName(node.getTargetName().getID()+"_RTC = shape("+node.getRHS().getNodeString()+");\n");
+					rtc1.setBlock(node.getTargetName().getID()+"_RTC = shape("+node.getRHS().getNodeString()+");\n");
 					stmt.setRuntimeCheck(rtc1);
 					RuntimeCheck rtc2 = new RuntimeCheck();
-					rtc2.setName("allocate("+node.getTargetName().getID()+"("+node.getTargetName().getID()+"_RTC(1),"+node.getTargetName().getID()+"_RTC(2)));\n");
+					rtc2.setBlock("allocate("+node.getTargetName().getID()+"("+node.getTargetName().getID()+"_RTC(1),"+node.getTargetName().getID()+"_RTC(2)));\n");
 					stmt.setRuntimeCheck(rtc2);
 					ArrayList<Integer> shape = new ArrayList<Integer>();
 					shape.add(2);
@@ -136,7 +136,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 				}
 				else if(lhsShapeIsknown == false){
 					RuntimeCheck rtc = new RuntimeCheck();
-					rtc.setName("allocate("+node.getTargetName().getID()+"("+rhsVariableDimension.toString().replace("[", "").replace("]", "")+"));\n  ");
+					rtc.setBlock("allocate("+node.getTargetName().getID()+"("+rhsVariableDimension.toString().replace("[", "").replace("]", "")+"));\n  ");
 					stmt.setRuntimeCheck(rtc);
 				}
 			}

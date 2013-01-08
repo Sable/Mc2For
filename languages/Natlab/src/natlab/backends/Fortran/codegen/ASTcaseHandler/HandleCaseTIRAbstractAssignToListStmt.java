@@ -77,7 +77,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
 							BackupVar backupVar = new BackupVar();
-							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
 							binExpr.addBackupVar(backupVar);
 						}
 						var.setName(name.getID()+"_backup");
@@ -151,7 +151,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
 							BackupVar backupVar = new BackupVar();
-							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
 							unExpr.addBackupVar(backupVar);
 						}
 						var.setName(name.getID()+"_backup");
@@ -211,7 +211,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
 							BackupVar backupVar = new BackupVar();
-							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
 							dirBuiltinExpr.addBackupVar(backupVar);
 						}
 						var.setName(name.getID()+"_backup");
@@ -295,7 +295,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
 							BackupVar backupVar = new BackupVar();
-							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
 							builtinConst.addBackupVar(backupVar);
 						}
 						var.setName(name.getID()+"_backup");
@@ -375,7 +375,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 								if (Debug) System.out.println("first time encounter "+name.getID());
 								fcg.inputHasChanged.add(name.getID());
 								BackupVar backupVar = new BackupVar();
-								backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+								backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
 								userDefFunc.addBackupVar(backupVar);
 							}
 							var.setName(name.getID()+"_backup");
@@ -458,7 +458,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
 							BackupVar backupVar = new BackupVar();
-							backupVar.setName(name.getID()+"_backup = "+name.getID()+";\n");
+							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
 							subroutine.addBackupVar(backupVar);
 						}
 						outputArgsList.add(name.getID()+"_backup");
