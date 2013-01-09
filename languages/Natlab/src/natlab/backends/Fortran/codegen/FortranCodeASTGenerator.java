@@ -45,7 +45,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public HashSet<String> arrayConvert;
 	//tmpVariables: to store those temporary variables which are used in Fortran code generation. The key is name, and the value is its shape.
 	public HashMap<String, BasicMatrixValue> tmpVariables;
-	public boolean inIfWhileForBlock;          
+	public int ifWhileForBlockNest;          
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram SubProgram;
 	public int indentNum;
@@ -70,7 +70,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		this.inputHasChanged = new HashSet<String>();
 		this.arrayConvert = new HashSet<String>();
 		this.tmpVariables = new HashMap<String,BasicMatrixValue>();
-		this.inIfWhileForBlock = false;
+		this.ifWhileForBlockNest = 0;
 		this.stmtSecForIfWhileForBlock = new StatementSection();
 		this.SubProgram = new SubProgram();
 		this.indentNum = 0;
@@ -133,7 +133,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		}
 		else{
 			HandleCaseTIRAssignLiteralStmt assignLiteralStmt = new HandleCaseTIRAssignLiteralStmt();
-			if(this.inIfWhileForBlock==true){
+			if(this.ifWhileForBlockNest!=0){
 				this.stmtSecForIfWhileForBlock.addStatement(assignLiteralStmt.getFortran(this, node));
 			}
 			else{
@@ -154,7 +154,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		}
 		else{
 			HandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = new HandleCaseTIRAbstractAssignToVarStmt();
-			if(this.inIfWhileForBlock==true){
+			if(this.ifWhileForBlockNest!=0){
 				this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToVarStmt.getFortran(this, node));
 			}
 			else{
@@ -183,7 +183,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 			}
 			else{
 				HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new HandleCaseTIRAbstractAssignToListStmt();
-				if(this.inIfWhileForBlock==true){
+				if(this.ifWhileForBlockNest!=0){
 					this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt.getFortran(this, node));
 				}
 				else{
@@ -193,7 +193,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		}
 		else{
 			HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = new HandleCaseTIRAbstractAssignToListStmt();
-			if(this.inIfWhileForBlock==true){
+			if(this.ifWhileForBlockNest!=0){
 				this.stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt.getFortran(this, node));
 			}
 			else{
@@ -205,7 +205,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRIfStmt(TIRIfStmt node){
 		HandleCaseTIRIfStmt ifStmt = new HandleCaseTIRIfStmt();
-		if(this.inIfWhileForBlock==true){
+		if(this.ifWhileForBlockNest!=0){
 			this.stmtSecForIfWhileForBlock.addStatement(ifStmt.getFortran(this, node));
 		}
 		else{
@@ -216,7 +216,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRWhileStmt(TIRWhileStmt node){
 		HandleCaseTIRWhileStmt whileStmt = new HandleCaseTIRWhileStmt();
-		if(this.inIfWhileForBlock==true){
+		if(this.ifWhileForBlockNest!=0){
 			this.stmtSecForIfWhileForBlock.addStatement(whileStmt.getFortran(this, node));
 		}
 		else{
@@ -227,7 +227,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRForStmt(TIRForStmt node){
 		HandleCaseTIRForStmt forStmt = new HandleCaseTIRForStmt();
-		if(this.inIfWhileForBlock==true){
+		if(this.ifWhileForBlockNest!=0){
 			this.stmtSecForIfWhileForBlock.addStatement(forStmt.getFortran(this, node));
 		}
 		else{
@@ -238,7 +238,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
 		HandleCaseTIRArrayGetStmt arrGetStmt = new HandleCaseTIRArrayGetStmt();
-		if(this.inIfWhileForBlock==true){
+		if(this.ifWhileForBlockNest!=0){
 			this.stmtSecForIfWhileForBlock.addStatement(arrGetStmt.getFortran(this, node));
 		}
 		else{
@@ -249,7 +249,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRArraySetStmt(TIRArraySetStmt node){
 		HandleCaseTIRArraySetStmt arrSetStmt = new HandleCaseTIRArraySetStmt();
-		if(this.inIfWhileForBlock==true){
+		if(this.ifWhileForBlockNest!=0){
 			this.stmtSecForIfWhileForBlock.addStatement(arrSetStmt.getFortran(this, node));
 		}
 		else{
