@@ -30,14 +30,14 @@ public class HandleCaseTIRWhileStmt {
 		 */
 		StatementSection backup = fcg.stmtSecForIfWhileForBlock;
 		
-		fcg.inIfWhileForBlock = true;
+		fcg.ifWhileForBlockNest++;
 		StatementSection whileStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = whileStmtSec;
 		fcg.indentNum++;
 		fcg.iterateStatements(node.getStatements());
 		stmt.setWhileBlock(whileStmtSec);
 		fcg.indentNum--;
-		fcg.inIfWhileForBlock = false;
+		fcg.ifWhileForBlockNest--;
 		
 		fcg.stmtSecForIfWhileForBlock = backup;
 		

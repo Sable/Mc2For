@@ -84,14 +84,14 @@ public class HandleCaseTIRForStmt {
 		 */
 		StatementSection backup = fcg.stmtSecForIfWhileForBlock;
 		
-		fcg.inIfWhileForBlock = true;
+		fcg.ifWhileForBlockNest++;
 		StatementSection forStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = forStmtSec;
 		fcg.indentNum++;
 		fcg.iterateStatements(node.getStatements());
 		stmt.setForBlock(forStmtSec);
 		fcg.indentNum--;
-		fcg.inIfWhileForBlock = false;
+		fcg.ifWhileForBlockNest--;
 		
 		fcg.stmtSecForIfWhileForBlock = backup;
 		

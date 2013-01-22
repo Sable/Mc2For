@@ -30,14 +30,14 @@ public class HandleCaseTIRIfStmt{
 		 */
 		StatementSection backup = fcg.stmtSecForIfWhileForBlock;
 		
-		fcg.inIfWhileForBlock = true;
+		fcg.ifWhileForBlockNest++;
 		StatementSection ifStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = ifStmtSec;
 		fcg.indentNum++;
 		fcg.iterateStatements(node.getIfStameents());
 		stmt.setIfBlock(ifStmtSec);
 		fcg.indentNum--;
-		fcg.inIfWhileForBlock = false;
+		fcg.ifWhileForBlockNest--;
 		
 		fcg.stmtSecForIfWhileForBlock = backup;
 		
@@ -45,14 +45,14 @@ public class HandleCaseTIRIfStmt{
 		 * backup this pointer! and make fcg.stmtSecForIFWhileForBlock point back after iterate for block.
 		 */
 		StatementSection backup2 = fcg.stmtSecForIfWhileForBlock;
-		fcg.inIfWhileForBlock = true;
+		fcg.ifWhileForBlockNest++;
 		StatementSection elseStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = elseStmtSec;
 		fcg.indentNum++;
 		fcg.iterateStatements(node.getElseStatements());
 		stmt.setElseBlock(elseStmtSec);
 		fcg.indentNum--;
-		fcg.inIfWhileForBlock = false;
+		fcg.ifWhileForBlockNest--;
 		
 		fcg.stmtSecForIfWhileForBlock = backup2;
 		
