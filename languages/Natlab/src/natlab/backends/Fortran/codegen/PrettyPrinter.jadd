@@ -6,9 +6,17 @@ aspect PrettyPrinter{
 	public void SubProgram.pp(StringBuffer sb) {
 		getProgramTitle().pp(sb);
 		getDeclarationSection().pp(sb);
+		int size = getNumBackupVar();
+    	for(int i=0;i<size;i++) {
+    		getBackupVar(i).pp(sb);
+    	}
 		getStatementSection().pp(sb);
 		sb.append(getProgramEnd()+"\n");
 	}
+    
+    public void BackupVar.pp(StringBuffer sb) {
+    	sb.append(getStmt()+"\n");
+    }
 	
 	public void ProgramTitle.pp(StringBuffer sb) {
 	    sb.append(getProgramType()+" "+getProgramName());
@@ -102,55 +110,38 @@ aspect PrettyPrinter{
     
     public void CommentStmt.pp(StringBuffer sb) {
     	if(getComment()!=null){
+    		sb.append(getIndent());
     		sb.append("!   ");
     		sb.append(getComment());
     	}
     }
     
     public void AssignLiteralStmt.pp(StringBuffer sb) {
-    	sb.append(getIndent());
     	if(hasRuntimeCheck()) {
     		sb.append(getRuntimeCheck()+"\n");
     	}
-    	if(hasBackupVar()) {
-    		getBackupVar().pp(sb);
-    	}
+    	sb.append(getIndent());
     	getVariable().pp(sb);
     	sb.append(" = "+getLiteral()+";");
     }
     
     public void AbstractAssignToVarStmt.pp(StringBuffer sb) {
-    	sb.append(getIndent());
     	if(hasRuntimeCheck()) {
     		sb.append(getRuntimeCheck()+"\n");
     	}
-    	if(hasBackupVar()) {
-    		getBackupVar().pp(sb);
-    	}
+    	sb.append(getIndent());
     	sb.append(getTargetVariable()+" = "+getSourceVariable()+";");
     }
     
     public void AbstractAssignToListStmt.pp(StringBuffer sb) {
-    	sb.append(getIndent());
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
-    	}
-    	getExpression().pp(sb);
-    }
     
-    public void Expression.pp(StringBuffer sb) {}
-    
-    public void BackupVar.pp(StringBuffer sb) {
-    	sb.append(getBlock());
     }
     
     public void BinaryExpr.pp(StringBuffer sb) {
-    	if(getNumBackupVar()!=0) {
-    		int size = getNumBackupVar();
-    		for(int i=0;i<size;i++) {
-    			getBackupVar(i).pp(sb);
-    		}
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
     	}
+    	sb.append(getIndent());
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -162,12 +153,10 @@ aspect PrettyPrinter{
     }
     
     public void UnaryExpr.pp(StringBuffer sb) {
-    	if(getNumBackupVar()!=0) {
-    		int size = getNumBackupVar();
-    		for(int i=0;i<size;i++) {
-    			getBackupVar(i).pp(sb);
-    		}
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
     	}
+    	sb.append(getIndent());
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -179,12 +168,10 @@ aspect PrettyPrinter{
     }
     
     public void DirectBuiltinExpr.pp(StringBuffer sb) {
-    	if(getNumBackupVar()!=0) {
-    		int size = getNumBackupVar();
-    		for(int i=0;i<size;i++) {
-    			getBackupVar(i).pp(sb);
-    		}
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
     	}
+    	sb.append(getIndent());
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -196,18 +183,20 @@ aspect PrettyPrinter{
     }
     
     public void NoDirectBuiltinExpr.pp(StringBuffer sb) {
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
+    	}
+    	sb.append(getIndent());
     	if(getCodeInline()!=null) {
 	    	sb.append(getCodeInline());
 	    }
     }
     
     public void BuiltinConstantExpr.pp(StringBuffer sb) {
-    	if(getNumBackupVar()!=0) {
-    		int size = getNumBackupVar();
-    		for(int i=0;i<size;i++) {
-    			getBackupVar(i).pp(sb);
-    		}
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
     	}
+    	sb.append(getIndent());
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -219,16 +208,18 @@ aspect PrettyPrinter{
     }
     
     public void IOOperationExpr.pp(StringBuffer sb) {
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
+    	}
+    	sb.append(getIndent());
     	sb.append(getIOOperator()+getArgsList()+";");
     }
     
     public void UserDefinedFunction.pp(StringBuffer sb) {
-    	if(getNumBackupVar()!=0) {
-    		int size = getNumBackupVar();
-    		for(int i=0;i<size;i++) {
-    			getBackupVar(i).pp(sb);
-    		}
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
     	}
+    	sb.append(getIndent());
     	int size = getNumVariable();
     	for(int i=0;i<size;i++) {
     		getVariable(i).pp(sb);
@@ -240,12 +231,10 @@ aspect PrettyPrinter{
     }
     
     public void Subroutines.pp(StringBuffer sb) {
-    	if(getNumBackupVar()!=0) {
-    		int size = getNumBackupVar();
-    		for(int i=0;i<size;i++) {
-    			getBackupVar(i).pp(sb);
-    		}
+    	if(hasRuntimeCheck()) {
+    		sb.append(getRuntimeCheck()+"\n");
     	}
+    	sb.append(getIndent());
     	sb.append("call "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
     }
     
@@ -287,16 +276,13 @@ aspect PrettyPrinter{
     }
     
     public void ArrayGetStmt.pp(StringBuffer sb) {
-    	sb.append(getIndent());
     	if(hasRuntimeCheck()) {
     		sb.append(getRuntimeCheck()+"\n");
-    	}
-    	if(hasBackupVar()) {
-    		getBackupVar().pp(sb);
     	}
     	if(hasArrayConvert()) {
     		getArrayConvert().pp(sb);
     	}
+    	sb.append(getIndent());
     	sb.append(getlhsVariable());
     	if(haslhsIndex()) {
     		sb.append("(");
@@ -315,13 +301,10 @@ aspect PrettyPrinter{
     }
     
     public void ArraySetStmt.pp(StringBuffer sb) {
-    	sb.append(getIndent());
     	if(hasRuntimeCheck()) {
     	    sb.append(getRuntimeCheck()+"\n");
     	}
-    	if(hasBackupVar()) {
-    		getBackupVar().pp(sb);
-    	}
+    	sb.append(getIndent());
     	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable()+";");
     }
 }

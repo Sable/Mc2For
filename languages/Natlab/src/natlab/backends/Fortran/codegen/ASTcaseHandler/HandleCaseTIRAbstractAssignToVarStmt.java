@@ -55,11 +55,8 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 				else{
 					if (Debug) System.out.println("first time encounter "+node.getTargetName().getID());
 					fcg.inputHasChanged.add(node.getTargetName().getID());
-					BackupVar backupVar = new BackupVar();
-					backupVar.setBlock(node.getTargetName().getID()+"_backup = "+node.getTargetName().getID()+";\n");
-					stmt.setBackupVar(backupVar);
 				}
-				stmt.setTargetVariable(node.getTargetName().getID()+"_backup");
+				stmt.setTargetVariable(node.getTargetName().getID()+"_copy");
 			}
 			else{
 				stmt.setTargetVariable(node.getTargetName().getID());
@@ -86,7 +83,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		}
 		else{
 			if(fcg.inputHasChanged.contains(node.getRHS().getNodeString())){
-				stmt.setSourceVariable(node.getRHS().getNodeString()+"_backup");
+				stmt.setSourceVariable(node.getRHS().getNodeString()+"_copy");
 			}
 			else{
 				stmt.setSourceVariable(node.getRHS().getNodeString());

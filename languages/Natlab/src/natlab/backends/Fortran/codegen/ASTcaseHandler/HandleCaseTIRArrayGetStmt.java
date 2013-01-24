@@ -18,7 +18,7 @@ public class HandleCaseTIRArrayGetStmt {
 		
 	}
 	/**
-	 * ArrayGetStmt: Statement ::= [RuntimeCheck] [BackupVar] [ArrayConvert] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+	 * ArrayGetStmt: Statement ::= [RuntimeCheck] [ArrayConvert] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 	 */
 	public Statement getFortran(FortranCodeASTGenerator fcg, TIRArrayGetStmt node){
 		if (Debug) System.out.println("in an arrayget statement!");
@@ -48,11 +48,8 @@ public class HandleCaseTIRArrayGetStmt {
 				else{
 					if (Debug) System.out.println("first time encounter "+lhsVariable);
 					fcg.inputHasChanged.add(lhsVariable);
-					BackupVar backupVar = new BackupVar();
-					backupVar.setBlock(lhsVariable+"_backup = "+lhsVariable+";\n");
-					stmt.setBackupVar(backupVar);
 				}
-				lhsVariable = lhsVariable+"_backup";
+				lhsVariable = lhsVariable+"_copy";
 			}
 			else{
 				//do nothing

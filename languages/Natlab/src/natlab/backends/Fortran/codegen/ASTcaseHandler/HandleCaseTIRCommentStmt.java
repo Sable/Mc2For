@@ -18,6 +18,11 @@ public class HandleCaseTIRCommentStmt {
 		 * for Natlab, it consider blank line is also a comment statement.
 		 */
 		CommentStmt stmt = new CommentStmt();
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		stmt.setIndent(indent);
 		if(node.getNodeString().contains("%")){
 			stmt.setComment(node.getNodeString().replace("%", ""));			
 		}

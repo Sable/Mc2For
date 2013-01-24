@@ -49,11 +49,8 @@ public class HandleCaseTIRAssignLiteralStmt {
 				else{
 					if (Debug) System.out.println("first time encounter "+node.getTargetName().getVarName());
 					fcg.inputHasChanged.add(node.getTargetName().getVarName());
-					BackupVar backupVar = new BackupVar();
-					backupVar.setBlock(node.getTargetName().getVarName()+"_backup = "+node.getTargetName().getVarName()+";\n");
-					stmt.setBackupVar(backupVar);
 				}
-				var.setName(node.getTargetName().getVarName()+"_backup");
+				var.setName(node.getTargetName().getVarName()+"_copy");
 			}
 			else{
 				var.setName(node.getTargetName().getVarName());
