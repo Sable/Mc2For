@@ -133,14 +133,14 @@ public class HandleCaseTIRArrayGetStmt {
 						shape1.add(1);
 						shape1.add(1);
 						BasicMatrixValue tmp1 = 
-								new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1));
+								new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1), null);
 						fcg.tmpVariables.put("tmp_"+rhsArrayName+"_column", tmp1);
 						fcg.tmpVariables.put("tmp_"+rhsArrayName+"_row", tmp1);
 						ArrayList<Integer> shape2 = new ArrayList<Integer>();
 						shape2.add(1);
 						shape2.add(rhsArrayDimension.get(0)*rhsArrayDimension.get(1));
 						BasicMatrixValue tmp2 = 
-								new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2));
+								new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2), null);
 						fcg.tmpVariables.put(rhsArrayName+"_vector", tmp2);
 						/**
 						 * put rhs array's name in arrayConvert HashSet, avoid inlining convert code again.
@@ -188,14 +188,14 @@ public class HandleCaseTIRArrayGetStmt {
 								shape1.add(1);
 								shape1.add(1);
 								BasicMatrixValue tmp1 = 
-										new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1));
+										new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1), null);
 								fcg.tmpVariables.put("tmp_"+rhsArrayName+"_column", tmp1);
 								fcg.tmpVariables.put("tmp_"+rhsArrayName+"_row", tmp1);
 								ArrayList<Integer> shape2 = new ArrayList<Integer>();
 								shape2.add(1);
 								shape2.add(rhsArrayDimension.get(0)*rhsArrayDimension.get(1));
 								BasicMatrixValue tmp2 = 
-										new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2));
+										new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2), null);
 								fcg.tmpVariables.put(rhsArrayName+"_vector", tmp2);
 								/**
 								 * put rhs array's name in arrayConvert HashSet, avoid inlining convert code again.
@@ -233,14 +233,14 @@ public class HandleCaseTIRArrayGetStmt {
 								shape1.add(1);
 								shape1.add(1);
 								BasicMatrixValue tmp1 = 
-										new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1));
+										new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1), null);
 								fcg.tmpVariables.put("tmp_"+rhsArrayName+"_column", tmp1);
 								fcg.tmpVariables.put("tmp_"+rhsArrayName+"_row", tmp1);
 								ArrayList<Integer> shape2 = new ArrayList<Integer>();
 								shape2.add(1);
 								shape2.add(rhsArrayDimension.get(0)*rhsArrayDimension.get(1));
 								BasicMatrixValue tmp2 = 
-										new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2));
+										new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2), null);
 								fcg.tmpVariables.put(rhsArrayName+"_vector", tmp2);
 								/**
 								 * put rhs array's name in arrayConvert HashSet, avoid inlining convert code again.
@@ -290,14 +290,14 @@ public class HandleCaseTIRArrayGetStmt {
 								shape1.add(1);
 								shape1.add(1);
 								BasicMatrixValue tmp1 = 
-										new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1));
+										new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape1), null);
 								fcg.tmpVariables.put("tmp_"+rhsArrayName+"_column", tmp1);
 								fcg.tmpVariables.put("tmp_"+rhsArrayName+"_row", tmp1);
 								ArrayList<Integer> shape2 = new ArrayList<Integer>();
 								shape2.add(1);
 								shape2.add(rhsArrayDimension.get(0)*rhsArrayDimension.get(1));
 								BasicMatrixValue tmp2 = 
-										new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2));
+										new BasicMatrixValue(PrimitiveClassReference.DOUBLE,(new ShapeFactory()).newShapeFromIntegers(shape2), null);
 								fcg.tmpVariables.put(rhsArrayName+"_vector", tmp2);
 								/**
 								 * put rhs array's name in arrayConvert HashSet, avoid inlining convert code again.

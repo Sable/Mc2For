@@ -142,7 +142,7 @@ public class FortranCodeASTInliner {
 			shape.add(1);
 			shape.add(1);
 			BasicMatrixValue tmp = 
-					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 			fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 			fcg.tmpVariables.put("tmp_"+LHS+"_j", tmp);
 			fcg.forStmtParameter.add(args.get(0));
@@ -190,7 +190,7 @@ public class FortranCodeASTInliner {
 			shape.add(1);
 			shape.add(1);
 			BasicMatrixValue tmp = 
-					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 			fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 			fcg.tmpVariables.put("tmp_"+LHS+"_j", tmp);
 			fcg.forStmtParameter.add(args.get(0));
@@ -268,7 +268,7 @@ public class FortranCodeASTInliner {
 					shape.add(1);
 					shape.add(1);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 					fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 					fcg.forStmtParameter.add(args.get(0));
 					fcg.forStmtParameter.add(args.get(1));
@@ -327,7 +327,7 @@ public class FortranCodeASTInliner {
 					shape.add(1);
 					shape.add(1);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 					fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 					fcg.tmpVariables.put("tmp_"+LHS+"_index", tmp);
 					fcg.forStmtParameter.add(args.get(0));
