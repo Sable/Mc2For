@@ -8,7 +8,7 @@ import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
-import natlab.tame.valueanalysis.components.shape.Shape;
+import natlab.tame.valueanalysis.components.shape.*;
 
 public class HandleCaseTIRAssignLiteralStmt {
 
@@ -72,15 +72,12 @@ public class HandleCaseTIRAssignLiteralStmt {
 		/**
 		 * literal assignment target variable should be a constant, if it's not a constant, we need allocate it as a 1 by 1 array.
 		 */
-		ArrayList<Integer> dims = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis()
-				.getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape().getDimensions());
-		if(Shape.isDimensionExactlyKnow(dims)){
-			
-		}
-		else{
+		Shape targetVar= ((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis()
+				.getCurrentOutSet().get(node.getTargetName().getVarName()).getSingleton())).getShape();
+		if(!targetVar.isConstant()){
 			RuntimeCheck rtc = new RuntimeCheck();
 			rtc.setBlock("allocate("+node.getTargetName().getVarName()+"(1, 1));");
-			stmt.setRuntimeCheck(rtc);
+			stmt.setRuntimeCheck(rtc);			
 		}
 		return stmt;
 	}
