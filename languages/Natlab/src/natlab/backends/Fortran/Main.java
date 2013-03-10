@@ -6,7 +6,7 @@ import natlab.tame.BasicTamerTool;
 import natlab.tame.valueanalysis.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.aggrvalue.*;
-import natlab.toolkits.filehandling.genericFile.GenericFile;
+import natlab.toolkits.filehandling.GenericFile;
 import natlab.toolkits.path.FileEnvironment;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;

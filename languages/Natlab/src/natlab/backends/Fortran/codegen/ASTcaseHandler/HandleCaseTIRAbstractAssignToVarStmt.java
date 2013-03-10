@@ -8,7 +8,7 @@ import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.tame.valueanalysis.components.constant.Constant;
-import natlab.tame.valueanalysis.components.shape.ShapeFactory;
+import natlab.tame.valueanalysis.components.shape.*;
 import natlab.tame.classes.reference.*;
 
 public class HandleCaseTIRAbstractAssignToVarStmt {
@@ -55,11 +55,8 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 				else{
 					if (Debug) System.out.println("first time encounter "+node.getTargetName().getID());
 					fcg.inputHasChanged.add(node.getTargetName().getID());
-					BackupVar backupVar = new BackupVar();
-					backupVar.setBlock(node.getTargetName().getID()+"_backup = "+node.getTargetName().getID()+";\n");
-					stmt.setBackupVar(backupVar);
 				}
-				stmt.setTargetVariable(node.getTargetName().getID()+"_backup");
+				stmt.setTargetVariable(node.getTargetName().getID()+"_copy");
 			}
 			else{
 				stmt.setTargetVariable(node.getTargetName().getID());
@@ -86,7 +83,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		}
 		else{
 			if(fcg.inputHasChanged.contains(node.getRHS().getNodeString())){
-				stmt.setSourceVariable(node.getRHS().getNodeString()+"_backup");
+				stmt.setSourceVariable(node.getRHS().getNodeString()+"_copy");
 			}
 			else{
 				stmt.setSourceVariable(node.getRHS().getNodeString());
@@ -101,19 +98,19 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 			if (Debug) System.out.println(node.getTargetName().getID()+" is a constant");
 		}
 		else{
-			ArrayList<Integer> lhsVariableDimension = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList()
+			ArrayList<DimValue> lhsVariableDimension = new ArrayList<DimValue>(((BasicMatrixValue)(fcg.analysis.getNodeList()
 					.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getTargetName().getID()).getSingleton())).getShape().getDimensions());
-			ArrayList<Integer> rhsVariableDimension = new ArrayList<Integer>(((BasicMatrixValue)(fcg.analysis.getNodeList()
+			ArrayList<DimValue> rhsVariableDimension = new ArrayList<DimValue>(((BasicMatrixValue)(fcg.analysis.getNodeList()
 					.get(fcg.index).getAnalysis().getCurrentOutSet().get(node.getRHS().getNodeString()).getSingleton())).getShape().getDimensions());
 			try{
-				for(Integer intgrL : lhsVariableDimension){
+				for(DimValue intgrL : lhsVariableDimension){
 					//if lhs variable's shape is not exactly known, we need allocate it first.
 					if(intgrL==null){
 						System.out.println("The shape of "+node.getTargetName().getID()+" is not exactly known, we need allocate it first");
 						lhsShapeIsknown = false;
 					}
 				}
-				for(Integer intgrR : rhsVariableDimension){
+				for(DimValue intgrR : rhsVariableDimension){
 					if(intgrR==null){
 						System.out.println("The shape of "+node.getRHS().getNodeString()+" is not exactly konwn, we cannot allocate "+node.getTargetName().getID()+" with "+node.getRHS().getNodeString()+"'s shape, " +
 								"we need runtime check "+node.getRHS().getNodeString()+"'s shape first.");
@@ -131,7 +128,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 					ArrayList<Integer> shape = new ArrayList<Integer>();
 					shape.add(2);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory<AggrValue<BasicMatrixValue>>()).newShapeFromIntegers(shape));
+							new BasicMatrixValue(null, PrimitiveClassReference.INT8,(new ShapeFactory<AggrValue<BasicMatrixValue>>()).newShapeFromIntegers(shape), null);
 					fcg.tmpVariables.put(node.getTargetName().getID()+"_RTC",tmp);
 				}
 				else if(lhsShapeIsknown == false){

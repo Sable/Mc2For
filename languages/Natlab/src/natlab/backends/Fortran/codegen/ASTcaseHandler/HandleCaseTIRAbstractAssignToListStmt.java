@@ -22,20 +22,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 	 * 2. for lhs, do we need to inline allocate code check.
 	 */
 	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
-		if (Debug) System.out.println("in an abstractAssignToList  statement");
+		if (Debug) System.out.println("in an abstractAssignToList statement");
 		
-		AbstractAssignToListStmt stmt = new AbstractAssignToListStmt();
 		String indent = new String();
 		for(int i=0; i<fcg.indentNum; i++){
 			indent = indent + fcg.indent;
 		}
-		stmt.setIndent(indent);
-		Expression exp = makeExpression(fcg, node);
-		stmt.setExpression(exp);
-		return stmt;
-	}
-	
-	public static Expression makeExpression(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		/** 
 		 * Change for built-ins with n args.
 		 * Currently it handles general case built-ins with one or two args only.
@@ -57,6 +49,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		switch(RHSCaseNumber){
 		case 1:
 			BinaryExpr binExpr = new BinaryExpr();
+			binExpr.setIndent(indent);
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
 				if(fcg.isSubroutine==true){
@@ -68,6 +61,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 						/**
 						 * here we need to detect whether it is the first time this variable put in the set,
 						 * because we only want to back up them once.
+						 * but, actually, the overhead for checking is similar to put it into set twice.
 						 */
 						if(fcg.inputHasChanged.contains(name.getID())){
 							//do nothing.
@@ -76,11 +70,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 						else{
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
-							BackupVar backupVar = new BackupVar();
-							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
-							binExpr.addBackupVar(backupVar);
 						}
-						var.setName(name.getID()+"_backup");
+						var.setName(name.getID()+"_copy");
 					}
 					else{
 						var.setName(name.getID());
@@ -107,7 +98,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			}
 			else{
 				if(fcg.inputHasChanged.contains(Operand1)){
-					binExpr.setOperand1(Operand1+"_backup");
+					binExpr.setOperand1(Operand1+"_copy");
 				}
 				else{
 					binExpr.setOperand1(Operand1);		
@@ -121,7 +112,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			}
 			else{
 				if(fcg.inputHasChanged.contains(Operand2)){
-					binExpr.setOperand1(Operand2+"_backup");
+					binExpr.setOperand2(Operand2+"_copy");
 				}
 				else{
 					binExpr.setOperand2(Operand2);				
@@ -131,6 +122,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			return binExpr;
 		case 2:
 			UnaryExpr unExpr = new UnaryExpr();
+			unExpr.setIndent(indent);
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
 				if(fcg.isSubroutine==true){
@@ -150,11 +142,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 						else{
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
-							BackupVar backupVar = new BackupVar();
-							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
-							unExpr.addBackupVar(backupVar);
 						}
-						var.setName(name.getID()+"_backup");
+						var.setName(name.getID()+"_copy");
 					}
 					else{
 						var.setName(name.getID());
@@ -181,7 +170,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			}
 			else{
 				if(fcg.inputHasChanged.contains(Operand1)){
-					unExpr.setOperand(Operand1+"_backup");				
+					unExpr.setOperand(Operand1+"_copy");				
 				}
 				else{
 					unExpr.setOperand(Operand1);
@@ -191,6 +180,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			return unExpr;
 		case 3:
 			DirectBuiltinExpr dirBuiltinExpr = new DirectBuiltinExpr();
+			dirBuiltinExpr.setIndent(indent);
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
 				if(fcg.isSubroutine==true){
@@ -210,11 +200,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 						else{
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
-							BackupVar backupVar = new BackupVar();
-							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
-							dirBuiltinExpr.addBackupVar(backupVar);
 						}
-						var.setName(name.getID()+"_backup");
+						var.setName(name.getID()+"_copy");
 					}
 					else{
 						var.setName(name.getID());
@@ -244,7 +231,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				}
 				else{
 					if(fcg.inputHasChanged.contains(Args.get(i))){
-						String ArgsNew = Args.get(i)+"_backup";
+						String ArgsNew = Args.get(i)+"_copy";
 						Args.remove(i);
 						Args.add(i, ArgsNew);
 					}
@@ -261,6 +248,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();
 			/**
 			 * insert constant variable replacement check in corresponding inline code.
+			 * insert indent in the inlind code.
 			 */
 			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node);
 			return noDirBuiltinExpr;
@@ -275,6 +263,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * so, we cannot do anything here. My solution is go to the FortranCodeASTGenerator class.
 			 */
 			BuiltinConstantExpr builtinConst = new BuiltinConstantExpr();
+			builtinConst.setIndent(indent);
 			for(ast.Name name : node.getTargets().asNameList()){
 				Variable var = new Variable();
 				if(fcg.isSubroutine==true){
@@ -294,11 +283,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 						else{
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
-							BackupVar backupVar = new BackupVar();
-							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
-							builtinConst.addBackupVar(backupVar);
 						}
-						var.setName(name.getID()+"_backup");
+						var.setName(name.getID()+"_copy");
 					}
 					else{
 						var.setName(name.getID());
@@ -317,6 +303,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			builtinConst.setBuiltinFunc(RHSFortranOperator);
 			return builtinConst;
 		case 6:
+			IOOperationExpr ioExpr = new IOOperationExpr();
+			ioExpr.setIndent(indent);
 			Args = getArgsList(node);
 			/**
 			 * insert constant variable replacement check.
@@ -331,7 +319,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				}
 				else{
 					if(fcg.inputHasChanged.contains(Args.get(i))){
-						String ArgsNew = Args.get(i)+"_backup";
+						String ArgsNew = Args.get(i)+"_copy";
 						Args.remove(i);
 						Args.add(i, ArgsNew);
 					}
@@ -341,7 +329,6 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				}
 			}
 			ArgsListasString = getArgsListAsString(Args);
-			IOOperationExpr ioExpr = new IOOperationExpr();
 			ioExpr.setArgsList(ArgsListasString);
 			ioExpr.setIOOperator(RHSFortranOperator);
 			return ioExpr;
@@ -355,6 +342,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				 * this is for functions.
 				 */
 				UserDefinedFunction userDefFunc = new UserDefinedFunction();
+				userDefFunc.setIndent(indent);
 				for(ast.Name name : node.getTargets().asNameList()){
 					Variable var = new Variable();
 					if(fcg.isSubroutine==true){
@@ -374,11 +362,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							else{
 								if (Debug) System.out.println("first time encounter "+name.getID());
 								fcg.inputHasChanged.add(name.getID());
-								BackupVar backupVar = new BackupVar();
-								backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
-								userDefFunc.addBackupVar(backupVar);
 							}
-							var.setName(name.getID()+"_backup");
+							var.setName(name.getID()+"_copy");
 						}
 						else{
 							var.setName(name.getID());
@@ -407,7 +392,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					}
 					else{
 						if(fcg.inputHasChanged.contains(Args.get(i))){
-							String ArgsNew = Args.get(i)+"_backup";
+							String ArgsNew = Args.get(i)+"_copy";
 							Args.remove(i);
 							Args.add(i, ArgsNew);
 						}
@@ -439,6 +424,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				 * this is for subroutines.
 				 */
 				Subroutines subroutine = new Subroutines();
+				subroutine.setIndent(indent);
 				ArrayList<String> outputArgsList = new ArrayList<String>();
 				for(ast.Name name : node.getTargets().asNameList()){
 					/**
@@ -457,11 +443,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 						else{
 							if (Debug) System.out.println("first time encounter "+name.getID());
 							fcg.inputHasChanged.add(name.getID());
-							BackupVar backupVar = new BackupVar();
-							backupVar.setBlock(name.getID()+"_backup = "+name.getID()+";\n");
-							subroutine.addBackupVar(backupVar);
 						}
-						outputArgsList.add(name.getID()+"_backup");
+						outputArgsList.add(name.getID()+"_copy");
 					}
 					else{
 						outputArgsList.add(name.getID());
@@ -480,7 +463,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					}
 					else{
 						if(fcg.inputHasChanged.contains(Args.get(i))){
-							String ArgsNew = Args.get(i)+"_backup";
+							String ArgsNew = Args.get(i)+"_copy";
 							Args.remove(i);
 							Args.add(i, ArgsNew);
 						}

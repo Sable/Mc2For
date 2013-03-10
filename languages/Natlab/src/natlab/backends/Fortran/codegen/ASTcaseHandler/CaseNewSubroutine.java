@@ -29,14 +29,17 @@ public class CaseNewSubroutine {
 		 */
 		if (Debug) System.out.println("this is a subroutine");
 		fcg.isSubroutine = true;
+		//first pass of all the statements, collect information.
+		SubProgram preSubroutine = new SubProgram();
+		fcg.SubProgram = preSubroutine;
+		StatementSection preStmtSection = new StatementSection();
+		preSubroutine.setStatementSection(preStmtSection);
+		fcg.iterateStatements(node.getStmts());
+		//second pass of all the statements, using information collected from the first pass.
 		SubProgram subroutine = new SubProgram();
 		fcg.SubProgram = subroutine;
 		StatementSection stmtSection = new StatementSection();
 		subroutine.setStatementSection(stmtSection);
-		/**
-		 * go through all the statements.
-		 */
-		//boolean first = true;
 		fcg.iterateStatements(node.getStmts());
 		
 		ProgramTitle title = new ProgramTitle();
@@ -200,7 +203,7 @@ public class CaseNewSubroutine {
 							varList.addVariable(var);
 							if(fcg.inputHasChanged.contains(variable)){
 								Variable varBackup = new Variable();
-								varBackup.setName(variable+"_backup");
+								varBackup.setName(variable+"_copy");
 								varList.addVariable(varBackup);
 							}
 							declStmt.setKeywordList(keywordList);
@@ -281,6 +284,15 @@ public class CaseNewSubroutine {
 		}
 		subroutine.setDeclarationSection(declSection);
 		subroutine.setProgramEnd("return\nend");
+		
+		if(fcg.inputHasChanged.isEmpty()==false){
+			for(String Stmt : fcg.inputHasChanged){
+				BackupVar backupStmt = new BackupVar();
+				backupStmt.setStmt(Stmt+"_copy = "+Stmt+";");
+				subroutine.addBackupVar(backupStmt);
+			}
+		}
+		
 		fcg.isSubroutine = false;
 		return fcg;
 	}

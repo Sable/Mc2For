@@ -45,7 +45,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	public HashSet<String> arrayConvert;
 	//tmpVariables: to store those temporary variables which are used in Fortran code generation. The key is name, and the value is its shape.
 	public HashMap<String, BasicMatrixValue> tmpVariables;
-	public int ifWhileForBlockNest;          
+	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram SubProgram;
 	public int indentNum;
@@ -118,7 +118,12 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 	@Override
 	public void caseTIRCommentStmt(TIRCommentStmt node){
 		HandleCaseTIRCommentStmt commentStmt = new HandleCaseTIRCommentStmt();
-		this.SubProgram.getStatementSection().addStatement(commentStmt.getFortran(this, node));
+		if(this.ifWhileForBlockNest!=0){
+			this.stmtSecForIfWhileForBlock.addStatement(commentStmt.getFortran(this, node));
+		}
+		else{
+			this.SubProgram.getStatementSection().addStatement(commentStmt.getFortran(this, node));			
+		}
 	}
 	
 	@Override

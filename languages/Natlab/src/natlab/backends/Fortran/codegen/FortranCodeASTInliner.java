@@ -12,23 +12,47 @@ import natlab.backends.Fortran.codegen.ASTcaseHandler.*;
 
 public class FortranCodeASTInliner {
 
+	static boolean Debug = false;
+	
 	public FortranCodeASTInliner(){
 		
 	}
 	
 	public static NoDirectBuiltinExpr inline(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node){
 		NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();
+		String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 		
-		if(node.getRHS().getVarName().equals("horzcat")){
-			String indent = new String();
-			for(int i=0; i<fcg.indentNum; i++){
-				indent = indent + fcg.indent;
+		if(fcg.isSubroutine==true){
+			/**
+			 * if input argument on the LHS of assignment stmt, we assume that this input argument maybe modified.
+			 */
+			if(fcg.inArgs.contains(LHS)){
+				if (Debug) System.out.println("subroutine's input "+LHS+" has been modified!");
+				if(fcg.inputHasChanged.contains(LHS)){
+					if (Debug) System.out.println("encounter "+LHS+" again.");
+				}
+				else{
+					if (Debug) System.out.println("first time encounter "+LHS);
+					fcg.inputHasChanged.add(LHS);
+				}
+				LHS=LHS+"_copy";
 			}
-			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			ArrayList<String> args = new ArrayList<String>();
-			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-			int argsNum = args.size();
-			StringBuffer tmpBuf = new StringBuffer();
+		}
+
+		String indent = new String();
+		for(int i=0; i<fcg.indentNum; i++){
+			indent = indent + fcg.indent;
+		}
+		ArrayList<String> args = new ArrayList<String>();
+		args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+		int argsNum = args.size();
+		StringBuffer tmpBuf = new StringBuffer();
+		String rhsFucntion = node.getRHS().getVarName();
+		/*
+		 * below are all the cases by enumeration, to be extended.
+		 */
+		if(rhsFucntion.equals("horzcat")){
+			tmpBuf.append(indent+"!  below is the mapping Fortran code for the built-in function "+rhsFucntion+"\n");
 			for(int i=1; i<=argsNum; i++){
 				/**
 				 * need constant variable replacement check.
@@ -37,6 +61,9 @@ public class FortranCodeASTInliner {
 						get(args.get(i-1)).getSingleton())).isConstant()){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(args.get(i-1)).getSingleton())).getConstant();
+					if(fcg.inArgs.contains(LHS)){
+						
+					}
 					tmpBuf.append(indent+LHS+"(1,"+i+") = "+c+";");
 					if(i<argsNum){
 						tmpBuf.append("\n");	
@@ -49,19 +76,12 @@ public class FortranCodeASTInliner {
 					}					
 				}
 			}
+			tmpBuf.append("\n"+indent+"!  the mapping Fortran code for the built-in function "+rhsFucntion+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
-		else if(node.getRHS().getVarName().equals("vertcat")){
-			String indent = new String();
-			for(int i=0; i<fcg.indentNum; i++){
-				indent = indent + fcg.indent;
-			}
-			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			ArrayList<String> args = new ArrayList<String>();
-			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-			int argsNum = args.size();
-			StringBuffer tmpBuf = new StringBuffer();
+		else if(rhsFucntion.equals("vertcat")){
+			tmpBuf.append(indent+"!  below is the mapping Fortran code for the built-in function "+rhsFucntion+"\n");
 			for(int i=1; i<=argsNum; i++){
 				/**
 				 * need constant variable replacement check.
@@ -79,19 +99,12 @@ public class FortranCodeASTInliner {
 					tmpBuf.append("\n");
 				}
 			}
+			tmpBuf.append("\n"+indent+"!  the mapping Fortran code for the built-in function "+rhsFucntion+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
-		else if(node.getRHS().getVarName().equals("ones")){
-			String indent = new String();
-			for(int i=0; i<fcg.indentNum; i++){
-				indent = indent + fcg.indent;
-			}
-			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			ArrayList<String> args = new ArrayList<String>();
-			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-			int argsNum = args.size();
-			StringBuffer tmpBuf = new StringBuffer();
+		else if(rhsFucntion.equals("ones")){
+			tmpBuf.append(indent+"!  below is the mapping Fortran code for the built-in function "+rhsFucntion+"\n");
 			/*do i = 1 , 10
 			    do j = 1 , 5
 		  	      a(i,j) = 1;
@@ -129,24 +142,17 @@ public class FortranCodeASTInliner {
 			shape.add(1);
 			shape.add(1);
 			BasicMatrixValue tmp = 
-					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+					new BasicMatrixValue(null, PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 			fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 			fcg.tmpVariables.put("tmp_"+LHS+"_j", tmp);
 			fcg.forStmtParameter.add(args.get(0));
 			fcg.forStmtParameter.add(args.get(1));
+			tmpBuf.append("\n"+indent+"!  the mapping Fortran code for the built-in function "+rhsFucntion+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
-		else if(node.getRHS().getVarName().equals("zeros")){
-			String indent = new String();
-			for(int i=0; i<fcg.indentNum; i++){
-				indent = indent + fcg.indent;
-			}
-			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			ArrayList<String> args = new ArrayList<String>();
-			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-			int argsNum = args.size();
-			StringBuffer tmpBuf = new StringBuffer();
+		else if(rhsFucntion.equals("zeros")){
+			tmpBuf.append(indent+"!  below is the mapping Fortran code for the built-in function "+rhsFucntion+"\n");
 			/*do i = 1 , 10
 			    do j = 1 , 5
 		  	      a(i,j) = 0;
@@ -184,15 +190,16 @@ public class FortranCodeASTInliner {
 			shape.add(1);
 			shape.add(1);
 			BasicMatrixValue tmp = 
-					new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+					new BasicMatrixValue(null, PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 			fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 			fcg.tmpVariables.put("tmp_"+LHS+"_j", tmp);
 			fcg.forStmtParameter.add(args.get(0));
 			fcg.forStmtParameter.add(args.get(1));
+			tmpBuf.append("\n"+indent+"!  the mapping Fortran code for the built-in function "+rhsFucntion+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
-		else if(node.getRHS().getVarName().equals("colon")){
+		else if(rhsFucntion.equals("colon")){
 			/*
 			 * Depending on the fact that whether the target variable is temporary, 
 			 * we have two solutions for colon.
@@ -202,8 +209,6 @@ public class FortranCodeASTInliner {
 			//one more thing, we assume that the number of target variables of colon is only one.
 			if(node.getTargets().asNameList().get(0).tmpVar){
 				//TODO store the range information of this temp variable for later use.
-				ArrayList<String> args = new ArrayList<String>();
-				args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
 				for(int i=0;i<args.size();i++){
 					if(((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(args.get(i)).getSingleton())).getConstant()!=null){
@@ -225,16 +230,8 @@ public class FortranCodeASTInliner {
 				 * a=1:2:10 -> a=[1,3,5,...,9]
 				 * so, depends on the number of input parameters, there are two transformations.
 				 */
-				String indent = new String();
-				for(int i=0; i<fcg.indentNum; i++){
-					indent = indent + fcg.indent;
-				}
-				String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-				ArrayList<String> args = new ArrayList<String>();
-				args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-				int argsNum = args.size();
 				if(argsNum==2){
-					StringBuffer tmpBuf = new StringBuffer();
+					tmpBuf.append(indent+"!  below is the mapping Fortran code for the built-in function "+rhsFucntion+"\n");
 					/* a = arg1:arg2
 					 * -->
 					 * do tmp_a_i = arg1,arg2
@@ -271,14 +268,15 @@ public class FortranCodeASTInliner {
 					shape.add(1);
 					shape.add(1);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+							new BasicMatrixValue(null, PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 					fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 					fcg.forStmtParameter.add(args.get(0));
 					fcg.forStmtParameter.add(args.get(1));
+					tmpBuf.append("\n"+indent+"!  the mapping Fortran code for the built-in function "+rhsFucntion+" is over.");
 					noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 				}
 				else if(argsNum==3){
-					StringBuffer tmpBuf = new StringBuffer();
+					tmpBuf.append(indent+"!  below is the mapping Fortran code for the built-in function "+rhsFucntion+"\n");
 					/* a = lower:inc:upper
 					 * -->
 					 * tmp_a_index = 1;
@@ -329,32 +327,25 @@ public class FortranCodeASTInliner {
 					shape.add(1);
 					shape.add(1);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape));
+							new BasicMatrixValue(null, PrimitiveClassReference.INT8,(new ShapeFactory()).newShapeFromIntegers(shape), null);
 					fcg.tmpVariables.put("tmp_"+LHS+"_i", tmp);
 					fcg.tmpVariables.put("tmp_"+LHS+"_index", tmp);
 					fcg.forStmtParameter.add(args.get(0));
 					fcg.forStmtParameter.add(args.get(1));
 					fcg.forStmtParameter.add(args.get(2));
+					tmpBuf.append("\n"+indent+"!  the mapping Fortran code for the built-in function "+rhsFucntion+" is over.");
 					noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 				}
 				
 			}
 		}
 		
-		else if(node.getRHS().getVarName().equals("randperm")){
+		else if(rhsFucntion.equals("randperm")){
+			tmpBuf.append(indent+"!  below is the mapping Fortran code for the built-in function "+rhsFucntion+"\n");
 			/*
 			 * a=randperm(6) will get a=[1,4,3,6,5,2],
 			 * 
 			 */
-			String indent = new String();
-			for(int i=0; i<fcg.indentNum; i++){
-				indent = indent + fcg.indent;
-			}
-			String LHS = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-			ArrayList<String> args = new ArrayList<String>();
-			args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
-			int argsNum = args.size();
-			StringBuffer tmpBuf = new StringBuffer();
 			if(argsNum==1){
 				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(0)).getSingleton())).isConstant()){
@@ -373,6 +364,7 @@ public class FortranCodeASTInliner {
 			else{
 				//TODO this should be an error, throw exception?
 			}
+			tmpBuf.append("\n"+indent+"!  the mapping Fortran code for the built-in function "+rhsFucntion+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
@@ -380,7 +372,7 @@ public class FortranCodeASTInliner {
 			/**
 			 * for those no direct builtins which not be implemented yet 
 			 */
-			noDirBuiltinExpr.setCodeInline("!    the built-in function \""+node.getRHS().getVarName()+"\" has not been implemented yet, fix it!");
+			noDirBuiltinExpr.setCodeInline("!    the built-in function \""+rhsFucntion+"\" has not been implemented yet, fix it!");
 		}
 		return noDirBuiltinExpr;
 	}
