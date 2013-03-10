@@ -128,7 +128,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 					ArrayList<Integer> shape = new ArrayList<Integer>();
 					shape.add(2);
 					BasicMatrixValue tmp = 
-							new BasicMatrixValue(PrimitiveClassReference.INT8,(new ShapeFactory<AggrValue<BasicMatrixValue>>()).newShapeFromIntegers(shape), null);
+							new BasicMatrixValue(null, PrimitiveClassReference.INT8,(new ShapeFactory<AggrValue<BasicMatrixValue>>()).newShapeFromIntegers(shape), null);
 					fcg.tmpVariables.put(node.getTargetName().getID()+"_RTC",tmp);
 				}
 				else if(lhsShapeIsknown == false){
