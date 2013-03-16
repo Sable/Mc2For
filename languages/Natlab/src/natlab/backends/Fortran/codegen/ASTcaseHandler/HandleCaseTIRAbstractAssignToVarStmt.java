@@ -74,7 +74,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		 * for rhs, insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
-				.get(node.getRHS().getNodeString()).getSingleton())).isConstant()
+				.get(node.getRHS().getNodeString()).getSingleton())).hasConstant()
 				&&(fcg.inArgs.contains(node.getRHS().getNodeString())==false)){
 			if (Debug) System.out.println(node.getTargetName().getID()+" is a constant");
 			Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
@@ -94,7 +94,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		 * TODO need more concerns.
 		 */
 		if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
-				.get(node.getTargetName().getID()).getSingleton())).isConstant()){
+				.get(node.getTargetName().getID()).getSingleton())).hasConstant()){
 			if (Debug) System.out.println(node.getTargetName().getID()+" is a constant");
 		}
 		else{

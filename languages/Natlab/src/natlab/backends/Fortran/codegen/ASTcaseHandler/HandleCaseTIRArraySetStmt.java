@@ -94,7 +94,7 @@ public class HandleCaseTIRArraySetStmt {
 		 * insert constant variable replacement check for RHS variable.
 		 */
 		if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet()
-				.get(node.getValueName().getVarName()).getSingleton())).isConstant())){
+				.get(node.getValueName().getVarName()).getSingleton())).hasConstant())){
 			Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 					get(node.getValueName().getVarName()).getSingleton())).getConstant();
 			stmt.setrhsVariable(c.toString());

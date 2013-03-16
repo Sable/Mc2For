@@ -58,7 +58,7 @@ public class FortranCodeASTInliner {
 				 * need constant variable replacement check.
 				 */
 				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(i-1)).getSingleton())).isConstant()){
+						get(args.get(i-1)).getSingleton())).hasConstant()){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(args.get(i-1)).getSingleton())).getConstant();
 					if(fcg.inArgs.contains(LHS)){
@@ -87,7 +87,7 @@ public class FortranCodeASTInliner {
 				 * need constant variable replacement check.
 				 */
 				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(i-1)).getSingleton())).isConstant()){
+						get(args.get(i-1)).getSingleton())).hasConstant()){
 					DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(args.get(i-1)).getSingleton())).getConstant();
 					tmpBuf.append(indent+LHS+"("+i+",1) = "+c.toString()+";");
@@ -115,7 +115,7 @@ public class FortranCodeASTInliner {
 			 * need constant variable replacement check.
 			 */
 			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-					get(args.get(0)).getSingleton())).isConstant()){
+					get(args.get(0)).getSingleton())).hasConstant()){
 				DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(0)).getSingleton())).getConstant();
 				int ci = c.getValue().intValue();
@@ -125,7 +125,7 @@ public class FortranCodeASTInliner {
 				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1 , "+args.get(0)+"\n");
 			}
 			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-					get(args.get(1)).getSingleton())).isConstant()){
+					get(args.get(1)).getSingleton())).hasConstant()){
 				DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(1)).getSingleton())).getConstant();
 				int ci = c.getValue().intValue();
@@ -163,7 +163,7 @@ public class FortranCodeASTInliner {
 			 * need constant variable replacement check.
 			 */
 			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-					get(args.get(0)).getSingleton())).isConstant()){
+					get(args.get(0)).getSingleton())).hasConstant()){
 				DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(0)).getSingleton())).getConstant();
 				int ci = c.getValue().intValue();
@@ -173,7 +173,7 @@ public class FortranCodeASTInliner {
 				tmpBuf.append(indent+"do tmp_"+LHS+"_i = 1 , "+args.get(0)+"\n");
 			}
 			if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-					get(args.get(1)).getSingleton())).isConstant()){
+					get(args.get(1)).getSingleton())).hasConstant()){
 				DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(args.get(1)).getSingleton())).getConstant();
 				int ci = c.getValue().intValue();
@@ -252,7 +252,7 @@ public class FortranCodeASTInliner {
 						tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+args.get(0));
 					}
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(1)).getSingleton())).isConstant()){
+							get(args.get(1)).getSingleton())).hasConstant()){
 						DoubleConstant c = (DoubleConstant)((HasConstant)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 								get(args.get(1)).getSingleton())).getConstant();
 						int ci = c.getValue().intValue();
@@ -290,7 +290,7 @@ public class FortranCodeASTInliner {
 					 * need constant variable replacement check.
 					 */
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(0)).getSingleton())).isConstant()){
+							get(args.get(0)).getSingleton())).hasConstant()){
 						DoubleConstant c = (DoubleConstant) ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 								get(args.get(0)).getSingleton())).getConstant();
 						int ci = c.getValue().intValue();
@@ -300,7 +300,7 @@ public class FortranCodeASTInliner {
 						tmpBuf.append(indent+"do tmp_"+LHS+"_i = "+args.get(0));
 					}
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(2)).getSingleton())).isConstant()){
+							get(args.get(2)).getSingleton())).hasConstant()){
 						DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 								get(args.get(2)).getSingleton())).getConstant();
 						int ci = c.getValue().intValue();
@@ -310,7 +310,7 @@ public class FortranCodeASTInliner {
 						tmpBuf.append(","+args.get(1));
 					}
 					if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-							get(args.get(1)).getSingleton())).isConstant()){
+							get(args.get(1)).getSingleton())).hasConstant()){
 						DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 								get(args.get(1)).getSingleton())).getConstant();
 						int ci = c.getValue().intValue();
@@ -348,7 +348,7 @@ public class FortranCodeASTInliner {
 			 */
 			if(argsNum==1){
 				if(((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
-						get(args.get(0)).getSingleton())).isConstant()){
+						get(args.get(0)).getSingleton())).hasConstant()){
 					DoubleConstant c = (DoubleConstant)((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(args.get(0)).getSingleton())).getConstant();
 					int ci = c.getValue().intValue();

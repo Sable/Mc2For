@@ -90,7 +90,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			/**
 			 * insert constant variable replacement check.
 			 */
-			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant())
+			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).hasConstant())
 					&&(fcg.inArgs.contains(Operand1)==false)){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(Operand1).getSingleton())).getConstant();
@@ -104,7 +104,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					binExpr.setOperand1(Operand1);		
 				}		
 			}
-			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand2).getSingleton())).isConstant())
+			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand2).getSingleton())).hasConstant())
 					&&(fcg.inArgs.contains(Operand2)==false)){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(Operand2).getSingleton())).getConstant();
@@ -162,7 +162,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			/**
 			 * insert constant variable replacement check.
 			 */
-			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).isConstant())
+			if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Operand1).getSingleton())).hasConstant())
 					&&(fcg.inArgs.contains(Operand1)==false)){
 				Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 						get(Operand1).getSingleton())).getConstant();
@@ -222,7 +222,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * insert constant variable replacement check.
 			 */
 			for(int i=0;i<Args.size();i++){
-				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).hasConstant())
 						&&(fcg.inArgs.contains(Args.get(i))==false)){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(Args.get(i)).getSingleton())).getConstant();
@@ -310,7 +310,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * insert constant variable replacement check.
 			 */
 			for(int i=0;i<Args.size();i++){
-				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+				if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).hasConstant())
 						&&(fcg.inArgs.contains(Args.get(i))==false)){
 					Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 							get(Args.get(i)).getSingleton())).getConstant();
@@ -383,7 +383,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				 * insert constant variable replacement check.
 				 */
 				for(int i=0;i<Args.size();i++){
-					if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+					if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).hasConstant())
 							&&(fcg.inArgs.contains(Args.get(i))==false)){
 						Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 								get(Args.get(i)).getSingleton())).getConstant();
@@ -454,7 +454,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				 * insert constant variable replacement check.
 				 */
 				for(int i=0;i<Args.size();i++){
-					if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).isConstant())
+					if((((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(Args.get(i)).getSingleton())).hasConstant())
 							&&(fcg.inArgs.contains(Args.get(i))==false)){
 						Constant c = ((BasicMatrixValue)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().
 								get(Args.get(i)).getSingleton())).getConstant();

@@ -132,7 +132,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-				get(node.getTargetName().getVarName()).getSingleton())).isConstant()
+				get(node.getTargetName().getVarName()).getSingleton())).hasConstant()
 				&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
@@ -153,7 +153,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 * insert constant variable replacement check.
 		 */
 		if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-				get(node.getTargetName().getVarName())).getSingleton()).isConstant()
+				get(node.getTargetName().getVarName())).getSingleton()).hasConstant()
 				&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 			if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 		}
@@ -182,7 +182,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler{
 		 */
 		if((HandleCaseTIRAbstractAssignToListStmt.getRHSCaseNumber(this, node)==6)==false){
 			if(((BasicMatrixValue)(this.analysis.getNodeList().get(this.index).getAnalysis().getCurrentOutSet().
-					get(node.getTargetName().getVarName()).getSingleton())).isConstant()
+					get(node.getTargetName().getVarName()).getSingleton())).hasConstant()
 					&&(this.outRes.contains(node.getTargetName().getVarName())==false)){
 				if (Debug) System.out.println(node.getTargetName().getVarName()+" is a constant");
 			}
