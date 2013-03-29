@@ -1,6 +1,6 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.components.constant.*;
@@ -122,11 +122,11 @@ public class CaseNewUserDefinedFunc {
 					if(((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().isScalar()==false){
 						if (Debug) System.out.println("add dimension here!");
 						Keyword keyword = new Keyword();
-						ArrayList<Integer> dim = new ArrayList<Integer>(((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions());
+						List<DimValue> dim = ((HasShape)(fcg.analysis.getNodeList().get(fcg.index).getAnalysis().getCurrentOutSet().get(variable).getSingleton())).getShape().getDimensions();
 						boolean conter = false;
 						boolean variableShapeIsKnown = true;
-						for(Integer intgr : dim){
-							if(intgr==null){
+						for(DimValue dimValue : dim){
+							if(dimValue.hasIntValue()){
 								if (Debug) System.out.println("The shape of "+variable+" is not exactly known, we need allocate it first");
 								variableShapeIsKnown = false;
 							}
@@ -166,11 +166,11 @@ public class CaseNewUserDefinedFunc {
 						else{
 							StringBuffer tempBuf = new StringBuffer();
 							tempBuf.append("dimension(");
-							for(Integer inte : dim){
+							for(DimValue dimValue : dim){
 								if(conter){
 									tempBuf.append(",");
 								}
-								tempBuf.append(inte.toString());
+								tempBuf.append(dimValue.toString());
 								conter = true;
 							}
 							tempBuf.append(")");
