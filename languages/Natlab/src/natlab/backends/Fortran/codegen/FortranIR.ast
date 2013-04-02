@@ -19,21 +19,21 @@ abstract Statement;
 
 CommentStmt: Statement ::= <Indent> <Comment>;
 
-AssignLiteralStmt: Statement ::= <Indent> [RuntimeCheck] Variable <Literal>;
-RuntimeCheck ::= <Block: String>;
+AssignLiteralStmt: Statement ::= <Indent> [RuntimeAllocate] Variable <Literal>;
+RuntimeAllocate ::= <Block: String>;
 
-AbstractAssignToVarStmt: Statement ::= <Indent> [RuntimeCheck] <TargetVariable> <SourceVariable>;
+AbstractAssignToVarStmt: Statement ::= <Indent> [RuntimeAllocate] <TargetVariable> <SourceVariable>;
 
 abstract AbstractAssignToListStmt: Statement;
-BinaryExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] Variable* <Operand1> <Operator> <Operand2>;
-UnaryExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] Variable* <Operator> <Operand>;
-DirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] Variable* <BuiltinFunc> <ArgsList>;
-NoDirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] <CodeInline>;
-BuiltinConstantExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] Variable* <BuiltinFunc>;
-IOOperationExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] <IOOperator> <ArgsList>;
-UserDefinedFunction: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] Variable* <FuncName> <ArgsList>;
+BinaryExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <Operand1> <Operator> <Operand2>;
+UnaryExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <Operator> <Operand>;
+DirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <BuiltinFunc> <ArgsList>;
+NoDirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <CodeInline>;
+BuiltinConstantExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <BuiltinFunc>;
+IOOperationExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <IOOperator> <ArgsList>;
+UserDefinedFunction: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <FuncName> <ArgsList>;
 
-Subroutines: AbstractAssignToListStmt ::= <Indent> [RuntimeCheck] <FuncName> <InputArgsList> <OutputArgsList>;
+Subroutines: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <FuncName> <InputArgsList> <OutputArgsList>;
 
 IfStmt: Statement ::= <Indent> <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
 
@@ -42,8 +42,8 @@ WhileStmt: Statement ::= <Indent> <Condition> WhileBlock: StatementSection;
 ForStmt: Statement ::= <Indent> <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
 Inc ::= <Name: String>;
 
-ArrayGetStmt: Statement ::= <Indent> [RuntimeCheck] [ArrayConvert] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+ArrayGetStmt: Statement ::= <Indent> [RuntimeAllocate] [ArrayConvert] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 lhsIndex ::= <Name: String>;
 ArrayConvert ::= <Block: String>;
 
-ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] <lhsVariable> <lhsIndex> <rhsVariable>;
+ArraySetStmt: Statement ::= <Indent> [RuntimeAllocate] <lhsVariable> <lhsIndex> <rhsVariable>;

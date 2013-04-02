@@ -117,8 +117,8 @@ aspect PrettyPrinter{
     }
     
     public void AssignLiteralStmt.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	getVariable().pp(sb);
@@ -126,8 +126,8 @@ aspect PrettyPrinter{
     }
     
     public void AbstractAssignToVarStmt.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	sb.append(getTargetVariable()+" = "+getSourceVariable()+";");
@@ -138,8 +138,8 @@ aspect PrettyPrinter{
     }
     
     public void BinaryExpr.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	int size = getNumVariable();
@@ -153,8 +153,8 @@ aspect PrettyPrinter{
     }
     
     public void UnaryExpr.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	int size = getNumVariable();
@@ -168,8 +168,8 @@ aspect PrettyPrinter{
     }
     
     public void DirectBuiltinExpr.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	int size = getNumVariable();
@@ -183,8 +183,8 @@ aspect PrettyPrinter{
     }
     
     public void NoDirectBuiltinExpr.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	if(getCodeInline()!=null) {
@@ -193,8 +193,8 @@ aspect PrettyPrinter{
     }
     
     public void BuiltinConstantExpr.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	int size = getNumVariable();
@@ -208,16 +208,16 @@ aspect PrettyPrinter{
     }
     
     public void IOOperationExpr.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	sb.append(getIOOperator()+getArgsList()+";");
     }
     
     public void UserDefinedFunction.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	int size = getNumVariable();
@@ -231,8 +231,8 @@ aspect PrettyPrinter{
     }
     
     public void Subroutines.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	sb.append("call "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
@@ -276,8 +276,8 @@ aspect PrettyPrinter{
     }
     
     public void ArrayGetStmt.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    		sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    		sb.append(getRuntimeAllocate()+"\n");
     	}
     	if(hasArrayConvert()) {
     		getArrayConvert().pp(sb);
@@ -301,8 +301,8 @@ aspect PrettyPrinter{
     }
     
     public void ArraySetStmt.pp(StringBuffer sb) {
-    	if(hasRuntimeCheck()) {
-    	    sb.append(getRuntimeCheck()+"\n");
+    	if(hasRuntimeAllocate()) {
+    	    sb.append(getRuntimeAllocate()+"\n");
     	}
     	sb.append(getIndent());
     	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable()+";");
