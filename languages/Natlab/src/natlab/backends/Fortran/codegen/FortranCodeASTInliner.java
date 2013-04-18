@@ -33,6 +33,7 @@ public class FortranCodeASTInliner {
 		StringBuffer tmpBuf = new StringBuffer();
 		RuntimeAllocate rta = new RuntimeAllocate();
 		if (!fcg.getMatrixValue(lhsTarget).getShape().isConstant()) {
+			tmpBuf.append(indent+"!runtime allocation.\n");
 			tmpBuf.append(indent+"allocate("+lhsTarget+"(");
 			int counter = 1;
 			for (DimValue dimValue : fcg.getMatrixValue(lhsTarget).getShape().getDimensions()) {
@@ -68,8 +69,8 @@ public class FortranCodeASTInliner {
 		/*
 		 * below are all the cases by enumeration, extendable.
 		 */
+		tmpBuf.append(indent+"!mapping function "+rhsFunName+"\n");
 		if (rhsFunName.equals("horzcat")) {
-			tmpBuf.append(indent+"!  mapping MATLAB built-in function "+rhsFunName+"\n");
 			for (int i=1; i<=numOfArgs; i++) {
 				/*
 				 * need constant folding check.
@@ -83,13 +84,12 @@ public class FortranCodeASTInliner {
 				}
 				if (i<numOfArgs) tmpBuf.append("\n");
 			}
-			tmpBuf.append("\n"+indent+"!  mapping MATLAB built-in function "+rhsFunName
+			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
 		else if (rhsFunName.equals("vertcat")) {
-			tmpBuf.append(indent+"!  mapping MATLAB built-in function "+rhsFunName+"\n");
 			for (int i=1; i<=numOfArgs; i++) {
 				/*
 				 * need constant folding check.
@@ -103,13 +103,12 @@ public class FortranCodeASTInliner {
 				}
 				if(i<numOfArgs) tmpBuf.append("\n");
 			}
-			tmpBuf.append("\n"+indent+"!  mapping MATLAB built-in function "+rhsFunName
+			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 
 		else if (rhsFunName.equals("ones")) {
-			tmpBuf.append(indent+"!  mapping MATLAB built-in function "+rhsFunName+"\n");
 			/*
 			 * need constant folding check.
 			 */
@@ -146,13 +145,12 @@ public class FortranCodeASTInliner {
 			fcg.tmpVariables.put("tmp_"+lhsTarget+"_j", tmp);
 			fcg.forStmtParameter.add(rhsArgs.get(0));
 			fcg.forStmtParameter.add(rhsArgs.get(1));
-			tmpBuf.append("\n"+indent+"!  mapping MATLAB built-in function "+rhsFunName
+			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
 		
 		else if (rhsFunName.equals("zeros")) {
-			tmpBuf.append(indent+"!  mapping MATLAB built-in function "+rhsFunName+"\n");
 			/*
 			 * need constant folding check.
 			 */
@@ -189,7 +187,7 @@ public class FortranCodeASTInliner {
 			fcg.tmpVariables.put("tmp_"+lhsTarget+"_j", tmp);
 			fcg.forStmtParameter.add(rhsArgs.get(0));
 			fcg.forStmtParameter.add(rhsArgs.get(1));
-			tmpBuf.append("\n"+indent+"!  mapping MATLAB built-in function "+rhsFunName
+			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
@@ -229,7 +227,6 @@ public class FortranCodeASTInliner {
 				  	 *   a(1,tmp_a_i) = tmp_a_i;
 				     * enddo
 				     */
-					tmpBuf.append(indent+"!  mapping MATLAB built-in function "+rhsFunName+"\n");
 					/*
 					 * need constant folding check.
 					 */
@@ -272,7 +269,6 @@ public class FortranCodeASTInliner {
 				  	 *   tmp_a_index=tmp_a_index+1;
 				     * enddo
 				     */
-					tmpBuf.append(indent+"!  mapping MATLAB built-in function "+rhsFunName+"\n");
 					tmpBuf.append("tmp_"+lhsTarget+"_index = 1;\n");
 					/*
 					 * need constant folding check.
@@ -324,7 +320,7 @@ public class FortranCodeASTInliner {
 				else {
 					// TODO this should be an error, throw an exception?
 				}
-				tmpBuf.append("\n"+indent+"!  mapping MATLAB built-in function "+rhsFunName
+				tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 						+" is over.");
 				noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 			}
@@ -334,7 +330,6 @@ public class FortranCodeASTInliner {
 			/*
 			 * a=randperm(6) will get a=[1,4,3,6,5,2],
 			 */
-			tmpBuf.append(indent+"!  mapping MATLAB built-in function "+rhsFunName+"\n");
 			if (numOfArgs==1) {
 				if (fcg.getMatrixValue(rhsArgs.get(0)).hasConstant()) {
 					DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
@@ -352,7 +347,7 @@ public class FortranCodeASTInliner {
 			else {
 				// TODO this should be an error, throw an exception?
 			}
-			tmpBuf.append("\n"+indent+"!  mapping MATLAB built-in function "+rhsFunName
+			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
@@ -360,7 +355,7 @@ public class FortranCodeASTInliner {
 			/*
 			 * for those no direct builtins which have not been implemented yet.
 			 */
-			noDirBuiltinExpr.setCodeInline("!    the built-in function \""+rhsFunName
+			noDirBuiltinExpr.setCodeInline("!  the built-in function \""+rhsFunName
 					+"\" has not been implemented yet, fix it!");
 		}
 		return noDirBuiltinExpr;
