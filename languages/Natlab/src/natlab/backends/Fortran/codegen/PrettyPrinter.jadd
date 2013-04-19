@@ -239,7 +239,10 @@ aspect PrettyPrinter {
     
     public void ArrayGetStmt.pp(StringBuffer sb) {
     	if (hasRuntimeAllocate()) sb.append(getRuntimeAllocate()+"\n");
-    	if (hasArrayConvert()) getArrayConvert().pp(sb);
+    	if (hasRigorousIndexingTransformation()) {
+    		getRigorousIndexingTransformation().pp(sb);
+    		return;
+    	}
     	sb.append(getIndent());
     	sb.append(getlhsVariable());
     	if (haslhsIndex()) {
@@ -254,8 +257,8 @@ aspect PrettyPrinter {
     	sb.append(getName());
     }
     
-    public void ArrayConvert.pp(StringBuffer sb) {
-    	sb.append(getBlock());
+    public void RigorousIndexingTransformation.pp(StringBuffer sb) {
+    	sb.append(getFunctionCall());
     }
     
     public void ArraySetStmt.pp(StringBuffer sb) {

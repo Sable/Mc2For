@@ -3,7 +3,7 @@ package natlab.backends.Fortran.codegen.ASTcaseHandler;
 import java.util.ArrayList;
 
 import natlab.tame.tir.*;
-import natlab.tame.valueanalysis.components.constant.Constant;
+import natlab.tame.valueanalysis.components.constant.*;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 
@@ -269,7 +269,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 						&& !fcg.inArgs.contains(Args.get(i))) {
 					Constant c = fcg.getMatrixValue(Args.get(i)).getConstant();
 					Args.remove(i);
-					Args.add(i, c.toString());
+					if (c instanceof CharConstant) Args.add(i, "'"+c+"'");
+					else Args.add(i, c.toString());
 				}
 				else {
 					if (fcg.inputHasChanged.contains(Args.get(i))) {

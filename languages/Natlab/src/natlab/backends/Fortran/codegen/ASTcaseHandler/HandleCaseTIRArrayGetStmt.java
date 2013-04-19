@@ -13,7 +13,7 @@ public class HandleCaseTIRArrayGetStmt {
 	
 	/**
 	 * ArrayGetStmt: Statement ::= 
-	 * [RuntimeCheck] [ArrayConvert] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+	 * [RuntimeCheck] [RigorousIndexingTransformation] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 	 */
 	public Statement getFortran(
 			FortranCodeASTGenerator fcg, 
@@ -35,8 +35,8 @@ public class HandleCaseTIRArrayGetStmt {
 				if (Debug) System.out.println("subroutine's input "+lhsVariable
 						+" has been modified!");
 				/*
-				 * here we need to detect whether it is the first time this variable put in the set,
-				 * because we only want to back up them once.
+				 * here we need to detect whether it is the first time this variable put in 
+				 * the set, because we only want to back up them once.
 				 */
 				if (fcg.inputHasChanged.contains(lhsVariable)) {
 					// do nothing.
@@ -57,38 +57,51 @@ public class HandleCaseTIRArrayGetStmt {
 		List<DimValue> rhsArrayDimension = fcg.getMatrixValue(rhsArrayName)
 				.getShape().getDimensions();
 		/*
-		 * args is index as ArrayList
+		 * insert constant variable replacement check for RHS array index.
 		 */
-		List<String> args = new ArrayList<String>();
-		args = HandleCaseTIRAbstractAssignToListStmt.getArgsList(node);
+		String[] indexString = node.getIndizes().toString().replace("[", "")
+				.replace("]", "").split(",");
+		ArrayList<String> rhsIndex = new ArrayList<String>();
+		ArrayList<String> lhsIndex = new ArrayList<String>();
+		for (int i=0; i<indexString.length; i++) {
+			if (indexString[i].equals(":")) {
+				rhsIndex.add(":");
+				lhsIndex.add(":");
+			}
+			else if (fcg.getMatrixValue(indexString[i]).hasConstant()) {
+				int intValue = ((Double) fcg.getMatrixValue(indexString[i])
+						.getConstant().getValue()).intValue();
+				rhsIndex.add(String.valueOf(intValue));
+				lhsIndex.add("1");
+			}
+			else if (fcg.tmpVarAsArrayIndex.containsKey(indexString[i])) {
+				ArrayList<String> colonIndex = fcg.tmpVarAsArrayIndex.get(indexString[i]);
+				rhsIndex.add(colonIndex.get(0) + ":" + colonIndex.get(1));
+				List<DimValue> colonShape = fcg.getMatrixValue(indexString[i]).getShape().getDimensions();
+				lhsIndex.add(colonShape.get(0) + ":" + colonShape.get(1));
+			}
+			else {
+				rhsIndex.add(indexString[i]);
+				lhsIndex.add(indexString[i]);
+			}
+		}
+		// System.out.println(indexArray);
+		if (rhsArrayDimension.size() == rhsIndex.size()) {
+			stmt.setlhsVariable(lhsVariable);
+			stmt.setrhsVariable(rhsArrayName);
+			stmt.setrhsIndex(rhsIndex.toString().replace("[", "").replace("]", ""));
+			lhsIndex lhsindex = new lhsIndex();
+			lhsindex.setName(lhsIndex.toString().replace("[", "").replace("]", ""));
+			stmt.setlhsIndex(lhsindex);
+		}
+		else {
+			RigorousIndexingTransformation indexTransform = ArrayGetIndexingTransformation
+					.getTransformedIndex(lhsVariable, rhsArrayName, rhsArrayDimension, rhsIndex);
+			stmt.setRigorousIndexingTransformation(indexTransform);
+		}
 		/*
-		 * TODO currently, only support array has at most two dimensions and the number 
-		 * of index can be one or two, fix this later.matrix indexing in Matlab is so 
-		 * powerful and flexible, but this cause mapping matrix indexing in Matlab to 
-		 * Fortran is so complicated!!!
-		 * i.e. b = a(:), if a is a vector, this case is the simplest one. If a is a 
-		 * multi-dimensional array, this case will be complicated.In Matlab, the 
-		 * interpreter can interpret it, while in Fortran the array assignmnet should 
-		 * be conformable.for example, a is 2 by 3 array, and b is 1 by 3 array, when we 
-		 * do "b=a(1:3)" in Matlab, it's okay (remember Matlab and Fortran is column 
-		 * major),b will be assigned with the first three entries of a. But in Fortran, 
-		 * the compiler will throw errors about this, we should modify the assignment to 
-		 * "b(1,1)=a(1,1);b(1,2)=a(2,1);b(1,3)=a(1,2)" (because a is 2 by 3 and b is 1 
-		 * by 3). but this still remains a big problem, what if b = a(1:10000), the 
-		 * inlined code will be super long and disgusting... so currently, my solution 
-		 * is to use a temporary array as a intermediate array to achieve this array get 
-		 * assignment.
-		 * i.e.
-		 * b = a(1:3)
-		 * --->
-		 * do tmp_a_column = 1,3
-         *    do tmp_a_row = 1,2
-         *       a_vector(1,(tmp_a_column-1)*2+tmp_a_row)=a(tmp_a_row,tmp_a_column);
-         *    enddo
-         * enddo
-         * b(1,1:3) = a_vector(1,1:3); 
 		 * TODO re-implement!
-		 */		
+		 */
 		for (ast.Name indexName : node.getIndizes().asNameList()) {
 			if (indexName!=null) 
 				if (!indexName.tmpVar) fcg.arrayIndexParameter.add(indexName.getID());

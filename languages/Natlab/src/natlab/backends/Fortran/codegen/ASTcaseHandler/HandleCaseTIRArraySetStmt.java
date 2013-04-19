@@ -54,27 +54,20 @@ public class HandleCaseTIRArraySetStmt {
 		String[] indexString = node.getIndizes().toString().replace("[", "")
 				.replace("]", "").split(",");
 		ArrayList<String> indexArray = new ArrayList<String>();
-		for (String index : indexString) {
-			indexArray.add(index);
-		}
-		StringBuffer indexBuffer = new StringBuffer();
-		for (int i=0;i<indexArray.size();i++) {
-			if (indexArray.get(i).equals(":")) {
-				indexBuffer.append(":");
+		for (int i=0; i<indexString.length; i++) {
+			if (indexString[i].equals(":")) {
+				indexArray.add(":");
 			}
-			else if (fcg.getMatrixValue(indexArray.get(i)).hasConstant()) {
-				int intValue = ((Double) fcg.getMatrixValue(indexArray.get(i))
+			else if (fcg.getMatrixValue(indexString[i]).hasConstant()) {
+				int intValue = ((Double) fcg.getMatrixValue(indexString[i])
 						.getConstant().getValue()).intValue();
-				indexBuffer.append(intValue);
+				indexArray.add(String.valueOf(intValue));
 			}
 			else {
-				indexBuffer.append(indexArray.get(i));
-			}
-			if (i<indexArray.size()-1) {
-				indexBuffer.append(",");
+				indexArray.add(indexString[i]);
 			}
 		}
-		stmt.setlhsIndex(indexBuffer.toString());
+		stmt.setlhsIndex(indexArray.toString().replace("[", "").replace("]", ""));
 		/*
 		 * insert constant variable replacement check for RHS variable.
 		 */

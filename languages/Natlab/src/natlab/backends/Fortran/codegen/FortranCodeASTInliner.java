@@ -70,6 +70,8 @@ public class FortranCodeASTInliner {
 		 * below are all the cases by enumeration, extendable.
 		 */
 		tmpBuf.append(indent+"!mapping function "+rhsFunName+"\n");
+		
+		/*********************built-in function enumeration*******************/
 		if (rhsFunName.equals("horzcat")) {
 			for (int i=1; i<=numOfArgs; i++) {
 				/*
@@ -87,8 +89,7 @@ public class FortranCodeASTInliner {
 			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
-		}
-		
+		}		
 		else if (rhsFunName.equals("vertcat")) {
 			for (int i=1; i<=numOfArgs; i++) {
 				/*
@@ -107,7 +108,6 @@ public class FortranCodeASTInliner {
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}
-
 		else if (rhsFunName.equals("ones")) {
 			/*
 			 * need constant folding check.
@@ -148,8 +148,7 @@ public class FortranCodeASTInliner {
 			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
-		}
-		
+		}		
 		else if (rhsFunName.equals("zeros")) {
 			/*
 			 * need constant folding check.
@@ -190,8 +189,7 @@ public class FortranCodeASTInliner {
 			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
-		}
-		
+		}		
 		else if (rhsFunName.equals("colon")) {
 			/*
 			 * Depending on the fact that whether the target variable is temporary, 
@@ -324,8 +322,7 @@ public class FortranCodeASTInliner {
 						+" is over.");
 				noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 			}
-		}
-		
+		}		
 		else if (rhsFunName.equals("randperm")) {
 			/*
 			 * a=randperm(6) will get a=[1,4,3,6,5,2],
@@ -350,6 +347,9 @@ public class FortranCodeASTInliner {
 			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+		}		
+		else if (rhsFunName.equals("rand")) {
+			noDirBuiltinExpr.setCodeInline("call random_number("+lhsTarget+");");
 		}
 		else {
 			/*
