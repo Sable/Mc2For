@@ -46,4 +46,4 @@ ArrayGetStmt: Statement ::= <Indent> [RuntimeAllocate] [RigorousIndexingTransfor
 lhsIndex ::= <Name: String>;
 RigorousIndexingTransformation ::= <FunctionCall: String>;
 
-ArraySetStmt: Statement ::= <Indent> [RuntimeAllocate] <lhsVariable> <lhsIndex> <rhsVariable>;
+ArraySetStmt: Statement ::= <Indent> [RuntimeAllocate] [RigorousIndexingTransformation] <lhsVariable> <lhsIndex> <rhsVariable>;

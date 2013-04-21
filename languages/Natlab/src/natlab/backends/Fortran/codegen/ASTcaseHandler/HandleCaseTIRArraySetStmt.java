@@ -1,9 +1,11 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
+import java.util.List;
 import java.util.ArrayList;
 
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.components.constant.Constant;
+import natlab.tame.valueanalysis.components.shape.DimValue;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 
@@ -11,7 +13,8 @@ public class HandleCaseTIRArraySetStmt {
 	static boolean Debug = false;
 	
 	/**
-	 * ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] <lhsVariable> <lhsIndex> <rhsVariable>;
+	 * ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] 
+	 * [RigorousIndexingTransformation] <lhsVariable> <lhsIndex> <rhsVariable>;
 	 */
 	public Statement getFortran(
 			FortranCodeASTGenerator fcg, 
@@ -47,37 +50,50 @@ public class HandleCaseTIRArraySetStmt {
 				lhsArrayName = lhsArrayName+"_copy";
 			}
 		}
-		stmt.setlhsVariable(lhsArrayName);
+		/*
+		 * at least, we need the information of lhs array's shape 
+		 * and its corresponding index's shape (maybe value).
+		 */
+		List<DimValue> lhsArrayDimension = fcg.getMatrixValue(lhsArrayName)
+				.getShape().getDimensions();
 		/*
 		 * insert constant variable replacement check for LHS array index.
 		 */
 		String[] indexString = node.getIndizes().toString().replace("[", "")
 				.replace("]", "").split(",");
-		ArrayList<String> indexArray = new ArrayList<String>();
+		ArrayList<String> lhsIndex = new ArrayList<String>();
 		for (int i=0; i<indexString.length; i++) {
 			if (indexString[i].equals(":")) {
-				indexArray.add(":");
+				lhsIndex.add(":");
 			}
 			else if (fcg.getMatrixValue(indexString[i]).hasConstant()) {
 				int intValue = ((Double) fcg.getMatrixValue(indexString[i])
 						.getConstant().getValue()).intValue();
-				indexArray.add(String.valueOf(intValue));
+				lhsIndex.add(String.valueOf(intValue));
 			}
 			else {
-				indexArray.add(indexString[i]);
+				lhsIndex.add(indexString[i]);
 			}
 		}
-		stmt.setlhsIndex(indexArray.toString().replace("[", "").replace("]", ""));
 		/*
 		 * insert constant variable replacement check for RHS variable.
 		 */
 		String valueName = node.getValueName().getVarName();
 		if (fcg.getMatrixValue(valueName).hasConstant()) {
 			Constant c = fcg.getMatrixValue(valueName).getConstant();
-			stmt.setrhsVariable(c.toString());
+			valueName = c.toString();
 		}
-		else stmt.setrhsVariable(valueName);		
-		for (String indexName : indexArray) {
+		if (lhsArrayDimension.size() == lhsIndex.size()) {
+			stmt.setlhsVariable(lhsArrayName);
+			stmt.setlhsIndex(lhsIndex.toString().replace("[", "").replace("]", ""));
+			stmt.setrhsVariable(valueName);
+		}
+		else {
+			RigorousIndexingTransformation indexTransform = ArraySetIndexingTransformation
+					.getTransformedIndex(lhsArrayName, valueName, lhsArrayDimension, lhsIndex);
+			stmt.setRigorousIndexingTransformation(indexTransform);
+		}
+		for (String indexName : lhsIndex) {
 			if (!indexName.equals(":")) fcg.arrayIndexParameter.add(indexName);
 		}		
 		return stmt;

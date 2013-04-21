@@ -239,11 +239,11 @@ aspect PrettyPrinter {
     
     public void ArrayGetStmt.pp(StringBuffer sb) {
     	if (hasRuntimeAllocate()) sb.append(getRuntimeAllocate()+"\n");
+    	sb.append(getIndent());
     	if (hasRigorousIndexingTransformation()) {
     		getRigorousIndexingTransformation().pp(sb);
     		return;
     	}
-    	sb.append(getIndent());
     	sb.append(getlhsVariable());
     	if (haslhsIndex()) {
     		sb.append("(");
@@ -264,6 +264,10 @@ aspect PrettyPrinter {
     public void ArraySetStmt.pp(StringBuffer sb) {
     	if (hasRuntimeAllocate()) sb.append(getRuntimeAllocate()+"\n");
     	sb.append(getIndent());
+    	if (hasRigorousIndexingTransformation()) {
+    		getRigorousIndexingTransformation().pp(sb);
+    		return;
+    	}
     	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable()+";");
     }
 }

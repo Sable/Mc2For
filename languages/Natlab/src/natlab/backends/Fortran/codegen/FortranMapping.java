@@ -30,20 +30,22 @@ public class FortranMapping {
 	}
 	
 	private void makeFortranTypeMap() {
+		/*
+		 * TODO Fortran has kind keyword.
+		 */
 		FortranTypeMap.put("char", "char");
-		FortranTypeMap.put("double", "real");
-		FortranTypeMap.put("int8", "Integer");
 		FortranTypeMap.put("logical", "logical");
-		FortranTypeMap.put("COMPLEX", "complex");
-		/*FortranTypeMap.put("single", "Float");
-		FortranTypeMap.put("int8", "Byte");
-		FortranTypeMap.put("int16", "Short");
-		FortranTypeMap.put("int32", "Int");
-		FortranTypeMap.put("int64", "Long");
-		FortranTypeMap.put("uint8", "UByte");
-		FortranTypeMap.put("uint16", "UShort");
-		FortranTypeMap.put("uint32", "UInt");
-		FortranTypeMap.put("uint64", "ULong");*/
+		FortranTypeMap.put("complex", "complex");
+		FortranTypeMap.put("single", "real");
+		FortranTypeMap.put("double", "real");
+		FortranTypeMap.put("int8", "integer");
+		FortranTypeMap.put("int16", "integer");
+		FortranTypeMap.put("int32", "integer");
+		FortranTypeMap.put("int64", "integer");
+		FortranTypeMap.put("uint8", "integer");
+		FortranTypeMap.put("uint16", "integer");
+		FortranTypeMap.put("uint32", "integer");
+		FortranTypeMap.put("uint64", "integer");
 	}
 	
 	private void makeFortranBinaryOperatorMap() {
@@ -74,7 +76,9 @@ public class FortranMapping {
 	}
 	
 	private void makeFortranDirectBuiltinMap() {
-		// TODO create a categorical map here 
+		/* 
+		 * TODO create a categorical map here 
+		 */
 		FortranDirectBuiltinMap.put("sqrt", "sqrt");	
 		FortranDirectBuiltinMap.put("sin", "sin");	
 		FortranDirectBuiltinMap.put("cos", "cos");
@@ -96,7 +100,9 @@ public class FortranMapping {
 	}
 	
 	private void makeFortranBuiltinConstMap() {
-		// TODO create a categorical map here 
+		/* 
+		 * TODO create a categorical map here 
+		 */
 		FortranBuiltinConstMap.put("pi", "Math.PI");
 		FortranBuiltinConstMap.put("true", ".true.");
 		FortranBuiltinConstMap.put("false", ".false.");

@@ -12,8 +12,8 @@ public class HandleCaseTIRArrayGetStmt {
 	static boolean Debug = false;
 	
 	/**
-	 * ArrayGetStmt: Statement ::= 
-	 * [RuntimeCheck] [RigorousIndexingTransformation] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+	 * ArrayGetStmt: Statement ::= <Indent> [RuntimeCheck] 
+	 * [RigorousIndexingTransformation] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 	 */
 	public Statement getFortran(
 			FortranCodeASTGenerator fcg, 
@@ -77,7 +77,8 @@ public class HandleCaseTIRArrayGetStmt {
 			else if (fcg.tmpVarAsArrayIndex.containsKey(indexString[i])) {
 				ArrayList<String> colonIndex = fcg.tmpVarAsArrayIndex.get(indexString[i]);
 				rhsIndex.add(colonIndex.get(0) + ":" + colonIndex.get(1));
-				List<DimValue> colonShape = fcg.getMatrixValue(indexString[i]).getShape().getDimensions();
+				List<DimValue> colonShape = fcg.getMatrixValue(indexString[i])
+						.getShape().getDimensions();
 				lhsIndex.add(colonShape.get(0) + ":" + colonShape.get(1));
 			}
 			else {
@@ -85,7 +86,6 @@ public class HandleCaseTIRArrayGetStmt {
 				lhsIndex.add(indexString[i]);
 			}
 		}
-		// System.out.println(indexArray);
 		if (rhsArrayDimension.size() == rhsIndex.size()) {
 			stmt.setlhsVariable(lhsVariable);
 			stmt.setrhsVariable(rhsArrayName);
@@ -99,9 +99,6 @@ public class HandleCaseTIRArrayGetStmt {
 					.getTransformedIndex(lhsVariable, rhsArrayName, rhsArrayDimension, rhsIndex);
 			stmt.setRigorousIndexingTransformation(indexTransform);
 		}
-		/*
-		 * TODO re-implement!
-		 */
 		for (ast.Name indexName : node.getIndizes().asNameList()) {
 			if (indexName!=null) 
 				if (!indexName.tmpVar) fcg.arrayIndexParameter.add(indexName.getID());

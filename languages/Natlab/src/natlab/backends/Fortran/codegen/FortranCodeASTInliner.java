@@ -332,10 +332,10 @@ public class FortranCodeASTInliner {
 					DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 							.getConstant();
 					int ci = c.getValue().intValue();
-					tmpBuf.append("call randperm("+ci+","+lhsTarget+")");
+					tmpBuf.append(indent+"call randperm("+ci+","+lhsTarget+")");
 				}
 				else {
-					tmpBuf.append("call randperm("+rhsArgs.get(0)+","+lhsTarget+")");
+					tmpBuf.append(indent+"call randperm("+rhsArgs.get(0)+","+lhsTarget+")");
 				}
 			}
 			else if (numOfArgs==2) {
@@ -349,7 +349,7 @@ public class FortranCodeASTInliner {
 			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
 		}		
 		else if (rhsFunName.equals("rand")) {
-			noDirBuiltinExpr.setCodeInline("call random_number("+lhsTarget+");");
+			noDirBuiltinExpr.setCodeInline(indent+"call random_number("+lhsTarget+");");
 		}
 		else {
 			/*
