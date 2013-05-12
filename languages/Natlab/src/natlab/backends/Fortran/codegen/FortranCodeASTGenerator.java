@@ -84,7 +84,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		indentNum = 0;
 		indent = "   ";
 		tmpVarAsArrayIndex = new HashMap<String, ArrayList<String>>();
-		((TIRNode)analysis.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
+		((TIRNode)analysis.getNodeList().get(index).getFunction().getAst()).tirAnalyze(this);
 	}
 	
 	/*************************************HELPER METHODS******************************************/
