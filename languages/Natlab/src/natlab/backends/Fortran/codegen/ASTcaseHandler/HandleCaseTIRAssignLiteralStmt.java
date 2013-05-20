@@ -11,9 +11,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 	/**
 	 * AssignLiteralStmt: Statement ::= <RuntimeAllocate> Variable <Literal>;
 	 */
-	public Statement getFortran(
-			FortranCodeASTGenerator fcg, 
-			TIRAssignLiteralStmt node) {
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAssignLiteralStmt node) {
 		if (Debug) System.out.println("in an assignLiteral statement");
 		AssignLiteralStmt stmt = new AssignLiteralStmt();
 		String indent = new String();
@@ -28,29 +26,16 @@ public class HandleCaseTIRAssignLiteralStmt {
 		 * but inside subroutine, it has been assigned a constant, this problem 
 		 * also relates to different shape var merging problem.
 		 */
-		if (fcg.isSubroutine) {
-			/*
-			 * if input argument on the LHS of assignment stmt, 
-			 * we assume that this input argument maybe modified.
-			 */
-			if (fcg.inArgs.contains(targetName)) {
-				if (Debug) System.out.println("subroutine's input " + targetName 
-						+ " has been modified!");
-				/*
-				 * here we need to detect whether it is the first time this variable put 
-				 * in the set, because we only want to back up them once.
-				 */
-				if (fcg.inputHasChanged.contains(targetName)) {
-					//do nothing.
-					if (Debug) System.out.println("encounter "+targetName+" again.");
-				}
-				else {
-					if (Debug) System.out.println("first time encounter "+targetName);
-					fcg.inputHasChanged.add(targetName);
-				}
-				var.setName(targetName+"_copy");
-			}
-			else var.setName(targetName);
+		
+		/*
+		 * if input argument on the LHS of assignment stmt, 
+		 * we assume that this input argument maybe modified.
+		 */
+		if (fcg.isInSubroutine && fcg.inArgs.contains(targetName)) {
+			if (Debug) System.out.println("subroutine's input " + targetName 
+					+ " has been modified!");
+			fcg.inputHasChanged.add(targetName);
+			var.setName(targetName+"_copy");
 		}
 		else var.setName(targetName);
 		stmt.setVariable(var);
@@ -62,7 +47,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 		Shape targetVar= fcg.getMatrixValue(targetName).getShape();
 		if (!targetVar.isConstant()) {
 			RuntimeAllocate rtc = new RuntimeAllocate();
-			rtc.setBlock("allocate("+targetName+"(1, 1));");
+			rtc.setBlock("ALLOCATE("+targetName+"(1, 1));");
 			stmt.setRuntimeAllocate(rtc);			
 		}
 		return stmt;

@@ -1,14 +1,23 @@
 package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
+import natlab.tame.valueanalysis.value.Args;
 import natlab.tame.tir.*;
+import natlab.tame.builtin.*;
+import natlab.tame.builtin.shapeprop.HasShapePropagationInfo;
+import natlab.tame.builtin.shapeprop.ShapePropTool;
 import natlab.tame.valueanalysis.components.constant.*;
+import natlab.tame.valueanalysis.components.shape.*;
+import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValueFactory;
 import natlab.backends.Fortran.codegen.*;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 
 public class HandleCaseTIRAbstractAssignToListStmt {
 	static boolean Debug = false;
+	static BasicMatrixValueFactory basicMatrixValueFactory = new BasicMatrixValueFactory();
 	
 	/**
 	 * AbstractAssignToListStmt: Statement ::= [RuntimeCheck] Variable* Expression;
@@ -16,9 +25,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 	 * 1. for rhs, constant folding check;
 	 * 2. for lhs, variable allocation check.
 	 */
-	public Statement getFortran(
-			FortranCodeASTGenerator fcg, 
-			TIRAbstractAssignToListStmt node) {
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node) {
 		if (Debug) System.out.println("in an abstractAssignToList statement");
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
@@ -33,50 +40,36 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		String Operand1 = getOperand1(node);
 		String Operand2 = getOperand2(node);
 		String ArgsListasString;
-		ArrayList<String> Args = new ArrayList<String>();
+		ArrayList<String> arguments = new ArrayList<String>();
+		arguments = getArgsList(node);
+
+		RuntimeAllocate rta = new RuntimeAllocate();
+		
 		switch (RHSCaseNumber) {
 		case 1:
 			BinaryExpr binExpr = new BinaryExpr();
 			binExpr.setIndent(indent);
 			for (ast.Name name : node.getTargets().asNameList()) {
 				Variable var = new Variable();
-				if (fcg.isSubroutine) {
-					/*
-					 * if an input argument of the function is on the LHS of an assignment stmt, 
-					 * we assume that this input argument maybe modified.
-					 */
-					if (fcg.inArgs.contains(name.getID())) {
-						if (Debug) System.out.println("subroutine's input "+name.getID()
-								+" has been modified!");
-						/*
-						 * here we need to detect whether it is the first time this variable 
-						 * put in the set, because we only want to back up them once. but, 
-						 * actually, the overhead for checking is similar to put it into set 
-						 * twice.
-						 */
-						if (fcg.inputHasChanged.contains(name.getID())) {
-							// do nothing.
-							if (Debug) System.out.println("encounter "+name.getID()+" again.");
-						}
-						else {
-							if (Debug) System.out.println("first time encounter "+name.getID());
-							fcg.inputHasChanged.add(name.getID());
-						}
-						var.setName(name.getID()+"_copy");
-					}
-					else var.setName(name.getID());
+				/*
+				 * if an input argument of the function is on the LHS of an assignment stmt, 
+				 * we assume that this input argument maybe modified.
+				 */
+				if (fcg.isInSubroutine && fcg.inArgs.contains(name.getID())) {
+					if (Debug) System.out.println(
+							"subroutine's input "+name.getID()+" has been modified!");
+					fcg.inputHasChanged.add(name.getID());
+					var.setName(name.getID()+"_copy");
 				}
-				else {
-					if (fcg.outRes.contains(name.getID())) var.setName(fcg.majorName);
-					else var.setName(name.getID());
-				}
+				else var.setName(name.getID());
 				binExpr.addVariable(var);
 			}
 			/*
 			 * insert constant folding check.
 			 */
 			if (fcg.getMatrixValue(Operand1).hasConstant() 
-					&& !fcg.inArgs.contains(Operand1)) {
+					&& !fcg.inArgs.contains(Operand1) 
+					&& fcg.tamerTmpVar.contains(Operand1)) {
 				Constant c = fcg.getMatrixValue(Operand1).getConstant();
 				binExpr.setOperand1(c.toString());
 			}
@@ -85,7 +78,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				else binExpr.setOperand1(Operand1);	
 			}
 			if (fcg.getMatrixValue(Operand2).hasConstant() 
-					&& !fcg.inArgs.contains(Operand2)) {
+					&& !fcg.inArgs.contains(Operand2) 
+					&& fcg.tamerTmpVar.contains(Operand2)) {
 				Constant c = fcg.getMatrixValue(Operand2).getConstant();
 				binExpr.setOperand2(c.toString());
 			}
@@ -94,46 +88,59 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				else binExpr.setOperand2(Operand2);
 			}
 			binExpr.setOperator(RHSFortranOperator);
+			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
+				@SuppressWarnings("rawtypes")
+				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
+				StringBuffer tmpBuf = new StringBuffer();
+				tmpBuf.append(indent+"!insert runtime allocation.\n");
+				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
+				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"ELSE\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"END IF\n");
+				rta.setBlock(tmpBuf.toString());
+			}
+			binExpr.setRuntimeAllocate(rta);
 			return binExpr;
 		case 2:
 			UnaryExpr unExpr = new UnaryExpr();
 			unExpr.setIndent(indent);
 			for (ast.Name name : node.getTargets().asNameList()) {
 				Variable var = new Variable();
-				if (fcg.isSubroutine) {
-					/*
-					 * if an input argument of the function is on the LHS of an assignment stmt, 
-					 * we assume that this input argument maybe modified.
-					 */
-					if (fcg.inArgs.contains(name.getID())) {
-						if (Debug) System.out.println("subroutine's input "+name.getID()
-								+" has been modified!");
-						/*
-						 * here we need to detect whether it is the first time this variable put 
-						 * in the set, because we only want to back up them once.
-						 */
-						if (fcg.inputHasChanged.contains(name.getID())) {
-							// do nothing.
-							if (Debug) System.out.println("encounter "+name.getID()+" again.");
-						}
-						else {
-							if (Debug) System.out.println("first time encounter "+name.getID());
-							fcg.inputHasChanged.add(name.getID());
-						}
-						var.setName(name.getID()+"_copy");
-					}
-					else var.setName(name.getID());
+				/*
+				 * if an input argument of the function is on the LHS of an assignment stmt, 
+				 * we assume that this input argument maybe modified.
+				 */
+				if (fcg.isInSubroutine && fcg.inArgs.contains(name.getID())) {
+					if (Debug) System.out.println(
+							"subroutine's input "+name.getID()+" has been modified!");
+					fcg.inputHasChanged.add(name.getID());
+					var.setName(name.getID()+"_copy");
 				}
-				else {
-					if (fcg.outRes.contains(name.getID())) var.setName(fcg.majorName);
-					else var.setName(name.getID());
-				}
+				else var.setName(name.getID());
 				unExpr.addVariable(var);
 			}
 			/*
 			 * insert constant folding check.
 			 */
-			if (fcg.getMatrixValue(Operand1).hasConstant() && !fcg.inArgs.contains(Operand1)) {
+			if (fcg.getMatrixValue(Operand1).hasConstant() 
+					&& !fcg.inArgs.contains(Operand1) 
+					&& fcg.tamerTmpVar.contains(Operand1)) {
 				Constant c = fcg.getMatrixValue(Operand1).getConstant();
 				unExpr.setOperand(c.toString());
 			}
@@ -142,292 +149,268 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				else unExpr.setOperand(Operand1);
 			}
 			unExpr.setOperator(RHSFortranOperator);
+			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
+				@SuppressWarnings("rawtypes")
+				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
+				StringBuffer tmpBuf = new StringBuffer();
+				tmpBuf.append(indent+"!insert runtime allocation.\n");
+				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
+				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
+				tmpBuf.append(indent+"ELSE\n");	
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"ELSE\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"END IF\n");
+				rta.setBlock(tmpBuf.toString());
+			}
+			unExpr.setRuntimeAllocate(rta);
 			return unExpr;
 		case 3:
 			DirectBuiltinExpr dirBuiltinExpr = new DirectBuiltinExpr();
 			dirBuiltinExpr.setIndent(indent);
 			for (ast.Name name : node.getTargets().asNameList()) {
 				Variable var = new Variable();
-				if (fcg.isSubroutine) {
-					/*
-					 * if an input argument of the function is on the LHS of an assignment stmt, 
-					 * we assume that this input argument maybe modified.
-					 */
-					if (fcg.inArgs.contains(name.getID())) {
-						if (Debug) System.out.println("subroutine's input "+name.getID()
-								+" has been modified!");
-						/*
-						 * here we need to detect whether it is the first time this variable put 
-						 * in the set, because we only want to back up them once.
-						 */
-						if (fcg.inputHasChanged.contains(name.getID())) {
-							//do nothing.
-							if (Debug) System.out.println("encounter "+name.getID()+" again.");
-						}
-						else {
-							if (Debug) System.out.println("first time encounter "+name.getID());
-							fcg.inputHasChanged.add(name.getID());
-						}
-						var.setName(name.getID()+"_copy");
-					}
-					else var.setName(name.getID());
+				/*
+				 * if an input argument of the function is on the LHS of an assignment stmt, 
+				 * we assume that this input argument maybe modified.
+				 */
+				if (fcg.isInSubroutine && fcg.inArgs.contains(name.getID())) {
+					if (Debug) System.out.println(
+							"subroutine's input "+name.getID()+" has been modified!");
+					fcg.inputHasChanged.add(name.getID());
+					var.setName(name.getID()+"_copy");
 				}
-				else {
-					if (fcg.outRes.contains(name.getID())) var.setName(fcg.majorName);
-					else var.setName(name.getID());
-				}
+				else var.setName(name.getID());
 				dirBuiltinExpr.addVariable(var);
 			}
-			Args = getArgsList(node);
 			/*
 			 * insert constant folding check.
 			 */
-			for (int i=0;i<Args.size();i++) {
-				if (fcg.getMatrixValue(Args.get(i)).hasConstant() 
-						&& !fcg.inArgs.contains(Args.get(i))) {
-					Constant c = fcg.getMatrixValue(Args.get(i)).getConstant();
-					Args.remove(i);
-					Args.add(i, c.toString());
+			for (int i=0;i<arguments.size();i++) {
+				if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
+						&& !fcg.inArgs.contains(arguments.get(i)) 
+						&& fcg.tamerTmpVar.contains(arguments.get(i))) {
+					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
+					arguments.remove(i);
+					arguments.add(i, c.toString());
 				}
 				else {
-					if (fcg.inputHasChanged.contains(Args.get(i))) {
-						String ArgsNew = Args.get(i)+"_copy";
-						Args.remove(i);
-						Args.add(i, ArgsNew);
+					if (fcg.inputHasChanged.contains(arguments.get(i))) {
+						String ArgsNew = arguments.get(i)+"_copy";
+						arguments.remove(i);
+						arguments.add(i, ArgsNew);
 					}
 				}
 			}
-			ArgsListasString = getArgsListAsString(Args);
+			ArgsListasString = getArgsListAsString(arguments);
 			dirBuiltinExpr.setBuiltinFunc(RHSFortranOperator);
 			dirBuiltinExpr.setArgsList(ArgsListasString);
+			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
+				@SuppressWarnings("rawtypes")
+				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
+				StringBuffer tmpBuf = new StringBuffer();
+				tmpBuf.append(indent+"!insert runtime allocation.\n");
+				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
+				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"ELSE\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"END IF\n");
+				rta.setBlock(tmpBuf.toString());
+			}
+			dirBuiltinExpr.setRuntimeAllocate(rta);
 			return dirBuiltinExpr;
 		case 4:
 			NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();
 			/*
-			 * insert constant folding check and variable allocation check 
-			 * in corresponding in-lined code. insert indent in the in-lined 
-			 * code, too.
+			 * insert indent, constant folding check and variable 
+			 * allocation check in corresponding in-lined code.
 			 */
 			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node);
+			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
+				@SuppressWarnings("rawtypes")
+				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
+				StringBuffer tmpBuf = new StringBuffer();
+				tmpBuf.append(indent+"!insert runtime allocation.\n");
+				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
+				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"ELSE\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"END IF\n");
+				rta.setBlock(tmpBuf.toString());
+			}
+			noDirBuiltinExpr.setRuntimeAllocate(rta);
 			return noDirBuiltinExpr;
 		case 5:
-			/*
-			 * this is for assigning an built-in constant to a variable, for example:
-			 * a = pi, and because of we are doing constant folding,
-			 * we kind of need to ignore this expression, because this is also a 
-			 * kind of constant assignment.
-			 * 
-			 * the question is how to ignore this, because we have to return some 
-			 * expression, so, we cannot do anything here. My solution is go to the 
-			 * FortranCodeASTGenerator class.
-			 */
 			BuiltinConstantExpr builtinConst = new BuiltinConstantExpr();
 			builtinConst.setIndent(indent);
 			for (ast.Name name : node.getTargets().asNameList()) {
 				Variable var = new Variable();
-				if (fcg.isSubroutine) {
-					/*
-					 * if an input argument of the function is on the LHS of an assignment stmt, 
-					 * we assume that this input argument maybe modified.
-					 */
-					if (fcg.inArgs.contains(name.getID())) {
-						if (Debug) System.out.println("subroutine's input "+name.getID()
-								+" has been modified!");
-						/*
-						 * here we need to detect whether it is the first time this variable put 
-						 * in the set, because we only want to back up them once.
-						 */
-						if (fcg.inputHasChanged.contains(name.getID())) {
-							//do nothing.
-							if (Debug) System.out.println("encounter "+name.getID()+" again.");
-						}
-						else {
-							if (Debug) System.out.println("first time encounter "+name.getID());
-							fcg.inputHasChanged.add(name.getID());
-						}
-						var.setName(name.getID()+"_copy");
-					}
-					else var.setName(name.getID());
+				/*
+				 * if an input argument of the function is on the LHS of an assignment stmt, 
+				 * we assume that this input argument maybe modified.
+				 */
+				if (fcg.isInSubroutine && fcg.inArgs.contains(name.getID())) {
+					if (Debug) System.out.println(
+							"subroutine's input "+name.getID()+" has been modified!");
+					fcg.inputHasChanged.add(name.getID());
+					var.setName(name.getID()+"_copy");
 				}
-				else {
-					if (fcg.outRes.contains(name.getID())) var.setName(fcg.majorName);
-					else var.setName(name.getID());
-				}
+				else var.setName(name.getID());
 				builtinConst.addVariable(var);
 			}
 			builtinConst.setBuiltinFunc(RHSFortranOperator);
+			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
+				@SuppressWarnings("rawtypes")
+				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
+				StringBuffer tmpBuf = new StringBuffer();
+				tmpBuf.append(indent+"!insert runtime allocation.\n");
+				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
+				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"ELSE\n");
+				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
+					if (currentShape.get(0).isConstant()) 
+						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
+					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
+				}
+				tmpBuf.append("));\n");
+				tmpBuf.append(indent+"END IF\n");
+				rta.setBlock(tmpBuf.toString());
+			}
+			builtinConst.setRuntimeAllocate(rta);
 			return builtinConst;
 		case 6:
 			IOOperationExpr ioExpr = new IOOperationExpr();
 			ioExpr.setIndent(indent);
-			Args = getArgsList(node);
 			/*
 			 * insert constant folding check.
 			 */
-			for (int i=0;i<Args.size();i++) {
-				if (fcg.getMatrixValue(Args.get(i)).hasConstant() 
-						&& !fcg.inArgs.contains(Args.get(i))) {
-					Constant c = fcg.getMatrixValue(Args.get(i)).getConstant();
-					Args.remove(i);
-					if (c instanceof CharConstant) Args.add(i, "'"+c+"'");
-					else Args.add(i, c.toString());
+			for (int i=0;i<arguments.size();i++) {
+				if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
+						&& !fcg.inArgs.contains(arguments.get(i)) 
+						&& fcg.tamerTmpVar.contains(arguments.get(i))) {
+					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
+					arguments.remove(i);
+					if (c instanceof CharConstant) arguments.add(i, "'"+c+"'");
+					else arguments.add(i, c.toString());
 				}
 				else {
-					if (fcg.inputHasChanged.contains(Args.get(i))) {
-						String ArgsNew = Args.get(i)+"_copy";
-						Args.remove(i);
-						Args.add(i, ArgsNew);
+					if (fcg.inputHasChanged.contains(arguments.get(i))) {
+						String ArgsNew = arguments.get(i)+"_copy";
+						arguments.remove(i);
+						arguments.add(i, ArgsNew);
 					}
 				}
 			}
-			ArgsListasString = getArgsListAsString(Args);
+			ArgsListasString = getArgsListAsString(arguments);
 			ioExpr.setArgsList(ArgsListasString);
 			ioExpr.setIOOperator(RHSFortranOperator);
 			return ioExpr;
-		case 7:
+		default:
 			/*
-			 * deal with user defined subprogram, apparently, there is 
-			 * no corresponding Fortran built-in function for this.
+			 * deal with user defined functions, apparently, there 
+			 * is no corresponding Fortran built-in function for this. 
+			 * mapping all the user defined functions to subroutines 
+			 * in Fortran. Subroutines in Fortran is more similar to 
+			 * functions in MATLAB than functions in Fortran.
 			 */
-			Args = getArgsList(node);
-			if (node.getTargets().asNameList().size()==1 && !hasArrayAsInput(fcg,Args)) {
+			Subroutines subroutine = new Subroutines();
+			subroutine.setIndent(indent);
+			ArrayList<String> outputArgsList = new ArrayList<String>();
+			for (ast.Name name : node.getTargets().asNameList()) {
+
 				/*
-				 * this is for functions.
+				 * if an input argument of the function is on the LHS of an assignment stmt, 
+				 * we assume that this input argument maybe modified.
 				 */
-				UserDefinedFunction userDefFunc = new UserDefinedFunction();
-				userDefFunc.setIndent(indent);
-				for (ast.Name name : node.getTargets().asNameList()) {
-					Variable var = new Variable();
-					if (fcg.isSubroutine) {
-						/*
-						 * if an input argument of the function is on the LHS of an assignment stmt, 
-						 * we assume that this input argument maybe modified.
-						 */
-						if (fcg.inArgs.contains(name.getID())) {
-							if (Debug) System.out.println("subroutine's input "+name.getID()
-									+" has been modified!");
-							/*
-							 * here we need to detect whether it is the first time this variable 
-							 * put in the set, because we only want to back up them once.
-							 */
-							if (fcg.inputHasChanged.contains(name.getID())) {
-								// do nothing.
-								if (Debug) System.out.println(
-										"encounter "+name.getID()+" again.");
-							}
-							else {
-								if (Debug) System.out.println(
-										"first time encounter "+name.getID());
-								fcg.inputHasChanged.add(name.getID());
-							}
-							var.setName(name.getID()+"_copy");
-						}
-						else var.setName(name.getID());
-					}
-					else {
-						if (fcg.outRes.contains(name.getID())) var.setName(fcg.majorName);
-						else var.setName(name.getID());
-					}
-					userDefFunc.addVariable(var);
+				if (fcg.isInSubroutine && fcg.inArgs.contains(name.getID())) {
+					if (Debug) System.out.println("subroutine's input "+name.getID()
+							+" has been modified!");
+					fcg.inputHasChanged.add(name.getID());
+					outputArgsList.add(name.getID()+"_copy");
 				}
-				/*
-				 * insert constant folding check.
-				 */
-				for (int i=0;i<Args.size();i++) {
-					if (fcg.getMatrixValue(Args.get(i)).hasConstant() 
-							&& !fcg.inArgs.contains(Args.get(i))) {
-						Constant c = fcg.getMatrixValue(Args.get(i)).getConstant();
-						Args.remove(i);
-						Args.add(i, c.toString());
-					}
-					else {
-						if (fcg.inputHasChanged.contains(Args.get(i))) {
-							String ArgsNew = Args.get(i)+"_copy";
-							Args.remove(i);
-							Args.add(i, ArgsNew);
-						}
-					}
-				}
-				ArgsListasString = getArgsListAsString(Args);
-				String funcName;
-				funcName = node.getRHS().getVarName();
-				userDefFunc.setFuncName(funcName);
-				userDefFunc.setArgsList(ArgsListasString);
-				if (fcg.funcNameRep.containsValue(funcName)) {
-					/*
-					 * already has this function name, 
-					 * don't need to put it into the hash map again.
-					 */
-					return userDefFunc;
+				else outputArgsList.add(name.getID());
+			}
+			/*
+			 * insert constant folding check.
+			 */
+			for (int i=0;i<arguments.size();i++) {
+				if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
+						&& !fcg.inArgs.contains(arguments.get(i)) 
+						&& fcg.tamerTmpVar.contains(arguments.get(i))) {
+					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
+					arguments.remove(i);
+					arguments.add(i, c.toString());
 				}
 				else {
-					String LHSName;
-					LHSName = node.getLHS().getNodeString().replace("[", "").replace("]", "");
-					fcg.funcNameRep.put(LHSName, funcName);
-					return userDefFunc;
+					if (fcg.inputHasChanged.contains(arguments.get(i))) {
+						String ArgsNew = arguments.get(i)+"_copy";
+						arguments.remove(i);
+						arguments.add(i, ArgsNew);
+					}			
 				}
 			}
-			else {
-				/*
-				 * this is for subroutines.
-				 */
-				Subroutines subroutine = new Subroutines();
-				subroutine.setIndent(indent);
-				ArrayList<String> outputArgsList = new ArrayList<String>();
-				for (ast.Name name : node.getTargets().asNameList()) {
-					/*
-					 * if an input argument of the function is on the LHS of an assignment stmt, 
-					 * we assume that this input argument maybe modified.
-					 */
-					if (fcg.inArgs.contains(name.getID())) {
-						if (Debug) System.out.println("subroutine's input "+name.getID()
-								+" has been modified!");
-						/*
-						 * here we need to detect whether it is the first time this variable 
-						 * put in the set, because we only want to back up them once.
-						 */
-						if (fcg.inputHasChanged.contains(name.getID())) {
-							// do nothing.
-							if (Debug) System.out.println("encounter "+name.getID()+" again.");
-						}
-						else {
-							if (Debug) System.out.println("first time encounter "+name.getID());
-							fcg.inputHasChanged.add(name.getID());
-						}
-						outputArgsList.add(name.getID()+"_copy");
-					}
-					else outputArgsList.add(name.getID());
-				}
-				/*
-				 * insert constant folding check.
-				 */
-				for (int i=0;i<Args.size();i++) {
-					if (fcg.getMatrixValue(Args.get(i)).hasConstant() 
-							&& !fcg.inArgs.contains(Args.get(i))) {
-						Constant c = fcg.getMatrixValue(Args.get(i)).getConstant();
-						Args.remove(i);
-						Args.add(i, c.toString());
-					}
-					else {
-						if (fcg.inputHasChanged.contains(Args.get(i))) {
-							String ArgsNew = Args.get(i)+"_copy";
-							Args.remove(i);
-							Args.add(i, ArgsNew);
-						}			
-					}
-				}
-				ArgsListasString = getArgsListAsString(Args);
-				String funcName;
-				funcName = node.getRHS().getVarName();
-				subroutine.setFuncName(funcName);
-				subroutine.setInputArgsList(ArgsListasString);
-				subroutine.setOutputArgsList(outputArgsList.toString().replace("[", "")
-						.replace("]", ""));
-				return subroutine;
-			}
-		default:
-			System.err.println("this cannot happen...");
-			return null;
+			ArgsListasString = getArgsListAsString(arguments);
+			String funcName;
+			funcName = node.getRHS().getVarName();
+			subroutine.setFuncName(funcName);
+			subroutine.setInputArgsList(ArgsListasString);
+			subroutine.setOutputArgsList(outputArgsList.toString().replace("[", "")
+					.replace("]", ""));
+			return subroutine;
 		}
 	}
 	/***************************************helper methods****************************************/
@@ -470,13 +453,16 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		else if (fcg.FortranMap.isFortranDirectBuiltin(RHSMatlabOperator)) {
 			RHSFortranOperator = fcg.FortranMap.getFortranDirectBuiltinMapping(RHSMatlabOperator);
 		}
+		else if (fcg.FortranMap.isFortranNoDirectBuiltin(RHSMatlabOperator)) {
+			RHSFortranOperator = RHSMatlabOperator;
+		}
 		else if (fcg.FortranMap.isBuiltinConst(RHSMatlabOperator)) {
 			RHSFortranOperator = fcg.FortranMap.getFortranBuiltinConstMapping(RHSMatlabOperator);
 		}
 		else if (fcg.FortranMap.isFortranIOOperation(RHSMatlabOperator)) {
 			RHSFortranOperator = fcg.FortranMap.getFortranIOOperationMapping(RHSMatlabOperator);
 		}
-		else RHSFortranOperator = "// cannot process it yet";
+		else RHSFortranOperator = "user defined function, no mapping, sorry.";
 		return RHSFortranOperator;
 	}
 	
@@ -505,13 +491,40 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		}
 		return StrLit;
 	}
-	
-	public static boolean hasArrayAsInput(FortranCodeASTGenerator fcg, ArrayList<String> Args) {
-		boolean result = false;
-		for (String inArg : Args) {
-			if (fcg.getCurrentOutSet().get(inArg)!=null
-					&& !fcg.getMatrixValue(inArg).getShape().isScalar()) result = true;
+
+	/**
+	 * used for runtime allocating variable's size.
+	 */
+	@SuppressWarnings({"unchecked","rawtypes"})
+	public static List<Shape> getCurrentShape(FortranCodeASTGenerator fcg, 
+			TIRAbstractAssignToListStmt node, String functionName, ArrayList<String> arguments) {
+		int nargout = node.getTargets().size();
+		Builtin builtin = Builtin.getInstance(functionName);
+		ShapePropTool shapePropTool = new ShapePropTool();
+		/*
+		 * allocate with exact shape.
+		 */
+		LinkedList argumentList1 = new LinkedList();
+		for (String arg1 : arguments) {
+			argumentList1.add(fcg.getMatrixValue(arg1));
 		}
-		return result;
+		Args arg1 = Args.newInstance(null, nargout, argumentList1);
+		List<Shape> result1 = shapePropTool.matchByValues(
+				((HasShapePropagationInfo)builtin).getShapePropagationInfo()
+				, arg1);
+		if (result1.get(0).isConstant()) return result1;
+		/*
+		 * allocate with symbolic information.
+		 */
+		LinkedList argumentList2 = new LinkedList();
+		for (String arg2 : arguments) {
+			argumentList2.add(basicMatrixValueFactory
+					.newMatrixValueFromInputShape(arg2, null, "1*1"));
+		}
+		Args arg2 = Args.newInstance(null, nargout, argumentList2);
+		List<Shape> result2 = shapePropTool.matchByValues(
+				((HasShapePropagationInfo)builtin).getShapePropagationInfo()
+				, arg2);
+		return result2;
 	}
 }

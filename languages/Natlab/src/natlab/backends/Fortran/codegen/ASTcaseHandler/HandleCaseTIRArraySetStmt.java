@@ -16,9 +16,7 @@ public class HandleCaseTIRArraySetStmt {
 	 * ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] 
 	 * [RigorousIndexingTransformation] <lhsVariable> <lhsIndex> <rhsVariable>;
 	 */
-	public Statement getFortran(
-			FortranCodeASTGenerator fcg, 
-			TIRArraySetStmt node) {
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRArraySetStmt node) {
 		if (Debug) System.out.println("in an arrayset statement!");
 		ArraySetStmt stmt = new ArraySetStmt();
 		String indent = new String();
@@ -27,28 +25,15 @@ public class HandleCaseTIRArraySetStmt {
 		}
 		stmt.setIndent(indent);
 		String lhsArrayName = node.getArrayName().getVarName();
-		if (fcg.isSubroutine) {
-			/*
-			 * if an input argument of the function is on the LHS of an assignment stmt, 
-			 * we assume that this input argument maybe modified.
-			 */
-			if (fcg.inArgs.contains(lhsArrayName)) {
-				if (Debug) System.out.println("subroutine's input "+lhsArrayName
-						+" has been modified!");
-				/*
-				 * here we need to detect whether it is the first time this variable 
-				 * put in the set, because we only want to back up them once.
-				 */
-				if (fcg.inputHasChanged.contains(lhsArrayName)) {
-					// do nothing.
-					if (Debug) System.out.println("encounter "+lhsArrayName+" again.");
-				}
-				else {
-					if (Debug) System.out.println("first time encounter "+lhsArrayName);
-					fcg.inputHasChanged.add(lhsArrayName);
-				}
-				lhsArrayName = lhsArrayName+"_copy";
-			}
+		/*
+		 * if an input argument of the function is on the LHS of an assignment stmt, 
+		 * we assume that this input argument maybe modified.
+		 */
+		if (fcg.isInSubroutine && fcg.inArgs.contains(lhsArrayName)) {
+			if (Debug) System.out.println("subroutine's input "+lhsArrayName
+					+" has been modified!");
+			fcg.inputHasChanged.add(lhsArrayName);
+			lhsArrayName = lhsArrayName+"_copy";
 		}
 		/*
 		 * at least, we need the information of lhs array's shape 
@@ -66,13 +51,14 @@ public class HandleCaseTIRArraySetStmt {
 			if (indexString[i].equals(":")) {
 				lhsIndex.add(":");
 			}
-			else if (fcg.getMatrixValue(indexString[i]).hasConstant()) {
+			else if (fcg.getMatrixValue(indexString[i]).hasConstant() 
+					&& fcg.tamerTmpVar.contains(indexString[i])) {
 				int intValue = ((Double) fcg.getMatrixValue(indexString[i])
 						.getConstant().getValue()).intValue();
 				lhsIndex.add(String.valueOf(intValue));
 			}
 			else {
-				lhsIndex.add(indexString[i]);
+				lhsIndex.add("INT("+indexString[i]+")");
 			}
 		}
 		/*
@@ -89,13 +75,11 @@ public class HandleCaseTIRArraySetStmt {
 			stmt.setrhsVariable(valueName);
 		}
 		else {
+			// TODO separate linear indexing from other rigorous indexing transformation.
 			RigorousIndexingTransformation indexTransform = ArraySetIndexingTransformation
 					.getTransformedIndex(lhsArrayName, valueName, lhsArrayDimension, lhsIndex);
 			stmt.setRigorousIndexingTransformation(indexTransform);
 		}
-		for (String indexName : lhsIndex) {
-			if (!indexName.equals(":")) fcg.arrayIndexParameter.add(indexName);
-		}		
 		return stmt;
 	}
 }

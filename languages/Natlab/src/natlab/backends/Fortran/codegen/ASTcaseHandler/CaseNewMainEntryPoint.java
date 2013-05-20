@@ -9,75 +9,61 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 
 public class CaseNewMainEntryPoint {
 	static boolean Debug = false;
-
+	
 	/**
-	 * SubProgram ::= ProgramTitle DeclarationSection StatementSection;
-	 * there are three kinds of sub programs, and main entry program is like this, 
-	 * program name + declaration section + stmt section. 
-	 * so,  
+	 * main entry program is one kind of sub-program, and it is like this, 
+	 * 		program name
+	 * 		declaration section
+	 * 		stmt section
+	 * 		end program
 	 * 1. we try to go through the stmt section first, set the stmt section;
 	 * 2. set the title section;
 	 * 3. and then we can set the declaration section,
-	 * because there may be some shadow variable we generated during the stmt transformation.
+	 * because there may be some shadow variable we generated during the stmt 
+	 * transformation.
 	 */
-	public FortranCodeASTGenerator newMain(
-			FortranCodeASTGenerator fcg, 
-			TIRFunction node) {
+	public FortranCodeASTGenerator newMain(FortranCodeASTGenerator fcg, TIRFunction node) {
+		/* 
+		 * first pass of all the statements, collect information.
+		 */
+		SubProgram preSubMain = new SubProgram();
+		fcg.SubProgram = preSubMain;
+		StatementSection preStmtSection = new StatementSection();
+		preSubMain.setStatementSection(preStmtSection);
+		fcg.iterateStatements(node.getStmts());
+		/* 
+		 * second pass of all the statements, using information collected from the first pass.
+		 */
 		SubProgram subMain = new SubProgram();
 		fcg.SubProgram = subMain;
 		StatementSection stmtSection = new StatementSection();
 		subMain.setStatementSection(stmtSection);
-		/*
-		 * go through all the statements.
-		 */
 		fcg.iterateStatements(node.getStmts());
 		/*
-		 * set the title.
+		 *  set the title.
 		 */
 		ProgramTitle title = new ProgramTitle();
-		title.setProgramType("program");
-		title.setProgramName(fcg.majorName);
+		title.setProgramType("PROGRAM");
+		title.setProgramName(fcg.functionName);
 		subMain.setProgramTitle(title);
 		/*
-		 * set the declaration section.
+		 *  set the declaration section.
 		 */
 		DeclarationSection declSection = new DeclarationSection();
 		for (String variable : fcg.getCurrentOutSet().keySet()) {
-			/*
-			 * has a constant value. do constant folding, no declaration.
-			 */
-			if ((fcg.getMatrixValue(variable).hasConstant() && !fcg.inArgs.contains(variable))
-					|| fcg.tmpVarAsArrayIndex.containsKey(variable)) {
+			if ((fcg.getMatrixValue(variable).hasConstant() 
+					&& !fcg.inArgs.contains(variable)) 
+					&& fcg.tamerTmpVar.contains(variable) 
+					|| fcg.tmpVectorAsArrayIndex.containsKey(variable)) {
 				if (Debug) System.out.println("do constant folding, no declaration.");
 			}
-			/*
-			 * in Fortran, for loop variables and array indices must be integer.
-			 */
-			else if (fcg.forStmtParameter.contains(variable) 
-					|| fcg.arrayIndexParameter.contains(variable)) {
-				DeclStmt declStmt = new DeclStmt();
-				// type is already a token, don't forget.
-				KeywordList keywordList = new KeywordList();
-				ShapeInfo shapeInfo = new ShapeInfo();
-				VariableList varList = new VariableList();
-				if (Debug) System.out.println(variable + " = " + fcg.getMatrixValue(variable));
-				declStmt.setType(fcg.FortranMap.getFortranTypeMapping("int8"));
-				Variable var = new Variable();
-				var.setName(variable);
-				varList.addVariable(var);
-				declStmt.setVariableList(varList);
-				declSection.addDeclStmt(declStmt);
-			}
-			/*
-			 * general case.
-			 */
 			else {
 				DeclStmt declStmt = new DeclStmt();
 				// type is already a token, don't forget.
 				KeywordList keywordList = new KeywordList();
 				ShapeInfo shapeInfo = new ShapeInfo();
 				VariableList varList = new VariableList();
-				if (Debug) System.out.println(variable + " = " + fcg.getMatrixValue(variable));
+				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
 				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
@@ -101,7 +87,7 @@ public class CaseNewMainEntryPoint {
 					 */
 					if (!variableShapeIsKnown) {
 						StringBuffer tempBuf = new StringBuffer();
-						tempBuf.append("dimension(");
+						tempBuf.append("DIMENSION(");
 						for (int i=1; i<=dim.size(); i++) {
 							if (counter) {
 								tempBuf.append(",");
@@ -109,17 +95,12 @@ public class CaseNewMainEntryPoint {
 							tempBuf.append(":");
 							counter = true;
 						}
-						tempBuf.append(") , allocatable");
+						tempBuf.append(") , ALLOCATABLE");
 						keyword.setName(tempBuf.toString());
 						keywordList.addKeyword(keyword);
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
-						if (fcg.funcNameRep.containsKey(variable)) {
-							Variable varFunc = new Variable();
-							varFunc.setName(fcg.funcNameRep.get(variable));
-							varList.addVariable(varFunc);								
-						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}
@@ -131,44 +112,20 @@ public class CaseNewMainEntryPoint {
 					 */
 					else {
 						StringBuffer tempBuf = new StringBuffer();
-						tempBuf.append("dimension(");
+						tempBuf.append("DIMENSION(");
 						for (DimValue dimValue : dim) {
 							if (counter) tempBuf.append(",");
 							tempBuf.append(dimValue.toString());
 							counter = true;
 						}
 						tempBuf.append(")");
-						/*
-						 * actually, this if-else stmt is only for user defined functions.
-						 */
-						if (fcg.outRes.contains(variable)) {
-							keyword.setName(tempBuf.toString());
-							keywordList.addKeyword(keyword);
-							Variable var = new Variable();
-							var.setName(fcg.majorName);
-							varList.addVariable(var);
-							if (fcg.funcNameRep.containsKey(variable)) {
-								Variable varFunc = new Variable();
-								varFunc.setName(fcg.funcNameRep.get(variable));
-								varList.addVariable(varFunc);								
-							}
-							declStmt.setKeywordList(keywordList);
-							declStmt.setVariableList(varList);
-						}
-						else {
-							keyword.setName(tempBuf.toString());
-							keywordList.addKeyword(keyword);
-							Variable var = new Variable();
-							var.setName(variable);
-							varList.addVariable(var);
-							if (fcg.funcNameRep.containsKey(variable)) {
-								Variable varFunc = new Variable();
-								varFunc.setName(fcg.funcNameRep.get(variable));
-								varList.addVariable(varFunc);								
-							}
-							declStmt.setKeywordList(keywordList);
-							declStmt.setVariableList(varList);
-						}
+						keyword.setName(tempBuf.toString());
+						keywordList.addKeyword(keyword);
+						Variable var = new Variable();
+						var.setName(variable);
+						varList.addVariable(var);
+						declStmt.setKeywordList(keywordList);
+						declStmt.setVariableList(varList);
 					}
 				}
 				/*
@@ -178,11 +135,6 @@ public class CaseNewMainEntryPoint {
 					Variable var = new Variable();
 					var.setName(variable);
 					varList.addVariable(var);
-					if (fcg.funcNameRep.containsKey(variable)) {
-						Variable varFunc = new Variable();
-						varFunc.setName(fcg.funcNameRep.get(variable));
-						varList.addVariable(varFunc);								
-					}
 					declStmt.setVariableList(varList);
 				}
 				declSection.addDeclStmt(declStmt);
@@ -202,7 +154,7 @@ public class CaseNewMainEntryPoint {
 			if (!fcg.tmpVariables.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();
 				Keyword keyword = new Keyword();
-				keyword.setName("dimension("+fcg.tmpVariables.get(tmpVariable).getShape()
+				keyword.setName("DIMENSION("+fcg.tmpVariables.get(tmpVariable).getShape()
 						.toString().replace(" ", "").replace("[", "").replace("]", "")+")");
 				keywordList.addKeyword(keyword);
 				declStmt.setKeywordList(keywordList);
@@ -214,7 +166,7 @@ public class CaseNewMainEntryPoint {
 			declSection.addDeclStmt(declStmt);
 		}
 		subMain.setDeclarationSection(declSection);
-		subMain.setProgramEnd("stop\nend");
+		subMain.setProgramEnd("END PROGRAM");
 		return fcg;
 	}
 }

@@ -31,7 +31,6 @@ DirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Varia
 NoDirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <CodeInline>;
 BuiltinConstantExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <BuiltinFunc>;
 IOOperationExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <IOOperator> <ArgsList>;
-UserDefinedFunction: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <FuncName> <ArgsList>;
 
 Subroutines: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <FuncName> <InputArgsList> <OutputArgsList>;
 

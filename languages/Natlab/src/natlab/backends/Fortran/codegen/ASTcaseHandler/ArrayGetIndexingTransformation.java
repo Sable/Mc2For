@@ -15,18 +15,18 @@ public class ArrayGetIndexingTransformation {
 			ArrayList<String> rhsIndex) {
 		RigorousIndexingTransformation transformedArrayGet = new RigorousIndexingTransformation();
 		StringBuffer sb = new StringBuffer();
-		sb.append("call array_get");
+		sb.append("CALL ARRAT_GET");
 		sb.append(rhsArrayDimension.size());
 		for (int i=0; i<rhsIndex.size(); i++) {
 			String[] vectorIndex = rhsIndex.get(i).split(":");
 			if (rhsIndex.get(i).equals(":")) {
-				sb.append("c");
+				sb.append("C");
 			}
 			else if (vectorIndex.length==2) {
-				sb.append("v");
+				sb.append("V");
 			}
 			else {
-				sb.append("s");
+				sb.append("S");
 			}
 		}
 		sb.append("(");

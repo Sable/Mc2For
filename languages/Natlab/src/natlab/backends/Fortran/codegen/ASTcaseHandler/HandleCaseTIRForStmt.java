@@ -9,11 +9,9 @@ public class HandleCaseTIRForStmt {
 	
 	/**
 	 * ForStmt: Statement 
-	 * ::= <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
+	 * ::= <LoopVar> <LowBoundary> <UpperBoundary> [Inc] ForBlock: StatementSection;
 	 */
-	public Statement getFortran(
-			FortranCodeASTGenerator fcg, 
-			TIRForStmt node){
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRForStmt node){
 		if (Debug) System.out.println("in for statement.");
 		ForStmt stmt = new ForStmt();
 		String indent = "";
@@ -23,29 +21,28 @@ public class HandleCaseTIRForStmt {
 		stmt.setIndent(indent);
 		String loopVar = node.getLoopVarName().getVarName();
 		stmt.setLoopVar(loopVar);
-		fcg.forStmtParameter.add(loopVar);
 		/*
 		 * lower bound constant replacement
 		 */
 		String lowerBoundName = node.getLowerName().getVarName();
-		if (fcg.getMatrixValue(lowerBoundName).hasConstant()) {
-			int intLower = ((Double) fcg.getMatrixValue(lowerBoundName).getConstant().getValue())
-					.intValue();
+		if (fcg.getMatrixValue(lowerBoundName).hasConstant() 
+				&& fcg.tamerTmpVar.contains(lowerBoundName)) {
+			int intLower = ((Double) fcg.getMatrixValue(lowerBoundName)
+					.getConstant().getValue()).intValue();
 			stmt.setLowBoundary(Integer.toString(intLower));
 		}
-		else stmt.setLowBoundary(lowerBoundName);
-		fcg.forStmtParameter.add(lowerBoundName);
+		else stmt.setLowBoundary("INT("+lowerBoundName+")");
 		/*
 		 * upper bound constant replacement
 		 */
 		String upperBoundName = node.getUpperName().getVarName();
-		if (fcg.getMatrixValue(upperBoundName).hasConstant()) {
-			int intUpper = ((Double) fcg.getMatrixValue(upperBoundName).getConstant().getValue())
-					.intValue();
+		if (fcg.getMatrixValue(upperBoundName).hasConstant() 
+				&& fcg.tamerTmpVar.contains(upperBoundName)) {
+			int intUpper = ((Double) fcg.getMatrixValue(upperBoundName)
+					.getConstant().getValue()).intValue();
 			stmt.setUpperBoundary(Integer.toString(intUpper));
 		}
-		else stmt.setUpperBoundary(upperBoundName);
-		fcg.forStmtParameter.add(upperBoundName);
+		else stmt.setUpperBoundary("INT("+upperBoundName+")");
 		/*
 		 * if has increment variable
 		 */
@@ -55,13 +52,13 @@ public class HandleCaseTIRForStmt {
 			 * increment variable constant replacement
 			 */
 			String incName = node.getIncName().getVarName();
-			if (fcg.getMatrixValue(incName).hasConstant()) {
-				int intInc = ((Double) fcg.getMatrixValue(incName).getConstant().getValue())
-						.intValue();
+			if (fcg.getMatrixValue(incName).hasConstant() 
+					&& fcg.tamerTmpVar.contains(incName)) {
+				int intInc = ((Double) fcg.getMatrixValue(incName)
+						.getConstant().getValue()).intValue();
 				inc.setName(Integer.toString(intInc));
 			}
-			else inc.setName(incName);
-			fcg.forStmtParameter.add(incName);
+			else inc.setName("INT("+incName+")");
 			stmt.setInc(inc);
 		}
 		/*

@@ -33,19 +33,19 @@ public class FortranMapping {
 		/*
 		 * TODO Fortran has kind keyword.
 		 */
-		FortranTypeMap.put("char", "char");
-		FortranTypeMap.put("logical", "logical");
-		FortranTypeMap.put("complex", "complex");
-		FortranTypeMap.put("single", "real");
-		FortranTypeMap.put("double", "real");
-		FortranTypeMap.put("int8", "integer");
-		FortranTypeMap.put("int16", "integer");
-		FortranTypeMap.put("int32", "integer");
-		FortranTypeMap.put("int64", "integer");
-		FortranTypeMap.put("uint8", "integer");
-		FortranTypeMap.put("uint16", "integer");
-		FortranTypeMap.put("uint32", "integer");
-		FortranTypeMap.put("uint64", "integer");
+		FortranTypeMap.put("char", "CHAR");
+		FortranTypeMap.put("logical", "LOGICAL");
+		FortranTypeMap.put("complex", "COMPLEX");
+		FortranTypeMap.put("single", "REAL");
+		FortranTypeMap.put("double", "DOUBLE PRECISION");
+		FortranTypeMap.put("int8", "INTEGER(Kind=1)");
+		FortranTypeMap.put("int16", "INTEGER(Kind=2)");
+		FortranTypeMap.put("int32", "INTEGER(Kind=4)");
+		FortranTypeMap.put("int64", "INTEGER(Kind=8)");
+		FortranTypeMap.put("uint8", "INTEGER");
+		FortranTypeMap.put("uint16", "INTEGER");
+		FortranTypeMap.put("uint32", "INTEGER");
+		FortranTypeMap.put("uint64", "INTEGER");
 	}
 	
 	private void makeFortranBinaryOperatorMap() {
@@ -59,15 +59,15 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("rdivide", "/");
 		FortranBinOperatorMap.put("ldivide", "\\");
 		FortranBinOperatorMap.put("power", "**");
-		FortranBinOperatorMap.put("and", ".and.");
-		FortranBinOperatorMap.put("or", ".or.");
-		FortranBinOperatorMap.put("lt", ".lt.");
-		FortranBinOperatorMap.put("gt", ".gt.");
-		FortranBinOperatorMap.put("le", ".le.");
-		FortranBinOperatorMap.put("ge", ".ge.");
-		FortranBinOperatorMap.put("eq", ".eq.");
-		FortranBinOperatorMap.put("ne", ".ne.");
-		FortranBinOperatorMap.put("not", "~");
+		FortranBinOperatorMap.put("and", ".AND.");
+		FortranBinOperatorMap.put("or", ".OR.");
+		FortranBinOperatorMap.put("lt", ".LT.");
+		FortranBinOperatorMap.put("gt", ".GT.");
+		FortranBinOperatorMap.put("le", ".LE.");
+		FortranBinOperatorMap.put("ge", ".GE.");
+		FortranBinOperatorMap.put("eq", ".EQ.");
+		FortranBinOperatorMap.put("ne", ".NE.");
+		FortranBinOperatorMap.put("not", ".NOT.");
 	}
 	
 	private void makeFortranUnaryOperatorMap() {
@@ -79,14 +79,16 @@ public class FortranMapping {
 		/* 
 		 * TODO create a categorical map here 
 		 */
-		FortranDirectBuiltinMap.put("sqrt", "sqrt");	
-		FortranDirectBuiltinMap.put("sin", "sin");	
-		FortranDirectBuiltinMap.put("cos", "cos");
-		FortranDirectBuiltinMap.put("sum", "sum");
-		FortranDirectBuiltinMap.put("size", "size");
-		FortranDirectBuiltinMap.put("exp", "exp");
-		FortranDirectBuiltinMap.put("transpose", "transpose");
-		FortranDirectBuiltinMap.put("ceil", "ceiling");
+		FortranDirectBuiltinMap.put("sqrt", "SQRT");	
+		FortranDirectBuiltinMap.put("sin", "SIN");	
+		FortranDirectBuiltinMap.put("cos", "COS");
+		FortranDirectBuiltinMap.put("sum", "SUM");
+		FortranDirectBuiltinMap.put("size", "SIZE");
+		FortranDirectBuiltinMap.put("exp", "EXP");
+		FortranDirectBuiltinMap.put("transpose", "TRANSPOSE");
+		FortranDirectBuiltinMap.put("ceil", "CEILING");
+		FortranDirectBuiltinMap.put("abs", "ABS");
+		FortranDirectBuiltinMap.put("round", "INT");
 	}
 	
 	private void makeFortranNoDirectBuiltinSet() {
@@ -96,7 +98,7 @@ public class FortranMapping {
 		FortranNoDirectBuiltinSet.add("zeros");
 		FortranNoDirectBuiltinSet.add("colon");
 		FortranNoDirectBuiltinSet.add("randperm");
-		FortranNoDirectBuiltinSet.add("rand");
+		// FortranNoDirectBuiltinSet.add("rand");
 	}
 	
 	private void makeFortranBuiltinConstMap() {
@@ -104,12 +106,12 @@ public class FortranMapping {
 		 * TODO create a categorical map here 
 		 */
 		FortranBuiltinConstMap.put("pi", "Math.PI");
-		FortranBuiltinConstMap.put("true", ".true.");
-		FortranBuiltinConstMap.put("false", ".false.");
+		FortranBuiltinConstMap.put("true", ".TRUE.");
+		FortranBuiltinConstMap.put("false", ".FALSE.");
 	}
 	
 	private void makeFortranIOOperationMap() {
-		FortranIOOperationMap.put("disp", "print *, ");	
+		FortranIOOperationMap.put("disp", "PRINT *, ");	
 	}
 	
 	public String getFortranTypeMapping(String mclassasKey) {

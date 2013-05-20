@@ -15,18 +15,18 @@ public class ArraySetIndexingTransformation {
 			ArrayList<String> lhsIndex) {
 		RigorousIndexingTransformation transformedArraySet = new RigorousIndexingTransformation();
 		StringBuffer sb = new StringBuffer();
-		sb.append("call array_set");
+		sb.append("CALL ARRAY_SET");
 		sb.append(lhsArrayDimension.size());
 		for (int i=0; i<lhsIndex.size(); i++) {
 			String[] vectorIndex = lhsIndex.get(i).split(":");
 			if (lhsIndex.get(i).equals(":")) {
-				sb.append("c");
+				sb.append("C");
 			}
 			else if (vectorIndex.length==2) {
-				sb.append("v");
+				sb.append("V");
 			}
 			else {
-				sb.append("s");
+				sb.append("S");
 			}
 		}
 		sb.append("(");

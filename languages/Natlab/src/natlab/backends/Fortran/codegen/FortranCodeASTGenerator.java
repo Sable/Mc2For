@@ -23,31 +23,13 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public StringBuffer buf;
 	public StringBuffer buf2;
 	public FortranMapping FortranMap;
-	public ArrayList<String> forStmtParameter;
-	public ArrayList<String> arrayIndexParameter;
-	public String majorName;
+	public String functionName;
 	public ArrayList<String> inArgs;
 	public ArrayList<String> outRes;
-	/* 
-	 * funcNameRep, for function name replacement. 
-	 * K: the user defined function name, 
-	 * V: the corresponding substitute variable name.
-	 */
-	public HashMap<String, String> funcNameRep;
-	/* 
-	 * isSubroutine: this boolean value help the compiler 
-	 * to distinguish subroutine with function.
-	 */
-	public boolean isSubroutine;
-	public HashSet<String> inputHasChanged;
+	public boolean isInSubroutine;
+	public HashSet<String> inputHasChanged; // used to back up input argument.
 	public HashSet<String> arrayConvert;
-	/* 
-	 * tmpVariables, to store those temporary variables 
-	 * which are used in Fortran code generation.
-	 * K: the name, 
-	 * V: its basic matrix value.
-	 */
-	public HashMap<String, BasicMatrixValue> tmpVariables;
+	public HashMap<String, BasicMatrixValue> tmpVariables; // generated in Fortran code gen.
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram SubProgram;
@@ -55,10 +37,11 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public String indent;
 	/* 
 	 * tmpVarAsArrayIndex, 
-	 * K: the name of the temp variable which is used as array index, 
+	 * K: the name of the temporary vector variable, 
 	 * V: the range of those variables.
 	 */
-	public HashMap<String, ArrayList<String>> tmpVarAsArrayIndex;
+	public HashMap<String, ArrayList<String>> tmpVectorAsArrayIndex;
+	public HashSet<String> tamerTmpVar; // temporary variables generated in Tamer.
 	
 	public FortranCodeASTGenerator(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
@@ -68,13 +51,10 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		this.fileDir = fileDir;
 		currentOutSet = analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet();
 		FortranMap = new FortranMapping();
-		forStmtParameter = new ArrayList<String>();
-		arrayIndexParameter = new ArrayList<String>();
-		majorName = "";
+		functionName = "";
 		inArgs = new ArrayList<String>();
 		outRes = new ArrayList<String>();
-		funcNameRep = new HashMap<String,String>();
-		isSubroutine = false;
+		isInSubroutine = false;
 		inputHasChanged = new HashSet<String>();
 		arrayConvert = new HashSet<String>();
 		tmpVariables = new HashMap<String,BasicMatrixValue>();
@@ -83,40 +63,9 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		SubProgram = new SubProgram();
 		indentNum = 0;
 		indent = "   ";
-		tmpVarAsArrayIndex = new HashMap<String, ArrayList<String>>();
+		tmpVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
+		tamerTmpVar = new HashSet<String>();
 		((TIRNode)analysis.getNodeList().get(index).getFunction().getAst()).tirAnalyze(this);
-	}
-	
-	/*************************************HELPER METHODS******************************************/
-	public static SubProgram FortranProgramGen(
-			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
-			int callgraphSize, 
-			int index, String fileDir) {
-		return new FortranCodeASTGenerator(analysis, callgraphSize, index, fileDir).SubProgram;
-	}
-
-	public void iterateStatements(ast.List<ast.Stmt> stmts) {
-		for (ast.Stmt stmt : stmts) {
-			((TIRNode)stmt).tirAnalyze(this);
-		}
-	}
-	
-	public boolean hasArrayAsInput() {
-		boolean result = false;
-		for (String inArg : inArgs) {
-			if (!getMatrixValue(inArg).getShape().isScalar()) {
-				result = true;
-			}
-		}
-		return result;
-	}
-	
-	public ValueFlowMap<AggrValue<BasicMatrixValue>> getCurrentOutSet() {
-		return currentOutSet;
-	}
-	
-	public BasicMatrixValue getMatrixValue(String variable) {
-		return (BasicMatrixValue) currentOutSet.get(variable).getSingleton();
 	}
 	
 	/**************************************AST NODE OVERRIDE**************************************/
@@ -144,8 +93,11 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 * insert constant variable replacement check.
 		 */
 		String targetName = node.getTargetName().getVarName();
-		if (getMatrixValue(targetName).hasConstant() && !outRes.contains(targetName) 
-				&& !inArgs.contains(targetName)) {
+		if (getMatrixValue(targetName).hasConstant() 
+				&& !outRes.contains(targetName) 
+				&& !inArgs.contains(targetName) 
+				&& node.getTargetName().tmpVar) {
+			tamerTmpVar.add(targetName);
 			if (Debug) System.out.println(targetName+" is a constant");
 		}
 		else {
@@ -165,7 +117,10 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 * insert constant variable replacement check.
 		 */
 		String targetName = node.getTargetName().getVarName();
-		if (getMatrixValue(targetName).hasConstant() && !this.outRes.contains(targetName)) {
+		if (getMatrixValue(targetName).hasConstant() 
+				&& !this.outRes.contains(targetName) 
+				&& node.getTargetName().tmpVar) {
+			tamerTmpVar.add(targetName);
 			if (Debug) System.out.println(targetName+" is a constant");
 		}
 		else {
@@ -188,12 +143,16 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 * because io expression doesn't have target variable
 		 *
 		 * one more problem, for this case, the lhs is a list of variable.
-		 * And because node.getTargetName().getVarName() can only return the first variable,
-		 * we need use node.getTargets().asNameList().
+		 * And because node.getTargetName().getVarName() can only return 
+		 * the first variable, we need use node.getTargets().asNameList().
 		 */
 		if (HandleCaseTIRAbstractAssignToListStmt.getRHSCaseNumber(this, node)!=6) {
 			String targetName = node.getTargetName().getVarName();
-			if(getMatrixValue(targetName).hasConstant() && !outRes.contains(targetName)) {
+			if(getMatrixValue(targetName).hasConstant() 
+					&& !outRes.contains(targetName) 
+					&& node.getTargetName().tmpVar) {
+				// can a tmp var be tmp and constant scalar at the same time for this case?
+				tamerTmpVar.add(targetName);
 				if (Debug) System.out.println(targetName+" is a constant");
 			}
 			else {
@@ -202,9 +161,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 				if (ifWhileForBlockNest!=0) 
 					stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt
 							.getFortran(this, node));
-				else 
-					SubProgram.getStatementSection().addStatement(abstractAssignToListStmt
-							.getFortran(this, node));
+				else SubProgram.getStatementSection().addStatement(
+						abstractAssignToListStmt.getFortran(this, node));
 			}
 		}
 		else {
@@ -213,9 +171,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 			if (ifWhileForBlockNest!=0) 
 				stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt
 						.getFortran(this, node));
-			else 
-				SubProgram.getStatementSection().addStatement(abstractAssignToListStmt
-						.getFortran(this, node));
+			else SubProgram.getStatementSection().addStatement(
+					abstractAssignToListStmt.getFortran(this, node));
 		}
 	}
 	
@@ -262,5 +219,42 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 			stmtSecForIfWhileForBlock.addStatement(arrSetStmt.getFortran(this, node));
 		else 
 			SubProgram.getStatementSection().addStatement(arrSetStmt.getFortran(this, node));
+	}
+	
+	/*************************************HELPER METHODS******************************************/
+	public static SubProgram FortranProgramGen(
+			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
+			int callgraphSize, 
+			int index, String fileDir) {
+		return new FortranCodeASTGenerator(analysis, callgraphSize, index, fileDir).SubProgram;
+	}
+
+	public void iterateStatements(ast.List<ast.Stmt> stmts) {
+		for (ast.Stmt stmt : stmts) {
+			((TIRNode)stmt).tirAnalyze(this);
+		}
+	}
+	
+	public boolean hasArrayAsInput() {
+		boolean result = false;
+		for (String inArg : inArgs) {
+			if (!getMatrixValue(inArg).getShape().isScalar()) {
+				result = true;
+			}
+		}
+		return result;
+	}
+	
+	public ValueFlowMap<AggrValue<BasicMatrixValue>> getCurrentOutSet() {
+		return currentOutSet;
+	}
+	
+	public BasicMatrixValue getMatrixValue(String variable) {
+		if (variable.indexOf("_copy")!=-1) {
+			int index = variable.indexOf("_copy");
+			String originalVar = variable.substring(0, index);
+			return (BasicMatrixValue) currentOutSet.get(originalVar).getSingleton();
+		}
+		return (BasicMatrixValue) currentOutSet.get(variable).getSingleton();
 	}
 }

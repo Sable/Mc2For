@@ -7,9 +7,7 @@ import natlab.backends.Fortran.codegen.FortranAST.*;
 public class HandleCaseTIRCommentStmt {
 	static boolean Debug = false;
 	
-	public Statement getFortran(
-			FortranCodeASTGenerator fcg, 
-			TIRCommentStmt node) {
+	public Statement getFortran(FortranCodeASTGenerator fcg, TIRCommentStmt node) {
 		if (Debug) System.out.println("in a comment statement");
 		/*
 		 * in Natlab, it regard blank line also as a comment statement.
