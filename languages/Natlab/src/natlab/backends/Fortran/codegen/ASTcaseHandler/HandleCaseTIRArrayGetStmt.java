@@ -24,21 +24,21 @@ public class HandleCaseTIRArrayGetStmt {
 		}
 		stmt.setIndent(indent);
 		String lhsVariable = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+		String rhsArrayName = node.getArrayName().getVarName();
 		/*
 		 * if an input argument of the function is on the LHS of an assignment stmt, 
 		 * we assume that this input argument maybe modified.
 		 */
-		if (fcg.isInSubroutine && fcg.inArgs.contains(lhsVariable)) {
-			if (Debug) System.out.println("subroutine's input "+lhsVariable
+		if (fcg.isInSubroutine && fcg.inArgs.contains(rhsArrayName)) {
+			if (Debug) System.out.println("subroutine's input "+rhsArrayName
 					+" has been modified!");
-			fcg.inputHasChanged.add(lhsVariable);
-			lhsVariable = lhsVariable+"_copy";
+			fcg.inputHasChanged.add(rhsArrayName);
+			rhsArrayName = rhsArrayName+"_copy";
 		}
 		/*
 		 * at least, we need the information of rhs array's shape 
 		 * and its corresponding index's shape (maybe value).
 		 */
-		String rhsArrayName = node.getArrayName().getVarName();
 		List<DimValue> rhsArrayDimension = fcg.getMatrixValue(rhsArrayName)
 				.getShape().getDimensions();
 		/*

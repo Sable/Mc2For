@@ -84,6 +84,7 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("cos", "COS");
 		FortranDirectBuiltinMap.put("sum", "SUM");
 		FortranDirectBuiltinMap.put("size", "SIZE");
+		FortranDirectBuiltinMap.put("length", "SIZE");
 		FortranDirectBuiltinMap.put("exp", "EXP");
 		FortranDirectBuiltinMap.put("transpose", "TRANSPOSE");
 		FortranDirectBuiltinMap.put("ceil", "CEILING");
