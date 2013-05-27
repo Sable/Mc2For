@@ -255,7 +255,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * allocation check in corresponding in-lined code.
 			 */
 			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node);
-			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
+			if (!fcg.isCell(node.getTargetName().getID()) 
+					&& !fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
 				@SuppressWarnings("rawtypes")
 				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				StringBuffer tmpBuf = new StringBuffer();
@@ -339,7 +340,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * insert constant folding check.
 			 */
 			for (int i=0;i<arguments.size();i++) {
-				if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
+				if (!fcg.isCell(arguments.get(i)) && fcg.getMatrixValue(arguments.get(i)).hasConstant() 
 						&& !fcg.inArgs.contains(arguments.get(i)) 
 						&& fcg.tamerTmpVar.contains(arguments.get(i))) {
 					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();

@@ -10,7 +10,7 @@ import natlab.tame.tir.*;
 import natlab.tame.tir.analysis.TIRAbstractNodeCaseHandler;
 import natlab.tame.valueanalysis.ValueFlowMap;
 import natlab.tame.valueanalysis.ValueAnalysis;
-import natlab.tame.valueanalysis.aggrvalue.AggrValue;
+import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.backends.Fortran.codegen.FortranAST.*;
 import natlab.backends.Fortran.codegen.ASTcaseHandler.*;
@@ -42,6 +42,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	 */
 	public HashMap<String, ArrayList<String>> tmpVectorAsArrayIndex;
 	public HashSet<String> tamerTmpVar; // temporary variables generated in Tamer.
+	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr; // not support nested cell array.
 	
 	public FortranCodeASTGenerator(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
@@ -65,6 +66,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		indent = "   ";
 		tmpVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
 		tamerTmpVar = new HashSet<String>();
+		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
 		((TIRNode)analysis.getNodeList().get(index).getFunction().getAst()).tirAnalyze(this);
 	}
 	
@@ -148,7 +150,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 */
 		if (HandleCaseTIRAbstractAssignToListStmt.getRHSCaseNumber(this, node)!=6) {
 			String targetName = node.getTargetName().getVarName();
-			if(getMatrixValue(targetName).hasConstant() 
+			if( !isCell(targetName) && getMatrixValue(targetName).hasConstant() 
 					&& !outRes.contains(targetName) 
 					&& node.getTargetName().tmpVar) {
 				// can a tmp var be tmp and constant scalar at the same time for this case?
@@ -256,5 +258,12 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 			return (BasicMatrixValue) currentOutSet.get(originalVar).getSingleton();
 		}
 		return (BasicMatrixValue) currentOutSet.get(variable).getSingleton();
+	}
+	
+	public boolean isCell(String variable) {
+		if (currentOutSet.get(variable).getSingleton() instanceof CellValue) {
+			return true;
+		}
+		else return false;
 	}
 }

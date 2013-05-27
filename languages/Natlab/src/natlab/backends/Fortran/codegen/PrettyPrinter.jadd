@@ -45,7 +45,14 @@ aspect PrettyPrinter {
     	for (int i=0;i<size;i++) {
     		getDeclStmt(i).pp(sb);
     		sb.append("\n");
-    	}    
+    	}
+    	if (hasDerivedType()) {
+    		getDerivedType().pp(sb);
+    	}
+    }
+    
+    public void DerivedType.pp(StringBuffer sb) {
+    	sb.append(getBlock());
     }
     
     public void DeclStmt.pp(StringBuffer sb) {

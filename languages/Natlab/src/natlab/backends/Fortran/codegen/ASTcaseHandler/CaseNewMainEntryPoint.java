@@ -2,6 +2,7 @@ package natlab.backends.Fortran.codegen.ASTcaseHandler;
 
 import java.util.List;
 
+import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.tir.TIRFunction;
 import natlab.tame.valueanalysis.components.shape.DimValue;
 import natlab.backends.Fortran.codegen.*;
@@ -51,8 +52,34 @@ public class CaseNewMainEntryPoint {
 		 */
 		DeclarationSection declSection = new DeclarationSection();
 		for (String variable : fcg.getCurrentOutSet().keySet()) {
-			if ((fcg.getMatrixValue(variable).hasConstant() 
-					&& !fcg.inArgs.contains(variable)) 
+			if (fcg.isCell(variable)) {
+				// cell array declaration, mapping to derived type in Fortran.
+				System.out.println(fcg.forCellArr.get(variable));
+				DerivedType derivedType = new DerivedType();
+				StringBuffer sb = new StringBuffer();
+				sb.append("TYPE "+"cellStruct_"+variable+"\n");
+				for (int i=0; i<fcg.forCellArr.get(variable).size(); i++) {
+					sb.append("   "+fcg.FortranMap.getFortranTypeMapping(
+							fcg.forCellArr.get(variable).get(i).getMatlabClass().toString()));
+					if (!fcg.forCellArr.get(variable).get(i).getShape().isScalar()) {
+						if (fcg.forCellArr.get(variable).get(i).getMatlabClass()
+								.equals(PrimitiveClassReference.CHAR)) {
+							sb.append("("+fcg.forCellArr.get(variable).get(i)
+									.getShape().getDimensions().get(1)+")");
+						}
+						else {
+							// TODO add dimension for array variables.
+						}
+					}
+					sb.append(" :: "+"f"+i+"\n");
+				}
+				sb.append("END TYPE "+"cellStruct_"+variable+"\n");
+				sb.append("TYPE (cellStruct_"+variable+") "+variable+"\n");
+				derivedType.setBlock(sb.toString());
+				declSection.setDerivedType(derivedType);
+			}
+			else if (fcg.getMatrixValue(variable).hasConstant() 
+					&& !fcg.inArgs.contains(variable) 
 					&& fcg.tamerTmpVar.contains(variable) 
 					|| fcg.tmpVectorAsArrayIndex.containsKey(variable)) {
 				if (Debug) System.out.println("do constant folding, no declaration.");
@@ -64,12 +91,18 @@ public class CaseNewMainEntryPoint {
 				ShapeInfo shapeInfo = new ShapeInfo();
 				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
-				declStmt.setType(fcg.FortranMap.getFortranTypeMapping(
+				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
+					declStmt.setType(fcg.FortranMap.getFortranTypeMapping("char")
+							+"("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1)+")");
+				}
+				else declStmt.setType(fcg.FortranMap.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
 				 * declare arrays.
 				 */
-				if (!fcg.getMatrixValue(variable).getShape().isScalar()) {
+				if (!fcg.getMatrixValue(variable).getShape().isScalar() 
+						&& !fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR)) {
 					if (Debug) System.out.println("add dimension here!");
 					Keyword keyword = new Keyword();
 					List<DimValue> dim = fcg.getMatrixValue(variable).getShape().getDimensions();

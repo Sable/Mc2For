@@ -310,6 +310,25 @@ public class FortranCodeASTInliner {
 			// TODO what is people implement a rand function in MATLAB? 
 			noDirBuiltinExpr.setCodeInline(indent+"call random_number("+lhsTarget+");");
 		}
+		else if (rhsFunName.equals("cellhorzcat")) {
+			ArrayList<BasicMatrixValue> fields = new ArrayList<BasicMatrixValue>();
+			for (int i=0; i<rhsArgs.size(); i++) {
+				fields.add(fcg.getMatrixValue(rhsArgs.get(i)));				
+			}
+			fcg.forCellArr.put(lhsTarget, fields);
+			for (int i=0; i<rhsArgs.size(); i++) {
+				tmpBuf.append(indent+lhsTarget+"%f"+i+" = ");
+				if (fcg.getMatrixValue(rhsArgs.get(i)).hasConstant() 
+						&& fcg.tamerTmpVar.contains(rhsArgs.get(i))) {
+					Constant c = fcg.getMatrixValue(rhsArgs.get(i))
+							.getConstant();
+					tmpBuf.append(c+";");
+				}
+				else tmpBuf.append(rhsArgs.get(i)+";");
+				if (i<rhsArgs.size()-1) tmpBuf.append("\n");
+			}
+			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+		}
 		else {
 			/*
 			 * for those no direct builtins which have not been implemented yet.
