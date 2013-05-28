@@ -9,6 +9,7 @@ import ast.ASTNode;
 import natlab.tame.tir.*;
 import natlab.tame.tir.analysis.TIRAbstractNodeCaseHandler;
 import natlab.tame.valueanalysis.ValueFlowMap;
+import natlab.tame.valueanalysis.ValueSet;
 import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
@@ -43,6 +44,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public HashMap<String, ArrayList<String>> tmpVectorAsArrayIndex;
 	public HashSet<String> tamerTmpVar; // temporary variables generated in Tamer.
 	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr; // not support nested cell array.
+	public ArrayList<String> declaredCell;
 	
 	public FortranCodeASTGenerator(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
@@ -67,6 +69,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		tmpVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
 		tamerTmpVar = new HashSet<String>();
 		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
+		declaredCell = new ArrayList<String>();
 		((TIRNode)analysis.getNodeList().get(index).getFunction().getAst()).tirAnalyze(this);
 	}
 	
@@ -95,7 +98,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 * insert constant variable replacement check.
 		 */
 		String targetName = node.getTargetName().getVarName();
-		if (getMatrixValue(targetName).hasConstant() 
+		if (hasSingleton(targetName) 
+				&& getMatrixValue(targetName).hasConstant() 
 				&& !outRes.contains(targetName) 
 				&& !inArgs.contains(targetName) 
 				&& node.getTargetName().tmpVar) {
@@ -119,7 +123,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 * insert constant variable replacement check.
 		 */
 		String targetName = node.getTargetName().getVarName();
-		if (getMatrixValue(targetName).hasConstant() 
+		if (!isCell(targetName) && hasSingleton(targetName) 
+				&& getMatrixValue(targetName).hasConstant() 
 				&& !this.outRes.contains(targetName) 
 				&& node.getTargetName().tmpVar) {
 			tamerTmpVar.add(targetName);
@@ -150,7 +155,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 */
 		if (HandleCaseTIRAbstractAssignToListStmt.getRHSCaseNumber(this, node)!=6) {
 			String targetName = node.getTargetName().getVarName();
-			if( !isCell(targetName) && getMatrixValue(targetName).hasConstant() 
+			if(!isCell(targetName) && hasSingleton(targetName) 
+					&& getMatrixValue(targetName).hasConstant() 
 					&& !outRes.contains(targetName) 
 					&& node.getTargetName().tmpVar) {
 				// can a tmp var be tmp and constant scalar at the same time for this case?
@@ -265,5 +271,15 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 			return true;
 		}
 		else return false;
+	}
+	
+	public boolean hasSingleton(String variable) {
+		if (currentOutSet.get(variable).getSingleton()==null) return false;
+		return true;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public ValueSet getValueSet(String variable) {
+		return currentOutSet.get(variable);
 	}
 }

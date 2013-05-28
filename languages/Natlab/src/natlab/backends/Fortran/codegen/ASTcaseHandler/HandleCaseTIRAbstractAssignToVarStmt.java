@@ -47,7 +47,8 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		 * for rhs, insert constant folding check.
 		 */
 		String rhsNodeString = node.getRHS().getNodeString();
-		if (fcg.getMatrixValue(rhsNodeString).hasConstant() 
+		if (!fcg.isCell(targetName) && fcg.hasSingleton(targetName) 
+				&& fcg.getMatrixValue(rhsNodeString).hasConstant() 
 				&& (!fcg.inArgs.contains(rhsNodeString)) 
 				&& fcg.tamerTmpVar.contains(rhsNodeString)) {
 			if (Debug) System.out.println(targetName+" is a constant");
@@ -58,6 +59,9 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 			if (fcg.inputHasChanged.contains(rhsNodeString)) 
 				stmt.setSourceVariable(rhsNodeString+"_copy");
 			else stmt.setSourceVariable(rhsNodeString);
+		}
+		if (fcg.isCell(rhsNodeString) || !fcg.hasSingleton(rhsNodeString)) {
+			fcg.forCellArr.put(targetName, fcg.forCellArr.get(rhsNodeString));
 		}
 		/*
 		 * TODO for lhs, insert runtime shape allocate check?

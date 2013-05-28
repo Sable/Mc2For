@@ -69,36 +69,50 @@ public class CaseNewSubroutine {
 		 * set the declaration section.
 		 */		
 		DeclarationSection declSection = new DeclarationSection();
+		DerivedTypeList derivedTypeList = new DerivedTypeList();
 		for (String variable : fcg.getCurrentOutSet().keySet()) {
-			if (fcg.isCell(variable)) {
+			if (fcg.isCell(variable) || !fcg.hasSingleton(variable)) {
 				// cell array declaration, mapping to derived type in Fortran.
-				System.out.println(fcg.forCellArr.get(variable));
 				DerivedType derivedType = new DerivedType();
 				StringBuffer sb = new StringBuffer();
-				sb.append("TYPE "+"cellStruct_"+variable+"\n");
-				for (int i=0; i<fcg.forCellArr.get(variable).size(); i++) {
-					sb.append("   "+fcg.FortranMap.getFortranTypeMapping(
-							fcg.forCellArr.get(variable).get(i).getMatlabClass().toString()));
-					if (!fcg.forCellArr.get(variable).get(i).getShape().isScalar()) {
-						if (fcg.forCellArr.get(variable).get(i).getMatlabClass()
-								.equals(PrimitiveClassReference.CHAR)) {
-							sb.append("("+fcg.forCellArr.get(variable).get(i)
-									.getShape().getDimensions().get(1)+")");
-						}
-						else {
-							// TODO add dimension for array variables.
-						}
+				boolean skip = false;
+				for (String cell : fcg.declaredCell) {
+					if (fcg.forCellArr.get(cell).equals(fcg.forCellArr.get(variable))) {
+						// these two cell arrays should be with the same derived type.
+						sb.append("TYPE (cellStruct_"+cell+") "+variable+"\n");
+						skip = true;
 					}
-					sb.append(" :: "+"f"+i+"\n");
 				}
-				sb.append("END TYPE "+"cellStruct_"+variable+"\n");
-				sb.append("TYPE (cellStruct_"+variable+") "+variable+"\n");
+				if (!skip) {
+					sb.append("TYPE "+"cellStruct_"+variable+"\n");
+					for (int i=0; i<fcg.forCellArr.get(variable).size(); i++) {
+						sb.append("   "+fcg.FortranMap.getFortranTypeMapping(
+								fcg.forCellArr.get(variable).get(i).getMatlabClass().toString()));
+						if (!fcg.forCellArr.get(variable).get(i).getShape().isScalar()) {
+							if (fcg.forCellArr.get(variable).get(i).getMatlabClass()
+									.equals(PrimitiveClassReference.CHAR)) {
+								sb.append("("+fcg.forCellArr.get(variable).get(i)
+										.getShape().getDimensions().get(1)+")");
+							}
+							else {
+								sb.append(" , DIMENSION("+fcg.forCellArr.get(variable)
+										.get(i).getShape().getDimensions().toString()
+										.replace("[", "").replace("]", "")+")");
+							}
+						}
+						sb.append(" :: "+"f"+i+"\n");
+					}
+					sb.append("END TYPE "+"cellStruct_"+variable+"\n");
+					sb.append("TYPE (cellStruct_"+variable+") "+variable+"\n");					
+				}
+				fcg.declaredCell.add(variable);
 				derivedType.setBlock(sb.toString());
-				declSection.setDerivedType(derivedType);
+				derivedTypeList.addDerivedType(derivedType);
+				declSection.setDerivedTypeList(derivedTypeList);
 			}
-			else if ((fcg.getMatrixValue(variable).hasConstant() 
+			else if (fcg.getMatrixValue(variable).hasConstant() 
 					&& !fcg.inArgs.contains(variable) 
-					&& !fcg.outRes.contains(variable)) 
+					&& !fcg.outRes.contains(variable) 
 					&& fcg.tamerTmpVar.contains(variable) 
 					|| fcg.tmpVectorAsArrayIndex.containsKey(variable)) {
 				if (Debug) System.out.println("do constant folding, no declaration.");

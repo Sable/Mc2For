@@ -44,6 +44,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		arguments = getArgsList(node);
 
 		RuntimeAllocate rta = new RuntimeAllocate();
+		@SuppressWarnings("rawtypes")
+		List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 		
 		switch (RHSCaseNumber) {
 		case 1:
@@ -89,8 +91,6 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			}
 			binExpr.setOperator(RHSFortranOperator);
 			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
-				@SuppressWarnings("rawtypes")
-				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				StringBuffer tmpBuf = new StringBuffer();
 				tmpBuf.append(indent+"!insert runtime allocation.\n");
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
@@ -150,8 +150,6 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			}
 			unExpr.setOperator(RHSFortranOperator);
 			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
-				@SuppressWarnings("rawtypes")
-				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				StringBuffer tmpBuf = new StringBuffer();
 				tmpBuf.append(indent+"!insert runtime allocation.\n");
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
@@ -220,8 +218,6 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			dirBuiltinExpr.setBuiltinFunc(RHSFortranOperator);
 			dirBuiltinExpr.setArgsList(ArgsListasString);
 			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
-				@SuppressWarnings("rawtypes")
-				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				StringBuffer tmpBuf = new StringBuffer();
 				tmpBuf.append(indent+"!insert runtime allocation.\n");
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
@@ -254,11 +250,10 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * insert indent, constant folding check and variable 
 			 * allocation check in corresponding in-lined code.
 			 */
-			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node);
-			if (!fcg.isCell(node.getTargetName().getID()) 
+			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node, currentShape);
+			System.out.println(node.getTargetName().getID());
+			if (!fcg.isCell(node.getTargetName().getID()) && fcg.hasSingleton(node.getTargetName().getID()) 
 					&& !fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
-				@SuppressWarnings("rawtypes")
-				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				StringBuffer tmpBuf = new StringBuffer();
 				tmpBuf.append(indent+"!insert runtime allocation.\n");
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
@@ -305,8 +300,6 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			}
 			builtinConst.setBuiltinFunc(RHSFortranOperator);
 			if (!fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
-				@SuppressWarnings("rawtypes")
-				List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				StringBuffer tmpBuf = new StringBuffer();
 				tmpBuf.append(indent+"!insert runtime allocation.\n");
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");

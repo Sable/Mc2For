@@ -1,6 +1,7 @@
 package natlab.backends.Fortran.codegen;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
@@ -14,7 +15,8 @@ public class FortranCodeASTInliner {
 
 	static boolean Debug = false;
 	
-	public static NoDirectBuiltinExpr inline(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node) {
+	public static NoDirectBuiltinExpr inline(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node, 
+			List<Shape> currentShape) {
 		NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
@@ -25,6 +27,7 @@ public class FortranCodeASTInliner {
 		 * of lhs target variables is more than one?
 		 */
 		String lhsTarget = node.getLHS().getNodeString().replace("[", "").replace("]", "");
+		String cellLHSTarget = lhsTarget;
 		StringBuffer tmpBuf = new StringBuffer();
 		/*
 		 * if input arguments on the LHS of an assignment stmt, 
@@ -35,6 +38,32 @@ public class FortranCodeASTInliner {
 					+" has been modified!");
 			fcg.inputHasChanged.add(lhsTarget);
 			lhsTarget=lhsTarget+"_copy";
+		}
+		if (!fcg.hasSingleton(lhsTarget)) {
+			/*
+			 * assign different type value to the same variable, 
+			 * we need to generate a derived type in Fortran for 
+			 * this variable, the fields in the derived type 
+			 * correspond to different type.
+			 */
+			if (fcg.forCellArr.keySet().contains(lhsTarget)) {
+				int fieldNum = 0, i = 0;
+				for (BasicMatrixValue fieldValue : fcg.forCellArr.get(lhsTarget)) {
+					if (fieldValue.getShape().equals(currentShape.get(0))) {
+						fieldNum = i;
+					}
+					else i++;
+				}
+				cellLHSTarget = lhsTarget+"%f"+fieldNum;
+			}
+			else {
+				ArrayList<BasicMatrixValue> valueList = new ArrayList<BasicMatrixValue>();
+				int length = fcg.getValueSet(lhsTarget).values().toArray().length;
+				for (int i=0; i<length; i++) {
+					valueList.add((BasicMatrixValue)fcg.getValueSet(lhsTarget).values().toArray()[i]);
+				}
+				fcg.forCellArr.put(lhsTarget, valueList);
+			}
 		}
 		String rhsFunName = node.getRHS().getVarName();
 		ArrayList<String> rhsArgs = new ArrayList<String>();
@@ -53,10 +82,10 @@ public class FortranCodeASTInliner {
 				 */
 				if (fcg.getMatrixValue(rhsArgs.get(i-1)).hasConstant()) {
 					Constant c = fcg.getMatrixValue(rhsArgs.get(i-1)).getConstant();
-					tmpBuf.append(indent+lhsTarget+"(1,"+i+") = "+c+";");
+					tmpBuf.append(indent+cellLHSTarget+"(1,"+i+") = "+c+";");
 				}
 				else {
-					tmpBuf.append(indent+lhsTarget+"(1,"+i+") = "+rhsArgs.get(i-1)+";");
+					tmpBuf.append(indent+cellLHSTarget+"(1,"+i+") = "+rhsArgs.get(i-1)+";");
 				}
 				if (i<numOfArgs) tmpBuf.append("\n");
 			}
@@ -71,10 +100,10 @@ public class FortranCodeASTInliner {
 				 */
 				if (fcg.getMatrixValue(rhsArgs.get(i-1)).hasConstant()) {
 					Constant c = fcg.getMatrixValue(rhsArgs.get(i-1)).getConstant();
-					tmpBuf.append(indent+lhsTarget+"("+i+",1) = "+c+";");
+					tmpBuf.append(indent+cellLHSTarget+"("+i+",1) = "+c+";");
 				}
 				else {
-					tmpBuf.append(indent+lhsTarget+"("+i+",:) = "+rhsArgs.get(i-1)+"(1,:);");
+					tmpBuf.append(indent+cellLHSTarget+"("+i+",:) = "+rhsArgs.get(i-1)+"(1,:);");
 				}
 				if(i<numOfArgs) tmpBuf.append("\n");
 			}
@@ -108,7 +137,7 @@ public class FortranCodeASTInliner {
 				tmpBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , int("+rhsArgs.get(1)
 						+")\n");
 			}
-			tmpBuf.append(indent+fcg.indent+fcg.indent+lhsTarget+"(tmp_"+lhsTarget
+			tmpBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
 					+"_i,tmp_"+lhsTarget+"_j) = 1;\n");
 			tmpBuf.append(indent+fcg.indent+"ENDDO\n");
 			tmpBuf.append(indent+"ENDDO");
@@ -143,7 +172,7 @@ public class FortranCodeASTInliner {
 				tmpBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget
 						+"_j = 1 , int("+rhsArgs.get(1)+")\n");
 			}
-			tmpBuf.append(indent+fcg.indent+fcg.indent+lhsTarget+"(tmp_"+lhsTarget
+			tmpBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
 					+"_i,tmp_"+lhsTarget+"_j) = 0;\n");
 			tmpBuf.append(indent+fcg.indent+"ENDDO\n");
 			tmpBuf.append(indent+"ENDO");
@@ -213,7 +242,7 @@ public class FortranCodeASTInliner {
 					else {
 						tmpBuf.append(","+rhsArgs.get(1)+"\n");
 					}
-					tmpBuf.append(fcg.indent+fcg.indent+lhsTarget+"(1,tmp_"+lhsTarget
+					tmpBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
 							+"_i) = tmp_"+lhsTarget+"_i;\n");
 					tmpBuf.append(indent+"ENDDO");
 					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
@@ -263,7 +292,7 @@ public class FortranCodeASTInliner {
 					else {
 						tmpBuf.append(","+rhsArgs.get(1)+"\n");
 					}
-					tmpBuf.append(fcg.indent+fcg.indent+lhsTarget+"(1,tmp_"+lhsTarget
+					tmpBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
 							+"_index) = tmp_"+lhsTarget+"_i;\n");
 					tmpBuf.append(fcg.indent+fcg.indent+"tmp_"+lhsTarget+"_index = tmp_"
 							+lhsTarget+"_index+1;\n");
@@ -290,10 +319,10 @@ public class FortranCodeASTInliner {
 					DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 							.getConstant();
 					int ci = c.getValue().intValue();
-					tmpBuf.append(indent+"call randperm("+ci+","+lhsTarget+")");
+					tmpBuf.append(indent+"call randperm("+ci+","+cellLHSTarget+")");
 				}
 				else {
-					tmpBuf.append(indent+"call randperm("+rhsArgs.get(0)+","+lhsTarget+")");
+					tmpBuf.append(indent+"call randperm("+rhsArgs.get(0)+","+cellLHSTarget+")");
 				}
 			}
 			else if (numOfArgs==2) {
@@ -308,7 +337,7 @@ public class FortranCodeASTInliner {
 		}		
 		else if (rhsFunName.equals("rand")) {
 			// TODO what is people implement a rand function in MATLAB? 
-			noDirBuiltinExpr.setCodeInline(indent+"call random_number("+lhsTarget+");");
+			noDirBuiltinExpr.setCodeInline(indent+"call random_number("+cellLHSTarget+");");
 		}
 		else if (rhsFunName.equals("cellhorzcat")) {
 			ArrayList<BasicMatrixValue> fields = new ArrayList<BasicMatrixValue>();

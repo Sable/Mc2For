@@ -6,13 +6,14 @@ ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList];
 ProgramParameterList ::= Parameter*;
 Parameter ::= <Name: String>;
 
-DeclarationSection ::= DeclStmt* [DerivedType];
+DeclarationSection ::= DeclStmt* [DerivedTypeList];
 DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList;
 KeywordList ::= Keyword*;
 VariableList ::= Variable*;
 Keyword ::= <Name: String>;
 Variable ::= <Name: String>;
 ShapeInfo ::= <Name: String>;
+DerivedTypeList ::= DerivedType*;
 DerivedType ::= <Block: String>;
 
 StatementSection ::= Statement*;
