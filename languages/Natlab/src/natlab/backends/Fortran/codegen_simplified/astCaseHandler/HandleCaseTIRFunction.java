@@ -1,8 +1,8 @@
-package natlab.backends.Fortran.codegen.ASTcaseHandler;
+package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import ast.Name;
 import natlab.tame.tir.*;
-import natlab.backends.Fortran.codegen.*;
+import natlab.backends.Fortran.codegen_simplified.*;
 
 public class HandleCaseTIRFunction 
 {

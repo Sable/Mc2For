@@ -1,4 +1,4 @@
-package natlab.backends.Fortran;
+package natlab.backends.Fortran.codegen_simplified;
 
 import java.io.*;
 
@@ -8,10 +8,10 @@ import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.toolkits.filehandling.GenericFile;
 import natlab.toolkits.path.FileEnvironment;
-import natlab.backends.Fortran.codegen.*;
-import natlab.backends.Fortran.codegen.FortranAST.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.*;
 
-public class Main {
+public class Main_simplified {
 	public static void main(String[] args) {
 		/**
 		 * This main method is just for testing, doesn't follow the convention when passing a 
@@ -19,8 +19,8 @@ public class Main {
 		 * file directory and its name, and you can pass the type info of the input argument 
 		 * to the program, currently, the type info is composed like double&3*3&REAL.
 		 */
-		String fileDir = "/home/xu/for_test/";
-	    String fileIn = fileDir+"testBuiltin2.m";
+		String fileDir = "fileDir";
+	    String fileIn = fileDir+"fileIn";
 	    GenericFile gFile = GenericFile.create(fileIn);
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		BasicTamerTool tool = new BasicTamerTool();

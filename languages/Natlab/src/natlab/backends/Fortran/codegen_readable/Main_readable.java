@@ -1,4 +1,4 @@
-package natlab.backends.Fortran;
+package natlab.backends.Fortran.codegen_readable;
 
 import java.util.Set;
 
@@ -14,8 +14,9 @@ import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.toolkits.filehandling.GenericFile;
 import natlab.toolkits.path.FileEnvironment;
+import natlab.backends.Fortran.codegen_readable.*;
 
-public class MainForTamerPlus {
+public class Main_readable {
 	
 	public static void main(String[] args) {
 		/**
@@ -24,8 +25,8 @@ public class MainForTamerPlus {
 		 * file directory and its name, and you can pass the type info of the input argument 
 		 * to the program, currently, the type info is composed like double&3*3&REAL.
 		 */
-		String fileDir = "/home/xu/for_test/";
-	    String fileIn = fileDir+"bubble.m";
+		String fileDir = "fileDir";
+	    String fileIn = fileDir+"fileIn";
 	    GenericFile gFile = GenericFile.create(fileIn);
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		BasicTamerTool tool = new BasicTamerTool();

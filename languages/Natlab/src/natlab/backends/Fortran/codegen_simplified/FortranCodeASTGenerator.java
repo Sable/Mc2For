@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen;
+package natlab.backends.Fortran.codegen_simplified;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,8 +13,8 @@ import natlab.tame.valueanalysis.ValueSet;
 import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
-import natlab.backends.Fortran.codegen.FortranAST.*;
-import natlab.backends.Fortran.codegen.ASTcaseHandler.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.*;
 
 public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	static boolean Debug = false;
@@ -75,6 +75,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	
 	/**************************************AST NODE OVERRIDE**************************************/
 	@Override
+	@SuppressWarnings("rawtypes")
 	public void caseASTNode(ASTNode node) {}
 	
 	@Override

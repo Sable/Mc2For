@@ -1,16 +1,9 @@
-package natlab.backends.Fortran.codegen.ASTcaseHandler;
-
-import java.util.List;
-import java.util.ArrayList;
+package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import natlab.tame.tir.*;
-import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
-import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.tame.valueanalysis.components.constant.Constant;
-import natlab.tame.valueanalysis.components.shape.*;
-import natlab.tame.classes.reference.*;
-import natlab.backends.Fortran.codegen.*;
-import natlab.backends.Fortran.codegen.FortranAST.*;
+import natlab.backends.Fortran.codegen_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
 public class HandleCaseTIRAbstractAssignToVarStmt {
 	static boolean Debug = false;

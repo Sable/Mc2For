@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen.ASTcaseHandler;
+package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.components.constant.Constant;
 import natlab.tame.valueanalysis.components.shape.DimValue;
-import natlab.backends.Fortran.codegen.*;
-import natlab.backends.Fortran.codegen.FortranAST.*;
+import natlab.backends.Fortran.codegen_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
 public class HandleCaseTIRArraySetStmt {
 	static boolean Debug = false;

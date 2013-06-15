@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen.ASTcaseHandler;
+package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import java.util.ArrayList;
 
@@ -6,8 +6,8 @@ import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.components.constant.Constant;
 import natlab.tame.valueanalysis.components.shape.*;
 import natlab.tame.valueanalysis.basicmatrix.*;
-import natlab.backends.Fortran.codegen.*;
-import natlab.backends.Fortran.codegen.FortranAST.*;
+import natlab.backends.Fortran.codegen_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
 public class HandleCaseTIRAssignLiteralStmt {
 	static boolean Debug = false;
@@ -48,6 +48,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 			 * literal assignment target variable should be a constant, if it's not a constant, 
 			 * we need allocate it as a 1 by 1 array.
 			 */
+			@SuppressWarnings("rawtypes")
 			Shape targetVar= fcg.getMatrixValue(targetName).getShape();
 			if (!targetVar.isConstant()) {
 				RuntimeAllocate rtc = new RuntimeAllocate();

@@ -1,4 +1,4 @@
-package natlab.backends.Fortran.codegen;
+package natlab.backends.Fortran.codegen_simplified;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,13 +8,13 @@ import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.shape.*;
 import natlab.tame.valueanalysis.components.constant.*;
-import natlab.backends.Fortran.codegen.FortranAST.*;
-import natlab.backends.Fortran.codegen.ASTcaseHandler.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.*;
 
 public class FortranCodeASTInliner {
 
 	static boolean Debug = false;
-	
+	@SuppressWarnings("rawtypes")
 	public static NoDirectBuiltinExpr inline(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node, 
 			List<Shape> currentShape) {
 		NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();

@@ -1,10 +1,10 @@
-package natlab.backends.Fortran.codegen.ASTcaseHandler;
+package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import natlab.tame.valueanalysis.components.shape.DimValue;
-import natlab.backends.Fortran.codegen.FortranAST.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
 public class ArrayGetIndexingTransformation {
 
