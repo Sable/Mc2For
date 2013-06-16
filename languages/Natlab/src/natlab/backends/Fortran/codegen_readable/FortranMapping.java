@@ -2,12 +2,43 @@ package natlab.backends.Fortran.codegen_readable;
 
 import java.util.HashMap;
 
-public class OperatorMapping {
+public class FortranMapping {
 
+	private static HashMap<String, String> FortranTypeMap = 
+			new HashMap<String, String>();
 	private static HashMap<String, String> FortranBinOperatorMap = 
 			new HashMap<String, String>();
 	private static HashMap<String, String> FortranDirectBuiltinMap = 
 			new HashMap<String, String>();
+	
+	public FortranMapping() {
+		makeFortranTypeMap();
+		makeFortranBinaryOperatorMap();
+		makeFortranDirectBuiltinMap();
+	}
+	
+	private void makeFortranTypeMap() {
+		/*
+		 * TODO Fortran has kind keyword.
+		 */
+		FortranTypeMap.put("char", "CHARACTER");
+		FortranTypeMap.put("logical", "LOGICAL");
+		FortranTypeMap.put("complex", "COMPLEX");
+		FortranTypeMap.put("single", "REAL");
+		FortranTypeMap.put("double", "DOUBLE PRECISION");
+		FortranTypeMap.put("int8", "INTEGER(Kind=1)");
+		FortranTypeMap.put("int16", "INTEGER(Kind=2)");
+		FortranTypeMap.put("int32", "INTEGER(Kind=4)");
+		FortranTypeMap.put("int64", "INTEGER(Kind=8)");
+		FortranTypeMap.put("uint8", "INTEGER");
+		FortranTypeMap.put("uint16", "INTEGER");
+		FortranTypeMap.put("uint32", "INTEGER");
+		FortranTypeMap.put("uint64", "INTEGER");
+	}
+	
+	public String getFortranTypeMapping(String mclassasKey) {
+		return FortranTypeMap.get(mclassasKey);
+	}
 	
 	private void makeFortranBinaryOperatorMap() {
 		FortranBinOperatorMap.put("plus", "+");
@@ -46,11 +77,6 @@ public class OperatorMapping {
 		FortranDirectBuiltinMap.put("ceil", "CEILING");
 		FortranDirectBuiltinMap.put("abs", "ABS");
 		FortranDirectBuiltinMap.put("round", "INT");
-	}
-	
-	public OperatorMapping() {
-		makeFortranBinaryOperatorMap();
-		makeFortranDirectBuiltinMap();
 	}
 	
 	public Boolean isFortranBinOperator(String operator) {

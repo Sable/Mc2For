@@ -31,7 +31,7 @@ public class CaseNewSubroutine {
 		 * first pass of all the statements, collect information.
 		 */
 		SubProgram preSubroutine = new SubProgram();
-		fcg.SubProgram = preSubroutine;
+		fcg.subProgram = preSubroutine;
 		StatementSection preStmtSection = new StatementSection();
 		preSubroutine.setStatementSection(preStmtSection);
 		fcg.iterateStatements(node.getStmts());
@@ -39,7 +39,7 @@ public class CaseNewSubroutine {
 		 * second pass of all the statements, using information collected from the first pass.
 		 */
 		SubProgram subroutine = new SubProgram();
-		fcg.SubProgram = subroutine;
+		fcg.subProgram = subroutine;
 		StatementSection stmtSection = new StatementSection();
 		subroutine.setStatementSection(stmtSection);
 		fcg.iterateStatements(node.getStmts());
@@ -86,7 +86,7 @@ public class CaseNewSubroutine {
 				if (!skip) {
 					sb.append("TYPE "+"cellStruct_"+variable+"\n");
 					for (int i=0; i<fcg.forCellArr.get(variable).size(); i++) {
-						sb.append("   "+fcg.FortranMap.getFortranTypeMapping(
+						sb.append("   "+fcg.FortranMapping.getFortranTypeMapping(
 								fcg.forCellArr.get(variable).get(i).getMatlabClass().toString()));
 						if (!fcg.forCellArr.get(variable).get(i).getShape().isScalar()) {
 							if (fcg.forCellArr.get(variable).get(i).getMatlabClass()
@@ -126,10 +126,10 @@ public class CaseNewSubroutine {
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
 				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
-					declStmt.setType(fcg.FortranMap.getFortranTypeMapping("char")
+					declStmt.setType(fcg.FortranMapping.getFortranTypeMapping("char")
 							+"("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1)+")");
 				}
-				else declStmt.setType(fcg.FortranMap.getFortranTypeMapping(
+				else declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
 				 * declare arrays.
@@ -259,7 +259,7 @@ public class CaseNewSubroutine {
 			// type is already a token, don't forget.
 			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
-			declStmt.setType(fcg.FortranMap.getFortranTypeMapping(
+			declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
 					fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString()));
 			if (!fcg.tmpVariables.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();

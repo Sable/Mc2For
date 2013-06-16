@@ -12,6 +12,7 @@ import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 import natlab.backends.Fortran.codegen_simplified.*;
 
 public class Main_simplified {
+	
 	public static void main(String[] args) {
 		/**
 		 * This main method is just for testing, doesn't follow the convention when passing a 

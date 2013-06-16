@@ -23,7 +23,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet;
 	public StringBuffer buf;
 	public StringBuffer buf2;
-	public FortranMapping FortranMap;
+	public FortranMapping FortranMapping;
 	public String functionName;
 	public ArrayList<String> inArgs;
 	public ArrayList<String> outRes;
@@ -33,7 +33,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public HashMap<String, BasicMatrixValue> tmpVariables; // generated in Fortran code gen.
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
-	public SubProgram SubProgram;
+	public SubProgram subProgram;
 	public int indentNum;
 	public String indent;
 	/* 
@@ -46,14 +46,14 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr; // not support nested cell array.
 	public ArrayList<String> declaredCell;
 	
-	public FortranCodeASTGenerator(
+	private FortranCodeASTGenerator(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
 			int callgraphSize, 
 			int index, String fileDir) {
 		this.callgraphSize = callgraphSize;
 		this.fileDir = fileDir;
 		currentOutSet = analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet();
-		FortranMap = new FortranMapping();
+		FortranMapping = new FortranMapping();
 		functionName = "";
 		inArgs = new ArrayList<String>();
 		outRes = new ArrayList<String>();
@@ -63,7 +63,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		tmpVariables = new HashMap<String,BasicMatrixValue>();
 		ifWhileForBlockNest = 0;
 		stmtSecForIfWhileForBlock = new StatementSection();
-		SubProgram = new SubProgram();
+		subProgram = new SubProgram();
 		indentNum = 0;
 		indent = "   ";
 		tmpVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
@@ -73,7 +73,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		((TIRNode)analysis.getNodeList().get(index).getFunction().getAst()).tirAnalyze(this);
 	}
 	
-	/**************************************AST NODE OVERRIDE**************************************/
+	// ******************************ast node override*************************
 	@Override
 	@SuppressWarnings("rawtypes")
 	public void caseASTNode(ASTNode node) {}
@@ -90,7 +90,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		if (ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(commentStmt.getFortran(this, node));
 		else 
-			SubProgram.getStatementSection().addStatement(commentStmt.getFortran(this, node));
+			subProgram.getStatementSection().addStatement(commentStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -113,7 +113,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 			if (ifWhileForBlockNest!=0) 
 				stmtSecForIfWhileForBlock.addStatement(assignLiteralStmt.getFortran(this, node));
 			else 
-				SubProgram.getStatementSection().addStatement(assignLiteralStmt
+				subProgram.getStatementSection().addStatement(assignLiteralStmt
 						.getFortran(this, node));		
 		}
 	}
@@ -138,7 +138,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 				stmtSecForIfWhileForBlock.addStatement(abstractAssignToVarStmt
 						.getFortran(this, node));
 			else 
-				SubProgram.getStatementSection().addStatement(abstractAssignToVarStmt
+				subProgram.getStatementSection().addStatement(abstractAssignToVarStmt
 						.getFortran(this, node));
 		}
 	}
@@ -170,7 +170,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 				if (ifWhileForBlockNest!=0) 
 					stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt
 							.getFortran(this, node));
-				else SubProgram.getStatementSection().addStatement(
+				else subProgram.getStatementSection().addStatement(
 						abstractAssignToListStmt.getFortran(this, node));
 			}
 		}
@@ -180,7 +180,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 			if (ifWhileForBlockNest!=0) 
 				stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt
 						.getFortran(this, node));
-			else SubProgram.getStatementSection().addStatement(
+			else subProgram.getStatementSection().addStatement(
 					abstractAssignToListStmt.getFortran(this, node));
 		}
 	}
@@ -191,7 +191,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		if (ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(ifStmt.getFortran(this, node));
 		else 
-			SubProgram.getStatementSection().addStatement(ifStmt.getFortran(this, node));
+			subProgram.getStatementSection().addStatement(ifStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -200,7 +200,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		if (ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(whileStmt.getFortran(this, node));
 		else 
-			SubProgram.getStatementSection().addStatement(whileStmt.getFortran(this, node));
+			subProgram.getStatementSection().addStatement(whileStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -209,7 +209,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		if(ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(forStmt.getFortran(this, node));
 		else 
-			SubProgram.getStatementSection().addStatement(forStmt.getFortran(this, node));
+			subProgram.getStatementSection().addStatement(forStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -218,7 +218,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		if(ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(arrGetStmt.getFortran(this, node));
 		else 
-			SubProgram.getStatementSection().addStatement(arrGetStmt.getFortran(this, node));
+			subProgram.getStatementSection().addStatement(arrGetStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -227,15 +227,15 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		if (ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(arrSetStmt.getFortran(this, node));
 		else 
-			SubProgram.getStatementSection().addStatement(arrSetStmt.getFortran(this, node));
+			subProgram.getStatementSection().addStatement(arrSetStmt.getFortran(this, node));
 	}
 	
-	/*************************************HELPER METHODS******************************************/
+	// ******************************helper methods****************************
 	public static SubProgram FortranProgramGen(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
 			int callgraphSize, 
 			int index, String fileDir) {
-		return new FortranCodeASTGenerator(analysis, callgraphSize, index, fileDir).SubProgram;
+		return new FortranCodeASTGenerator(analysis, callgraphSize, index, fileDir).subProgram;
 	}
 
 	public void iterateStatements(ast.List<ast.Stmt> stmts) {

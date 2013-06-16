@@ -1,12 +1,13 @@
-package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
+package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
 import java.util.List;
 
+import ast.Function;
+
 import natlab.tame.classes.reference.PrimitiveClassReference;
-import natlab.tame.tir.TIRFunction;
 import natlab.tame.valueanalysis.components.shape.DimValue;
-import natlab.backends.Fortran.codegen_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.backends.Fortran.codegen_readable.*;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
 
 public class CaseNewMainEntryPoint {
 	static boolean Debug = false;
@@ -23,7 +24,7 @@ public class CaseNewMainEntryPoint {
 	 * because there may be some shadow variable we generated during the stmt 
 	 * transformation.
 	 */
-	public FortranCodeASTGenerator newMain(FortranCodeASTGenerator fcg, TIRFunction node) {
+	public FortranCodeASTGenerator newMain(FortranCodeASTGenerator fcg, Function node) {
 		/* 
 		 * first pass of all the statements, collect information.
 		 */
@@ -52,7 +53,7 @@ public class CaseNewMainEntryPoint {
 		 */
 		DeclarationSection declSection = new DeclarationSection();
 		DerivedTypeList derivedTypeList = new DerivedTypeList();
-		for (String variable : fcg.getCurrentOutSet().keySet()) {
+		for (String variable : fcg.remainingVars) {
 			if (fcg.isCell(variable) || !fcg.hasSingleton(variable)) {
 				// cell array declaration, mapping to derived type in Fortran.
 				DerivedType derivedType = new DerivedType();
@@ -68,7 +69,7 @@ public class CaseNewMainEntryPoint {
 				if (!skip) {
 					sb.append("TYPE "+"cellStruct_"+variable+"\n");
 					for (int i=0; i<fcg.forCellArr.get(variable).size(); i++) {
-						sb.append("   "+fcg.FortranMapping.getFortranTypeMapping(
+						sb.append("   "+fcg.fortranMapping.getFortranTypeMapping(
 								fcg.forCellArr.get(variable).get(i).getMatlabClass().toString()));
 						if (!fcg.forCellArr.get(variable).get(i).getShape().isScalar()) {
 							if (fcg.forCellArr.get(variable).get(i).getMatlabClass()
@@ -92,12 +93,6 @@ public class CaseNewMainEntryPoint {
 				derivedTypeList.addDerivedType(derivedType);
 				declSection.setDerivedTypeList(derivedTypeList);
 			}
-			else if (fcg.getMatrixValue(variable).hasConstant() 
-					&& !fcg.inArgs.contains(variable) 
-					&& fcg.tamerTmpVar.contains(variable) 
-					|| fcg.tmpVectorAsArrayIndex.containsKey(variable)) {
-				if (Debug) System.out.println("do constant folding, no declaration.");
-			}
 			else {
 				DeclStmt declStmt = new DeclStmt();
 				// type is already a token, don't forget.
@@ -107,10 +102,10 @@ public class CaseNewMainEntryPoint {
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
 				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
-					declStmt.setType(fcg.FortranMapping.getFortranTypeMapping("char")
+					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
 							+"("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1)+")");
 				}
-				else declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
+				else declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
 				 * declare arrays.
@@ -196,7 +191,7 @@ public class CaseNewMainEntryPoint {
 			// type is already a token, don't forget.
 			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
-			declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
+			declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 					fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString()));
 			if (!fcg.tmpVariables.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();

@@ -50,6 +50,7 @@ public class Main_readable {
 	        		.forAST(function.getAst());
 	        AnalysisEngine analysisEngine = transformationEngine
 	        		.getAnalysisEngine();
+	        @SuppressWarnings("rawtypes")
 	        ASTNode fTree = transformationEngine
 	        		.getTIRToMcSAFIRWithoutTemp().getTransformedTree();
 	        Set<String> remainingVars = analysisEngine
@@ -60,8 +61,11 @@ public class Main_readable {
 	         * Fortran code generation.
 	         */
 	        System.err.println("pretty print the generated Fortran code.\n");
-	        PrettyPrintFortran prettyPrintFortran = 
-	        		new PrettyPrintFortran((Function)fTree, currentOutSet, remainingVars);
+	        StringBuffer sb = new StringBuffer();
+	        FortranCodeASTGenerator.FortranProgramGen(
+	        		(Function)fTree, currentOutSet, remainingVars)
+	        		.pp(sb);
+	        System.err.println(sb);
         }
 	}
 }
