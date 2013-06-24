@@ -94,8 +94,8 @@ public class CaseNewMainEntryPoint {
 			}
 			else if (fcg.getMatrixValue(variable).hasConstant() 
 					&& !fcg.inArgs.contains(variable) 
-					&& fcg.tamerTmpVar.contains(variable) 
-					|| fcg.tmpVectorAsArrayIndex.containsKey(variable)) {
+					&& fcg.tempVarsBeforeF.contains(variable) 
+					|| fcg.tempVectorAsArrayIndex.containsKey(variable)) {
 				if (Debug) System.out.println("do constant folding, no declaration.");
 			}
 			else {
@@ -191,17 +191,17 @@ public class CaseNewMainEntryPoint {
 		 * declare those variables generated during the code generation,
 		 * like extra variables for runtime shape check
 		 */
-		for (String tmpVariable : fcg.tmpVariables.keySet()) {
+		for (String tmpVariable : fcg.tempVarsFortran.keySet()) {
 			DeclStmt declStmt = new DeclStmt();
 			// type is already a token, don't forget.
 			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
 			declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
-					fcg.tmpVariables.get(tmpVariable).getMatlabClass().toString()));
-			if (!fcg.tmpVariables.get(tmpVariable).getShape().isScalar()) {
+					fcg.tempVarsFortran.get(tmpVariable).getMatlabClass().toString()));
+			if (!fcg.tempVarsFortran.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();
 				Keyword keyword = new Keyword();
-				keyword.setName("DIMENSION("+fcg.tmpVariables.get(tmpVariable).getShape()
+				keyword.setName("DIMENSION("+fcg.tempVarsFortran.get(tmpVariable).getShape()
 						.toString().replace(" ", "").replace("[", "").replace("]", "")+")");
 				keywordList.addKeyword(keyword);
 				declStmt.setKeywordList(keywordList);

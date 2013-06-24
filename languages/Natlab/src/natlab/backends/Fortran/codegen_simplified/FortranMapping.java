@@ -3,7 +3,6 @@ package natlab.backends.Fortran.codegen_simplified;
 import java.util.*;
 
 public class FortranMapping {
-	
 	private static HashMap<String, String> FortranTypeMap = 
 			new HashMap<String, String>();
 	private static HashMap<String, String> FortranBinOperatorMap = 

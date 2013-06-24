@@ -9,7 +9,6 @@ import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.toolkits.filehandling.GenericFile;
 import natlab.toolkits.path.FileEnvironment;
 import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.*;
 
 public class Main_simplified {
 	

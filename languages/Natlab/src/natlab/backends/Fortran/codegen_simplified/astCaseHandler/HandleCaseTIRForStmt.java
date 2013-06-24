@@ -8,8 +8,8 @@ public class HandleCaseTIRForStmt {
 	static boolean Debug = false;
 	
 	/**
-	 * ForStmt: Statement 
-	 * ::= <LoopVar> <LowBoundary> <UpperBoundary> [Inc] ForBlock: StatementSection;
+	 * ForStmt: Statement ::= 
+	 * <LoopVar> <LowBoundary> <UpperBoundary> [Inc] ForBlock: StatementSection;
 	 */
 	public Statement getFortran(FortranCodeASTGenerator fcg, TIRForStmt node){
 		if (Debug) System.out.println("in for statement.");
@@ -26,7 +26,7 @@ public class HandleCaseTIRForStmt {
 		 */
 		String lowerBoundName = node.getLowerName().getVarName();
 		if (fcg.getMatrixValue(lowerBoundName).hasConstant() 
-				&& fcg.tamerTmpVar.contains(lowerBoundName)) {
+				&& fcg.tempVarsBeforeF.contains(lowerBoundName)) {
 			int intLower = ((Double) fcg.getMatrixValue(lowerBoundName)
 					.getConstant().getValue()).intValue();
 			stmt.setLowBoundary(Integer.toString(intLower));
@@ -37,7 +37,7 @@ public class HandleCaseTIRForStmt {
 		 */
 		String upperBoundName = node.getUpperName().getVarName();
 		if (fcg.getMatrixValue(upperBoundName).hasConstant() 
-				&& fcg.tamerTmpVar.contains(upperBoundName)) {
+				&& fcg.tempVarsBeforeF.contains(upperBoundName)) {
 			int intUpper = ((Double) fcg.getMatrixValue(upperBoundName)
 					.getConstant().getValue()).intValue();
 			stmt.setUpperBoundary(Integer.toString(intUpper));
@@ -53,7 +53,7 @@ public class HandleCaseTIRForStmt {
 			 */
 			String incName = node.getIncName().getVarName();
 			if (fcg.getMatrixValue(incName).hasConstant() 
-					&& fcg.tamerTmpVar.contains(incName)) {
+					&& fcg.tempVarsBeforeF.contains(incName)) {
 				int intInc = ((Double) fcg.getMatrixValue(incName)
 						.getConstant().getValue()).intValue();
 				inc.setName(Integer.toString(intInc));

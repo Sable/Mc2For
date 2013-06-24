@@ -12,8 +12,8 @@ public class HandleCaseTIRArrayGetStmt {
 	static boolean Debug = false;
 	
 	/**
-	 * ArrayGetStmt: Statement ::= <Indent> [RuntimeCheck] 
-	 * [RigorousIndexingTransformation] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+	 * ArrayGetStmt: Statement ::= 
+	 * <Indent> [RuntimeAllocate] [RigorousIndexingTransformation] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
 	 */
 	public Statement getFortran(FortranCodeASTGenerator fcg, TIRArrayGetStmt node) {
 		if (Debug) System.out.println("in an arrayget statement!");
@@ -54,14 +54,14 @@ public class HandleCaseTIRArrayGetStmt {
 				lhsIndex.add(":");
 			}
 			else if (fcg.getMatrixValue(indexString[i]).hasConstant() 
-					&& fcg.tamerTmpVar.contains(indexString[i])) {
+					&& fcg.tempVarsBeforeF.contains(indexString[i])) {
 				int intValue = ((Double) fcg.getMatrixValue(indexString[i])
 						.getConstant().getValue()).intValue();
 				rhsIndex.add(String.valueOf(intValue));
 				lhsIndex.add("1");
 			}
-			else if (fcg.tmpVectorAsArrayIndex.containsKey(indexString[i])) {
-				ArrayList<String> colonIndex = fcg.tmpVectorAsArrayIndex.get(indexString[i]);
+			else if (fcg.tempVectorAsArrayIndex.containsKey(indexString[i])) {
+				ArrayList<String> colonIndex = fcg.tempVectorAsArrayIndex.get(indexString[i]);
 				rhsIndex.add(colonIndex.get(0) + ":" + colonIndex.get(1));
 				List<DimValue> colonShape = fcg.getMatrixValue(indexString[i])
 						.getShape().getDimensions();

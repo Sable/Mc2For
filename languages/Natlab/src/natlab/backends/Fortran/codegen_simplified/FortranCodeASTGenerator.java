@@ -30,7 +30,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public boolean isInSubroutine;
 	public HashSet<String> inputHasChanged; // used to back up input argument.
 	public HashSet<String> arrayConvert;
-	public HashMap<String, BasicMatrixValue> tmpVariables; // generated in Fortran code gen.
+	public HashMap<String, BasicMatrixValue> tempVarsFortran; // temporary variables generated in Fortran code generation.
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram subProgram;
@@ -41,8 +41,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	 * K: the name of the temporary vector variable, 
 	 * V: the range of those variables.
 	 */
-	public HashMap<String, ArrayList<String>> tmpVectorAsArrayIndex;
-	public HashSet<String> tamerTmpVar; // temporary variables generated in Tamer.
+	public HashMap<String, ArrayList<String>> tempVectorAsArrayIndex;
+	public HashSet<String> tempVarsBeforeF; // temporary variables generated during McSAF or Tamer simplification.
 	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr; // not support nested cell array.
 	public ArrayList<String> declaredCell;
 	
@@ -60,14 +60,14 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		isInSubroutine = false;
 		inputHasChanged = new HashSet<String>();
 		arrayConvert = new HashSet<String>();
-		tmpVariables = new HashMap<String,BasicMatrixValue>();
+		tempVarsFortran = new HashMap<String,BasicMatrixValue>();
 		ifWhileForBlockNest = 0;
 		stmtSecForIfWhileForBlock = new StatementSection();
 		subProgram = new SubProgram();
 		indentNum = 0;
 		indent = "   ";
-		tmpVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
-		tamerTmpVar = new HashSet<String>();
+		tempVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
+		tempVarsBeforeF = new HashSet<String>();
 		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
 		declaredCell = new ArrayList<String>();
 		((TIRNode)analysis.getNodeList().get(index).getFunction().getAst()).tirAnalyze(this);
@@ -104,7 +104,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 				&& !outRes.contains(targetName) 
 				&& !inArgs.contains(targetName) 
 				&& node.getTargetName().tmpVar) {
-			tamerTmpVar.add(targetName);
+			tempVarsBeforeF.add(targetName);
 			if (Debug) System.out.println(targetName+" is a constant");
 		}
 		else {
@@ -128,7 +128,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 				&& getMatrixValue(targetName).hasConstant() 
 				&& !this.outRes.contains(targetName) 
 				&& node.getTargetName().tmpVar) {
-			tamerTmpVar.add(targetName);
+			tempVarsBeforeF.add(targetName);
 			if (Debug) System.out.println(targetName+" is a constant");
 		}
 		else {
@@ -161,7 +161,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 					&& !outRes.contains(targetName) 
 					&& node.getTargetName().tmpVar) {
 				// can a tmp var be tmp and constant scalar at the same time for this case?
-				tamerTmpVar.add(targetName);
+				tempVarsBeforeF.add(targetName);
 				if (Debug) System.out.println(targetName+" is a constant");
 			}
 			else {

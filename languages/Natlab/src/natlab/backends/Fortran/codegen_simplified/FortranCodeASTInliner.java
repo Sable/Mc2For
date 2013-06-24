@@ -12,8 +12,8 @@ import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 import natlab.backends.Fortran.codegen_simplified.astCaseHandler.*;
 
 public class FortranCodeASTInliner {
-
 	static boolean Debug = false;
+	
 	@SuppressWarnings("rawtypes")
 	public static NoDirectBuiltinExpr inline(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node, 
 			List<Shape> currentShape) {
@@ -28,7 +28,7 @@ public class FortranCodeASTInliner {
 		 */
 		String lhsTarget = node.getLHS().getNodeString().replace("[", "").replace("]", "");
 		String cellLHSTarget = lhsTarget;
-		StringBuffer tmpBuf = new StringBuffer();
+		StringBuffer tempBuf = new StringBuffer();
 		/*
 		 * if input arguments on the LHS of an assignment stmt, 
 		 * we assume that this input argument may be modified.
@@ -72,7 +72,7 @@ public class FortranCodeASTInliner {
 		/*
 		 * below are all the cases by enumeration, extendable.
 		 */
-		tmpBuf.append(indent+"!mapping function "+rhsFunName+"\n");
+		tempBuf.append(indent+"!mapping function "+rhsFunName+"\n");
 		
 		/*********************built-in function enumeration*******************/
 		if (rhsFunName.equals("horzcat")) {
@@ -82,16 +82,16 @@ public class FortranCodeASTInliner {
 				 */
 				if (fcg.getMatrixValue(rhsArgs.get(i-1)).hasConstant()) {
 					Constant c = fcg.getMatrixValue(rhsArgs.get(i-1)).getConstant();
-					tmpBuf.append(indent+cellLHSTarget+"(1,"+i+") = "+c+";");
+					tempBuf.append(indent+cellLHSTarget+"(1,"+i+") = "+c+";");
 				}
 				else {
-					tmpBuf.append(indent+cellLHSTarget+"(1,"+i+") = "+rhsArgs.get(i-1)+";");
+					tempBuf.append(indent+cellLHSTarget+"(1,"+i+") = "+rhsArgs.get(i-1)+";");
 				}
-				if (i<numOfArgs) tmpBuf.append("\n");
+				if (i<numOfArgs) tempBuf.append("\n");
 			}
-			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
 		else if (rhsFunName.equals("vertcat")) {
 			for (int i=1; i<=numOfArgs; i++) {
@@ -100,16 +100,16 @@ public class FortranCodeASTInliner {
 				 */
 				if (fcg.getMatrixValue(rhsArgs.get(i-1)).hasConstant()) {
 					Constant c = fcg.getMatrixValue(rhsArgs.get(i-1)).getConstant();
-					tmpBuf.append(indent+cellLHSTarget+"("+i+",1) = "+c+";");
+					tempBuf.append(indent+cellLHSTarget+"("+i+",1) = "+c+";");
 				}
 				else {
-					tmpBuf.append(indent+cellLHSTarget+"("+i+",:) = "+rhsArgs.get(i-1)+"(1,:);");
+					tempBuf.append(indent+cellLHSTarget+"("+i+",:) = "+rhsArgs.get(i-1)+"(1,:);");
 				}
-				if(i<numOfArgs) tmpBuf.append("\n");
+				if(i<numOfArgs) tempBuf.append("\n");
 			}
-			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}
 		else if (rhsFunName.equals("ones")) {
 			/*
@@ -122,32 +122,32 @@ public class FortranCodeASTInliner {
 				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 						.getConstant();
 				int ci = c.getValue().intValue();
-				tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , "+ci+"\n");
+				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , "+ci+"\n");
 			}
 			else {
-				tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , int("+rhsArgs.get(0)+")\n");
+				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , int("+rhsArgs.get(0)+")\n");
 			}
 			if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant()) {
 				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 						.getConstant();
 				int ci = c.getValue().intValue();
-				tmpBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
+				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
 			}
 			else {
-				tmpBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , int("+rhsArgs.get(1)
+				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , int("+rhsArgs.get(1)
 						+")\n");
 			}
-			tmpBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
+			tempBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
 					+"_i,tmp_"+lhsTarget+"_j) = 1;\n");
-			tmpBuf.append(indent+fcg.indent+"ENDDO\n");
-			tmpBuf.append(indent+"ENDDO");
+			tempBuf.append(indent+fcg.indent+"ENDDO\n");
+			tempBuf.append(indent+"ENDDO");
 			BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 					(new ShapeFactory()).getScalarShape(), null);
-			fcg.tmpVariables.put("tmp_"+lhsTarget+"_i", tmp);
-			fcg.tmpVariables.put("tmp_"+lhsTarget+"_j", tmp);
-			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
+			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_j", tmp);
+			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
 		else if (rhsFunName.equals("zeros")) {
 			/*
@@ -157,32 +157,32 @@ public class FortranCodeASTInliner {
 				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 						.getConstant();
 				int ci = c.getValue().intValue();
-				tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , "+ci+"\n");
+				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , "+ci+"\n");
 			}
 			else {
-				tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , int("+rhsArgs.get(0)+")\n");
+				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , int("+rhsArgs.get(0)+")\n");
 			}
 			if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant()){
 				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 						.getConstant();
 				int ci = c.getValue().intValue();
-				tmpBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
+				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
 			}
 			else {
-				tmpBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget
+				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget
 						+"_j = 1 , int("+rhsArgs.get(1)+")\n");
 			}
-			tmpBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
+			tempBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
 					+"_i,tmp_"+lhsTarget+"_j) = 0;\n");
-			tmpBuf.append(indent+fcg.indent+"ENDDO\n");
-			tmpBuf.append(indent+"ENDO");
+			tempBuf.append(indent+fcg.indent+"ENDDO\n");
+			tempBuf.append(indent+"ENDO");
 			BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 					(new ShapeFactory()).getScalarShape(), null);
-			fcg.tmpVariables.put("tmp_"+lhsTarget+"_i", tmp);
-			fcg.tmpVariables.put("tmp_"+lhsTarget+"_j", tmp);
-			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
+			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_j", tmp);
+			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
 		else if (rhsFunName.equals("colon")) {
 			/*
@@ -204,7 +204,7 @@ public class FortranCodeASTInliner {
 						rhsArgs.add(i, String.valueOf(ci));
 					}
 				}
-				fcg.tmpVectorAsArrayIndex.put(node.getTargets().asNameList().get(0).getID(), rhsArgs);
+				fcg.tempVectorAsArrayIndex.put(node.getTargets().asNameList().get(0).getID(), rhsArgs);
 			}
 			else {
 				/*
@@ -223,31 +223,31 @@ public class FortranCodeASTInliner {
 					 * need constant folding check.
 					 */
 					if (fcg.getMatrixValue(rhsArgs.get(0)).hasConstant() 
-							&& fcg.tamerTmpVar.contains(rhsArgs.get(0))) {
+							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(0))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+ci);
+						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+ci);
 					}
 					else {
-						tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+rhsArgs.get(0));
+						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+rhsArgs.get(0));
 					}
 					if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant() 
-							&& fcg.tamerTmpVar.contains(rhsArgs.get(1))) {
+							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(1))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tmpBuf.append(","+ci+"\n");
+						tempBuf.append(","+ci+"\n");
 					}
 					else {
-						tmpBuf.append(","+rhsArgs.get(1)+"\n");
+						tempBuf.append(","+rhsArgs.get(1)+"\n");
 					}
-					tmpBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
+					tempBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
 							+"_i) = tmp_"+lhsTarget+"_i;\n");
-					tmpBuf.append(indent+"ENDDO");
+					tempBuf.append(indent+"ENDDO");
 					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 							(new ShapeFactory()).getScalarShape(), null);
-					fcg.tmpVariables.put("tmp_"+lhsTarget+"_i", tmp);
+					fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
 				}
 				else if (numOfArgs==3) {
 					/* a = lower:inc:upper
@@ -258,56 +258,56 @@ public class FortranCodeASTInliner {
 				  	 *   tmp_a_index=tmp_a_index+1;
 				     * enddo
 				     */
-					tmpBuf.append("tmp_"+lhsTarget+"_index = 1;\n");
+					tempBuf.append("tmp_"+lhsTarget+"_index = 1;\n");
 					/*
 					 * need constant folding check.
 					 */
 					if (fcg.getMatrixValue(rhsArgs.get(0)).hasConstant() 
-							&& fcg.tamerTmpVar.contains(rhsArgs.get(0))) {
+							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(0))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+ci);
+						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+ci);
 					}
 					else {
-						tmpBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+rhsArgs.get(0));
+						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+rhsArgs.get(0));
 					}
 					if (fcg.getMatrixValue(rhsArgs.get(2)).hasConstant() 
-							&& fcg.tamerTmpVar.contains(rhsArgs.get(2))) {
+							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(2))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(2))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tmpBuf.append(","+ci);
+						tempBuf.append(","+ci);
 					}
 					else {
-						tmpBuf.append(","+rhsArgs.get(2));
+						tempBuf.append(","+rhsArgs.get(2));
 					}
 					if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant() 
-							&& fcg.tamerTmpVar.contains(rhsArgs.get(1))) {
+							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(1))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tmpBuf.append(","+ci+"\n");
+						tempBuf.append(","+ci+"\n");
 					}
 					else {
-						tmpBuf.append(","+rhsArgs.get(1)+"\n");
+						tempBuf.append(","+rhsArgs.get(1)+"\n");
 					}
-					tmpBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
+					tempBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
 							+"_index) = tmp_"+lhsTarget+"_i;\n");
-					tmpBuf.append(fcg.indent+fcg.indent+"tmp_"+lhsTarget+"_index = tmp_"
+					tempBuf.append(fcg.indent+fcg.indent+"tmp_"+lhsTarget+"_index = tmp_"
 							+lhsTarget+"_index+1;\n");
-					tmpBuf.append(indent+"ENDDO");
+					tempBuf.append(indent+"ENDDO");
 					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 							(new ShapeFactory()).getScalarShape(), null);
-					fcg.tmpVariables.put("tmp_"+lhsTarget+"_i", tmp);
-					fcg.tmpVariables.put("tmp_"+lhsTarget+"_index", tmp);
+					fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
+					fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_index", tmp);
 				}
 				else {
 					// TODO this should be an error, throw an exception?
 				}
-				tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
+				tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
 						+" is over.");
-				noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+				noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 			}
 		}		
 		else if (rhsFunName.equals("randperm")) {
@@ -319,10 +319,10 @@ public class FortranCodeASTInliner {
 					DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 							.getConstant();
 					int ci = c.getValue().intValue();
-					tmpBuf.append(indent+"call randperm("+ci+","+cellLHSTarget+")");
+					tempBuf.append(indent+"call randperm("+ci+","+cellLHSTarget+")");
 				}
 				else {
-					tmpBuf.append(indent+"call randperm("+rhsArgs.get(0)+","+cellLHSTarget+")");
+					tempBuf.append(indent+"call randperm("+rhsArgs.get(0)+","+cellLHSTarget+")");
 				}
 			}
 			else if (numOfArgs==2) {
@@ -331,9 +331,9 @@ public class FortranCodeASTInliner {
 			else {
 				// TODO this should be an error, throw an exception?
 			}
-			tmpBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
 					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
 		else if (rhsFunName.equals("rand")) {
 			// TODO what is people implement a rand function in MATLAB? 
@@ -346,17 +346,17 @@ public class FortranCodeASTInliner {
 			}
 			fcg.forCellArr.put(lhsTarget, fields);
 			for (int i=0; i<rhsArgs.size(); i++) {
-				tmpBuf.append(indent+lhsTarget+"%f"+i+" = ");
+				tempBuf.append(indent+lhsTarget+"%f"+i+" = ");
 				if (fcg.getMatrixValue(rhsArgs.get(i)).hasConstant() 
-						&& fcg.tamerTmpVar.contains(rhsArgs.get(i))) {
+						&& fcg.tempVarsBeforeF.contains(rhsArgs.get(i))) {
 					Constant c = fcg.getMatrixValue(rhsArgs.get(i))
 							.getConstant();
-					tmpBuf.append(c+";");
+					tempBuf.append(c+";");
 				}
-				else tmpBuf.append(rhsArgs.get(i)+";");
-				if (i<rhsArgs.size()-1) tmpBuf.append("\n");
+				else tempBuf.append(rhsArgs.get(i)+";");
+				if (i<rhsArgs.size()-1) tempBuf.append("\n");
 			}
-			noDirBuiltinExpr.setCodeInline(tmpBuf.toString());
+			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}
 		else {
 			/*

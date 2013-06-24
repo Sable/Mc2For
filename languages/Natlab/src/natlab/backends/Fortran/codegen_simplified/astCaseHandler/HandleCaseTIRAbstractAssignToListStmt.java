@@ -45,7 +45,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 
 		RuntimeAllocate rta = new RuntimeAllocate();
 		@SuppressWarnings("rawtypes")
-		List<Shape> currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
+		List<Shape> currentShape;
 		
 		switch (RHSCaseNumber) {
 		case 1:
@@ -71,7 +71,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 */
 			if (fcg.getMatrixValue(Operand1).hasConstant() 
 					&& !fcg.inArgs.contains(Operand1) 
-					&& fcg.tamerTmpVar.contains(Operand1)) {
+					&& fcg.tempVarsBeforeF.contains(Operand1)) {
 				Constant c = fcg.getMatrixValue(Operand1).getConstant();
 				binExpr.setOperand1(c.toString());
 			}
@@ -81,7 +81,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			}
 			if (fcg.getMatrixValue(Operand2).hasConstant() 
 					&& !fcg.inArgs.contains(Operand2) 
-					&& fcg.tamerTmpVar.contains(Operand2)) {
+					&& fcg.tempVarsBeforeF.contains(Operand2)) {
 				Constant c = fcg.getMatrixValue(Operand2).getConstant();
 				binExpr.setOperand2(c.toString());
 			}
@@ -96,6 +96,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
 				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
 				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
@@ -140,7 +141,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 */
 			if (fcg.getMatrixValue(Operand1).hasConstant() 
 					&& !fcg.inArgs.contains(Operand1) 
-					&& fcg.tamerTmpVar.contains(Operand1)) {
+					&& fcg.tempVarsBeforeF.contains(Operand1)) {
 				Constant c = fcg.getMatrixValue(Operand1).getConstant();
 				unExpr.setOperand(c.toString());
 			}
@@ -156,6 +157,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
 				tmpBuf.append(indent+"ELSE\n");	
 				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
@@ -201,7 +203,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			for (int i=0;i<arguments.size();i++) {
 				if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
 						&& !fcg.inArgs.contains(arguments.get(i)) 
-						&& fcg.tamerTmpVar.contains(arguments.get(i))) {
+						&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
 					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
 					arguments.remove(i);
 					arguments.add(i, c.toString());
@@ -223,6 +225,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
 				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
 				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
@@ -250,6 +253,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 * insert indent, constant folding check and variable 
 			 * allocation check in corresponding in-lined code.
 			 */
+			currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node, currentShape);
 			System.out.println(node.getTargetName().getID());
 			if (!fcg.isCell(node.getTargetName().getID()) && fcg.hasSingleton(node.getTargetName().getID()) 
@@ -305,6 +309,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
 				tmpBuf.append(indent+"   DEALLOCATE("+node.getTargetName().getID()+");\n");
 				tmpBuf.append(indent+"   ALLOCATE("+node.getTargetName().getID()+"(");
+				currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
@@ -335,7 +340,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			for (int i=0;i<arguments.size();i++) {
 				if (!fcg.isCell(arguments.get(i)) && fcg.getMatrixValue(arguments.get(i)).hasConstant() 
 						&& !fcg.inArgs.contains(arguments.get(i)) 
-						&& fcg.tamerTmpVar.contains(arguments.get(i))) {
+						&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
 					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
 					arguments.remove(i);
 					if (c instanceof CharConstant) arguments.add(i, "'"+c+"'");
@@ -384,7 +389,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			for (int i=0;i<arguments.size();i++) {
 				if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
 						&& !fcg.inArgs.contains(arguments.get(i)) 
-						&& fcg.tamerTmpVar.contains(arguments.get(i))) {
+						&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
 					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
 					arguments.remove(i);
 					arguments.add(i, c.toString());
@@ -504,8 +509,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		}
 		Args arg1 = Args.newInstance(null, nargout, argumentList1);
 		List<Shape> result1 = shapePropTool.matchByValues(
-				((HasShapePropagationInfo)builtin).getShapePropagationInfo()
-				, arg1);
+				((HasShapePropagationInfo)builtin)
+				.getShapePropagationInfo(), arg1);
 		if (result1.get(0).isConstant()) return result1;
 		/*
 		 * allocate with symbolic information.
@@ -517,8 +522,8 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		}
 		Args arg2 = Args.newInstance(null, nargout, argumentList2);
 		List<Shape> result2 = shapePropTool.matchByValues(
-				((HasShapePropagationInfo)builtin).getShapePropagationInfo()
-				, arg2);
+				((HasShapePropagationInfo)builtin)
+				.getShapePropagationInfo(), arg2);
 		return result2;
 	}
 }

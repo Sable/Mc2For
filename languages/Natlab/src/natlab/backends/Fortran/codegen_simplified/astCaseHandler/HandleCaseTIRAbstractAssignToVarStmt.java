@@ -43,7 +43,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		if (!fcg.isCell(targetName) && fcg.hasSingleton(targetName) 
 				&& fcg.getMatrixValue(rhsNodeString).hasConstant() 
 				&& (!fcg.inArgs.contains(rhsNodeString)) 
-				&& fcg.tamerTmpVar.contains(rhsNodeString)) {
+				&& fcg.tempVarsBeforeF.contains(rhsNodeString)) {
 			if (Debug) System.out.println(targetName+" is a constant");
 			Constant c = fcg.getMatrixValue(rhsNodeString).getConstant();
 			stmt.setSourceVariable(c.toString());

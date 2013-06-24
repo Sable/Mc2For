@@ -8,8 +8,8 @@ public class HandleCaseTIRIfStmt {
 	static boolean Debug = false;
 	
 	/**
-	 * IfStmt: Statement 
-	 * ::= <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
+	 * IfStmt: Statement ::= 
+	 * <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
 	 */
 	public Statement getFortran(
 			FortranCodeASTGenerator fcg, 

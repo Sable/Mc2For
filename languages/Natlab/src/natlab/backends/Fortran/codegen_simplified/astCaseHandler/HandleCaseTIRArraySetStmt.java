@@ -1,11 +1,10 @@
 package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
-import java.util.List;
 import java.util.ArrayList;
 
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.components.constant.Constant;
-import natlab.tame.valueanalysis.components.shape.DimValue;
+import natlab.tame.valueanalysis.components.shape.*;
 import natlab.backends.Fortran.codegen_simplified.*;
 import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
@@ -13,8 +12,8 @@ public class HandleCaseTIRArraySetStmt {
 	static boolean Debug = false;
 	
 	/**
-	 * ArraySetStmt: Statement ::= <Indent> [RuntimeCheck] 
-	 * [RigorousIndexingTransformation] <lhsVariable> <lhsIndex> <rhsVariable>;
+	 * ArraySetStmt: Statement ::= 
+	 * <Indent> [RuntimeAllocate] [RigorousIndexingTransformation] <lhsVariable> <lhsIndex> <rhsVariable>;
 	 */
 	public Statement getFortran(FortranCodeASTGenerator fcg, TIRArraySetStmt node) {
 		if (Debug) System.out.println("in an arrayset statement!");
@@ -39,8 +38,8 @@ public class HandleCaseTIRArraySetStmt {
 		 * at least, we need the information of lhs array's shape 
 		 * and its corresponding index's shape (maybe value).
 		 */
-		List<DimValue> lhsArrayDimension = fcg.getMatrixValue(lhsArrayName)
-				.getShape().getDimensions();
+		@SuppressWarnings("rawtypes")
+		Shape lhsArrayShape = fcg.getMatrixValue(lhsArrayName).getShape();
 		/*
 		 * insert constant variable replacement check for LHS array index.
 		 */
@@ -52,10 +51,14 @@ public class HandleCaseTIRArraySetStmt {
 				lhsIndex.add(":");
 			}
 			else if (fcg.getMatrixValue(indexString[i]).hasConstant() 
-					&& fcg.tamerTmpVar.contains(indexString[i])) {
+					&& fcg.tempVarsBeforeF.contains(indexString[i])) {
 				int intValue = ((Double) fcg.getMatrixValue(indexString[i])
 						.getConstant().getValue()).intValue();
 				lhsIndex.add(String.valueOf(intValue));
+			}
+			else if (fcg.tempVectorAsArrayIndex.containsKey(indexString[i])) {
+				ArrayList<String> colonIndex = fcg.tempVectorAsArrayIndex.get(indexString[i]);
+				lhsIndex.add(colonIndex.get(0) + ":" + colonIndex.get(1));
 			}
 			else {
 				lhsIndex.add("INT("+indexString[i]+")");
@@ -69,7 +72,7 @@ public class HandleCaseTIRArraySetStmt {
 			Constant c = fcg.getMatrixValue(valueName).getConstant();
 			valueName = c.toString();
 		}
-		if (lhsArrayDimension.size() == lhsIndex.size()) {
+		if (lhsArrayShape.getDimensions().size() == lhsIndex.size()) {
 			stmt.setlhsVariable(lhsArrayName);
 			stmt.setlhsIndex(lhsIndex.toString().replace("[", "").replace("]", ""));
 			stmt.setrhsVariable(valueName);
@@ -77,7 +80,7 @@ public class HandleCaseTIRArraySetStmt {
 		else {
 			// TODO separate linear indexing from other rigorous indexing transformation.
 			RigorousIndexingTransformation indexTransform = ArraySetIndexingTransformation
-					.getTransformedIndex(lhsArrayName, valueName, lhsArrayDimension, lhsIndex);
+					.getTransformedIndex(lhsArrayName, valueName, lhsArrayShape.getDimensions(), lhsIndex);
 			stmt.setRigorousIndexingTransformation(indexTransform);
 		}
 		return stmt;

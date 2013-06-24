@@ -4,9 +4,9 @@ import ast.Name;
 import natlab.tame.tir.*;
 import natlab.backends.Fortran.codegen_simplified.*;
 
-public class HandleCaseTIRFunction 
-{
+public class HandleCaseTIRFunction {
 	static boolean Debug =false;
+	
 	/**
 	 * Functions in MATLAB are mapped to programs and subroutines in Fortran, 
 	 * SubProgram ::= ProgramTitle DeclarationSection StatementSection;
