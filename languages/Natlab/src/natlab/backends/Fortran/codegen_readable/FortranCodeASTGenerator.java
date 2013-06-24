@@ -237,6 +237,15 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	}
 	
 	@Override
+	public void caseWhileStmt(WhileStmt node) {
+		HandleCaseWhileStmt whileStmt = new HandleCaseWhileStmt();
+		if (ifWhileForBlockNest!=0) 
+			stmtSecForIfWhileForBlock.addStatement(whileStmt.getFortran(this, node));
+		else 
+			subProgram.getStatementSection().addStatement(whileStmt.getFortran(this, node));
+	}
+	
+	@Override
 	public void caseMatrixExpr(MatrixExpr node) {
 		for (int i=0; i<node.getNumChild(); i++) {
 			node.getChild(i).analyze(this);
