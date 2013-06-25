@@ -188,10 +188,56 @@ public class HandleCaseTIRArraySetStmt {
 		}
 		else {
 			// TODO separate linear indexing from other rigorous indexing transformation.
-			RigorousIndexingTransformation indexTransform = ArraySetIndexingTransformation
-					.getTransformedIndex(lhsArrayName, valueName, lhsArrayShape.getDimensions(), lhsIndex);
-			stmt.setRigorousIndexingTransformation(indexTransform);
+			if (lhsArrayShape.isConstant() && isIndexConstant(lhsIndex)) {
+				// perform linear indexing transformation.
+				ArrayList<Integer> newIndex = new ArrayList<Integer>();
+				int position = 0;
+				for (int i=0; i+1<lhsIndex.size(); ) {
+					newIndex.add(Integer.parseInt(lhsIndex.get(i)));
+					position = ++i;
+				}
+				for (int i=position; i<lhsArrayShape.getDimensions().size(); i++) {
+					newIndex.add(0);
+				}
+				for (int i=lhsArrayShape.getDimensions().size()-1; i>=position; i--) {
+					double remain = getHowNumbersFromTo(lhsArrayShape, position, i);
+					int index = (int) Math.ceil(Double.parseDouble(lhsIndex.get(position)) / remain);
+					int mod = (int) (Double.parseDouble(lhsIndex.get(position)) % remain);
+					if (mod==0) 
+						mod = ((DimValue)lhsArrayShape.getDimensions().get(position)).getIntValue();
+					newIndex.set(i, index);
+					lhsIndex.set(position, String.valueOf(mod));
+				}
+				stmt.setlhsVariable(lhsArrayName);
+				stmt.setlhsIndex(newIndex.toString().replace("[", "").replace("]", ""));
+				stmt.setrhsVariable(valueName);
+			}
+			else {
+				RigorousIndexingTransformation indexTransform = ArraySetIndexingTransformation
+						.getTransformedIndex(lhsArrayName, valueName, lhsArrayShape.getDimensions(), lhsIndex);
+				stmt.setRigorousIndexingTransformation(indexTransform);				
+			}
 		}
 		return stmt;
+	}
+	
+	/****************************helper function**************************/
+	private boolean isIndexConstant(ArrayList<String> rhsIndex) {
+		for (int i=0; i<rhsIndex.size(); i++) {
+			try {
+				Integer.parseInt(rhsIndex.get(i));
+			} catch(NumberFormatException e) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private int getHowNumbersFromTo(Shape rhsArrayShape, int begin, int end) {
+		int sum = 1;
+		for (int i=begin; i<end; i++) {
+			sum *= ((DimValue)rhsArrayShape.getDimensions().get(i)).getIntValue();
+		}
+		return sum;
 	}
 }

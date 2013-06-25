@@ -4,9 +4,10 @@ import java.util.List;
 import java.util.ArrayList;
 
 import natlab.tame.tir.*;
-import natlab.tame.valueanalysis.components.shape.DimValue;
+import natlab.tame.valueanalysis.components.shape.*;
 import natlab.backends.Fortran.codegen_simplified.*;
 import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import java.math.*;
 
 public class HandleCaseTIRArrayGetStmt {
 	static boolean Debug = false;
@@ -39,8 +40,8 @@ public class HandleCaseTIRArrayGetStmt {
 		 * at least, we need the information of rhs array's shape 
 		 * and its corresponding index's shape (maybe value).
 		 */
-		List<DimValue> rhsArrayDimension = fcg.getMatrixValue(rhsArrayName)
-				.getShape().getDimensions();
+		Shape rhsArrayShape = fcg.getMatrixValue(rhsArrayName)
+				.getShape();
 		/*
 		 * insert constant variable replacement check for RHS array index.
 		 */
@@ -72,7 +73,7 @@ public class HandleCaseTIRArrayGetStmt {
 				lhsIndex.add("INT("+indexString[i]+")");
 			}
 		}
-		if (rhsArrayDimension.size() == rhsIndex.size()) {
+		if (rhsArrayShape.getDimensions().size() == rhsIndex.size()) {
 			stmt.setlhsVariable(lhsVariable);
 			stmt.setrhsVariable(rhsArrayName);
 			stmt.setrhsIndex(rhsIndex.toString().replace("[", "").replace("]", ""));
@@ -84,10 +85,56 @@ public class HandleCaseTIRArrayGetStmt {
 		}
 		else {
 			// TODO separate linear indexing from other rigorous indexing transformation.
-			RigorousIndexingTransformation indexTransform = ArrayGetIndexingTransformation
-					.getTransformedIndex(lhsVariable, rhsArrayName, rhsArrayDimension, rhsIndex);
-			stmt.setRigorousIndexingTransformation(indexTransform);
+			if (rhsArrayShape.isConstant() && isIndexConstant(rhsIndex)) {
+				// perform linear indexing transformation.
+				ArrayList<Integer> newIndex = new ArrayList<Integer>();
+				int position = 0;
+				for (int i=0; i+1<rhsIndex.size(); ) {
+					newIndex.add(Integer.parseInt(rhsIndex.get(i)));
+					position = ++i;
+				}
+				for (int i=position; i<rhsArrayShape.getDimensions().size(); i++) {
+					newIndex.add(0);
+				}
+				for (int i=rhsArrayShape.getDimensions().size()-1; i>=position; i--) {
+					double remain = getHowNumbersFromTo(rhsArrayShape, position, i);
+					int index = (int) Math.ceil(Double.parseDouble(rhsIndex.get(position)) / remain);
+					int mod = (int) (Double.parseDouble(rhsIndex.get(position)) % remain);
+					if (mod==0) 
+						mod = ((DimValue)rhsArrayShape.getDimensions().get(position)).getIntValue();
+					newIndex.set(i, index);
+					rhsIndex.set(position, String.valueOf(mod));
+				}
+				stmt.setlhsVariable(lhsVariable);
+				stmt.setrhsVariable(rhsArrayName);
+				stmt.setrhsIndex(newIndex.toString().replace("[", "").replace("]", ""));
+			}
+			else {
+				RigorousIndexingTransformation indexTransform = ArrayGetIndexingTransformation
+						.getTransformedIndex(lhsVariable, rhsArrayName, rhsArrayShape.getDimensions(), rhsIndex);
+				stmt.setRigorousIndexingTransformation(indexTransform);
+			}
 		}
 		return stmt;
+	}
+	
+	/****************************helper function**************************/
+	private boolean isIndexConstant(ArrayList<String> rhsIndex) {
+		for (int i=0; i<rhsIndex.size(); i++) {
+			try {
+				Integer.parseInt(rhsIndex.get(i));
+			} catch(NumberFormatException e) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private int getHowNumbersFromTo(Shape rhsArrayShape, int begin, int end) {
+		int sum = 1;
+		for (int i=begin; i<end; i++) {
+			sum *= ((DimValue)rhsArrayShape.getDimensions().get(i)).getIntValue();
+		}
+		return sum;
 	}
 }
