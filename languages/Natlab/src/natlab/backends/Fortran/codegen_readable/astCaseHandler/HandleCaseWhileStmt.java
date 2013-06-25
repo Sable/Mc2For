@@ -18,7 +18,7 @@ public class HandleCaseWhileStmt {
 		FWhileStmt stmt = new FWhileStmt();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.StandardIndent;
+			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
 		node.getChild(0).analyze(fcg);

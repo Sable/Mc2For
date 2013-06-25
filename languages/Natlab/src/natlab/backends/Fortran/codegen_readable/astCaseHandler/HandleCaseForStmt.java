@@ -17,7 +17,7 @@ public class HandleCaseForStmt {
 		FForStmt stmt = new FForStmt();
 		String indent = "";
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.StandardIndent;
+			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
 		node.getChild(0).getChild(0).analyze(fcg);

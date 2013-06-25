@@ -35,7 +35,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram subProgram;
 	public int indentNum;
-	public String indent;
+	public String standardIndent;
 	/* 
 	 * tmpVarAsArrayIndex, 
 	 * K: the name of the temporary vector variable, 
@@ -65,7 +65,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		stmtSecForIfWhileForBlock = new StatementSection();
 		subProgram = new SubProgram();
 		indentNum = 0;
-		indent = "   ";
+		standardIndent = "   ";
 		tempVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
 		tempVarsBeforeF = new HashSet<String>();
 		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();

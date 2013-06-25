@@ -16,7 +16,7 @@ public class HandleCaseTIRForStmt {
 		ForStmt stmt = new ForStmt();
 		String indent = "";
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.indent;
+			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
 		String loopVar = node.getLoopVarName().getVarName();

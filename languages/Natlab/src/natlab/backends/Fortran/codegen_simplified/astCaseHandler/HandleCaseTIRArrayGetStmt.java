@@ -20,7 +20,7 @@ public class HandleCaseTIRArrayGetStmt {
 		ArrayGetStmt stmt = new ArrayGetStmt();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.indent;
+			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
 		String lhsVariable = node.getLHS().getNodeString().replace("[", "").replace("]", "");

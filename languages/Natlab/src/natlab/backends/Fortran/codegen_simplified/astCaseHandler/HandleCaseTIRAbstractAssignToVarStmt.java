@@ -21,7 +21,7 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		AbstractAssignToVarStmt stmt = new AbstractAssignToVarStmt();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.indent;
+			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
 		String targetName = node.getTargetName().getID();

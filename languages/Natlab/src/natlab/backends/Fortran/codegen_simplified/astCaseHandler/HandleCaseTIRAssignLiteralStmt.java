@@ -20,7 +20,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 		AssignLiteralStmt stmt = new AssignLiteralStmt();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.indent;
+			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
 		Variable var = new Variable();

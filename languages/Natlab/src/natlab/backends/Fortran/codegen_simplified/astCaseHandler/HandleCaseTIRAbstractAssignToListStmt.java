@@ -29,7 +29,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		if (Debug) System.out.println("in an abstractAssignToList statement");
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.indent;
+			indent = indent + fcg.standardIndent;
 		}
 		/*
 		 * TODO Change to support built-ins with multiple args.
@@ -100,7 +100,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -109,7 +109,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -161,7 +161,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -170,7 +170,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -229,7 +229,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -238,7 +238,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -256,8 +256,11 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node, currentShape);
 			System.out.println(node.getTargetName().getID());
-			if (!fcg.isCell(node.getTargetName().getID()) && fcg.hasSingleton(node.getTargetName().getID()) 
-					&& !fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant()) {
+			if (!fcg.isCell(node.getTargetName().getID()) 
+				&& fcg.hasSingleton(node.getTargetName().getID()) 
+				&& !fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant() 
+				&& !fcg.tempVectorAsArrayIndex.containsKey(node.getTargetName().getID())) 
+			{
 				StringBuffer tmpBuf = new StringBuffer();
 				tmpBuf.append(indent+"!insert runtime allocation.\n");
 				tmpBuf.append(indent+"IF (ALLOCATED("+node.getTargetName().getID()+")) THEN\n");
@@ -266,7 +269,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -275,7 +278,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -313,7 +316,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");
@@ -322,7 +325,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				for (int i=0; i<currentShape.get(0).getDimensions().size(); i++) {
 					if (currentShape.get(0).isConstant()) 
 						tmpBuf.append(currentShape.get(0).getDimensions().get(i));
-					else tmpBuf.append("int("+currentShape.get(0).getDimensions().get(i)+")");
+					else tmpBuf.append("INT("+currentShape.get(0).getDimensions().get(i)+")");
 					if (i<currentShape.get(0).getDimensions().size()-1) tmpBuf.append(",");
 				}
 				tmpBuf.append("));\n");

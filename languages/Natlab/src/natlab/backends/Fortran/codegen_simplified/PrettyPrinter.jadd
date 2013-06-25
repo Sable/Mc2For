@@ -181,7 +181,7 @@ aspect PrettyPrinter {
     public void NoDirectBuiltinExpr.pp(StringBuffer sb) {
     	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
     	sb.append(getIndent());
-    	if (getCodeInline()!=null) sb.append(getCodeInline());
+    	sb.append(getCodeInline());
     }
     
     public void BuiltinConstantExpr.pp(StringBuffer sb) {

@@ -20,7 +20,7 @@ public class FortranCodeASTInliner {
 		NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.indent;
+			indent = indent + fcg.standardIndent;
 		}
 		/* 
 		 * TODO how to deal with the case that the number 
@@ -72,7 +72,7 @@ public class FortranCodeASTInliner {
 		/*
 		 * below are all the cases by enumeration, extendable.
 		 */
-		tempBuf.append(indent+"!mapping function "+rhsFunName+"\n");
+		tempBuf.append(indent+"! mapping function "+rhsFunName+"\n");
 		
 		/*********************built-in function enumeration*******************/
 		if (rhsFunName.equals("horzcat")) {
@@ -89,7 +89,7 @@ public class FortranCodeASTInliner {
 				}
 				if (i<numOfArgs) tempBuf.append("\n");
 			}
-			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
@@ -107,7 +107,7 @@ public class FortranCodeASTInliner {
 				}
 				if(i<numOfArgs) tempBuf.append("\n");
 			}
-			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}
@@ -131,21 +131,21 @@ public class FortranCodeASTInliner {
 				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 						.getConstant();
 				int ci = c.getValue().intValue();
-				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
+				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
 			}
 			else {
-				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , int("+rhsArgs.get(1)
+				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget+"_j = 1 , int("+rhsArgs.get(1)
 						+")\n");
 			}
-			tempBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
+			tempBuf.append(indent+fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(tmp_"+lhsTarget
 					+"_i,tmp_"+lhsTarget+"_j) = 1;\n");
-			tempBuf.append(indent+fcg.indent+"ENDDO\n");
+			tempBuf.append(indent+fcg.standardIndent+"ENDDO\n");
 			tempBuf.append(indent+"ENDDO");
 			BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 					(new ShapeFactory()).getScalarShape(), null);
 			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
 			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_j", tmp);
-			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
@@ -166,21 +166,21 @@ public class FortranCodeASTInliner {
 				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 						.getConstant();
 				int ci = c.getValue().intValue();
-				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
+				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
 			}
 			else {
-				tempBuf.append(indent+fcg.indent+"DO tmp_"+lhsTarget
+				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget
 						+"_j = 1 , int("+rhsArgs.get(1)+")\n");
 			}
-			tempBuf.append(indent+fcg.indent+fcg.indent+cellLHSTarget+"(tmp_"+lhsTarget
+			tempBuf.append(indent+fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(tmp_"+lhsTarget
 					+"_i,tmp_"+lhsTarget+"_j) = 0;\n");
-			tempBuf.append(indent+fcg.indent+"ENDDO\n");
+			tempBuf.append(indent+fcg.standardIndent+"ENDDO\n");
 			tempBuf.append(indent+"ENDO");
 			BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 					(new ShapeFactory()).getScalarShape(), null);
 			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
 			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_j", tmp);
-			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
@@ -205,6 +205,7 @@ public class FortranCodeASTInliner {
 					}
 				}
 				fcg.tempVectorAsArrayIndex.put(node.getTargets().asNameList().get(0).getID(), rhsArgs);
+				tempBuf.append(indent+"! replace colon with its literal representation.");
 			}
 			else {
 				/*
@@ -242,7 +243,7 @@ public class FortranCodeASTInliner {
 					else {
 						tempBuf.append(","+rhsArgs.get(1)+"\n");
 					}
-					tempBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
+					tempBuf.append(fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(1,tmp_"+lhsTarget
 							+"_i) = tmp_"+lhsTarget+"_i;\n");
 					tempBuf.append(indent+"ENDDO");
 					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
@@ -292,9 +293,9 @@ public class FortranCodeASTInliner {
 					else {
 						tempBuf.append(","+rhsArgs.get(1)+"\n");
 					}
-					tempBuf.append(fcg.indent+fcg.indent+cellLHSTarget+"(1,tmp_"+lhsTarget
+					tempBuf.append(fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(1,tmp_"+lhsTarget
 							+"_index) = tmp_"+lhsTarget+"_i;\n");
-					tempBuf.append(fcg.indent+fcg.indent+"tmp_"+lhsTarget+"_index = tmp_"
+					tempBuf.append(fcg.standardIndent+fcg.standardIndent+"tmp_"+lhsTarget+"_index = tmp_"
 							+lhsTarget+"_index+1;\n");
 					tempBuf.append(indent+"ENDDO");
 					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
@@ -305,10 +306,10 @@ public class FortranCodeASTInliner {
 				else {
 					// TODO this should be an error, throw an exception?
 				}
-				tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
+				tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 						+" is over.");
-				noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 			}
+			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
 		else if (rhsFunName.equals("randperm")) {
 			/*
@@ -331,7 +332,7 @@ public class FortranCodeASTInliner {
 			else {
 				// TODO this should be an error, throw an exception?
 			}
-			tempBuf.append("\n"+indent+"!mapping function "+rhsFunName
+			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
@@ -362,7 +363,7 @@ public class FortranCodeASTInliner {
 			/*
 			 * for those no direct builtins which have not been implemented yet.
 			 */
-			noDirBuiltinExpr.setCodeInline("!  the built-in function \""+rhsFunName
+			noDirBuiltinExpr.setCodeInline("! the built-in function \""+rhsFunName
 					+"\" has not been implemented yet, fix it!");
 		}
 		return noDirBuiltinExpr;

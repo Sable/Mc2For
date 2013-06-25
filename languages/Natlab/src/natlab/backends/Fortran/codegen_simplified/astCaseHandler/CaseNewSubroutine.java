@@ -176,6 +176,9 @@ public class CaseNewSubroutine {
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
+						Variable var_bk = new Variable();
+						var_bk.setName(variable+"_bk");
+						varList.addVariable(var_bk);
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}

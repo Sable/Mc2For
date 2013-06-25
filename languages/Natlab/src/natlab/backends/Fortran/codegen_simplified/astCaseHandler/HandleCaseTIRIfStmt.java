@@ -18,7 +18,7 @@ public class HandleCaseTIRIfStmt {
 		IfStmt stmt = new IfStmt();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
-			indent = indent + fcg.indent;
+			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
 		stmt.setCondition(node.getConditionVarName().getID());

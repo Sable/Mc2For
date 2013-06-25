@@ -32,7 +32,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public ArrayList<String> declaredCell;
 	public HashMap<String, BasicMatrixValue> tmpVariables; // generated in Fortran code gen.
 	public int indentNum;
-	public String StandardIndent;
+	public String standardIndent;
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
 	public SubProgram subProgram;
@@ -55,7 +55,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		declaredCell = new ArrayList<String>();
 		tmpVariables = new HashMap<String,BasicMatrixValue>();
 		indentNum = 0;
-		StandardIndent = "   ";
+		standardIndent = "   ";
 		ifWhileForBlockNest = 0;
 		stmtSecForIfWhileForBlock = new StatementSection();
 		subProgram = new SubProgram();
@@ -80,7 +80,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			FAssignStmt fAssignStmt = new FAssignStmt();
 			String indent = "";
 			for (int i=0; i<indentNum; i++) {
-				indent = indent + this.StandardIndent;
+				indent = indent + this.standardIndent;
 			}
 			fAssignStmt.setIndent(indent);
 			node.getLHS().analyze(this);
@@ -95,7 +95,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			FAssignStmt fAssignStmt = new FAssignStmt();
 			String indent = "";
 			for (int i=0; i<indentNum; i++) {
-				indent = indent + this.StandardIndent;
+				indent = indent + this.standardIndent;
 			}
 			fAssignStmt.setIndent(indent);
 			node.getLHS().analyze(this);
