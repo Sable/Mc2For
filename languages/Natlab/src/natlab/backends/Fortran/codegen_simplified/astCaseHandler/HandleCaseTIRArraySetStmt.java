@@ -2,8 +2,6 @@ package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import java.util.ArrayList;
 
-import beaver.spec.Production.RHS;
-
 import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
