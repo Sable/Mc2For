@@ -95,7 +95,7 @@ public class HandleCaseTIRArraySetStmt {
 				if (i+1!=lhsArrayShape.getDimensions().size())
 					tempBuf.append(", ");
 			}
-			tempBuf.append(");\n");
+			tempBuf.append("));\n");
 			tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_bk = "+lhsArrayName+";\n");
 			tempBuf.append(indent+fcg.standardIndent+"DEALLOCATE("+lhsArrayName+");\n");
 			for (int i=0; i<lhsArrayShape.getDimensions().size(); i++) {
@@ -112,8 +112,8 @@ public class HandleCaseTIRArraySetStmt {
 				}
 				else if (fcg.getMatrixValue(indexString[i]).getShape().isScalar()) 
 					tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
-							"= MAX"+"("+indexString[i]
-							+", "+lhsArrayName+"_d"+(i+1)+");\n");
+							"= MAX"+"(INT("+indexString[i]
+							+"), "+lhsArrayName+"_d"+(i+1)+");\n");
 				else if (!fcg.getMatrixValue(indexString[i]).getShape().isScalar() 
 						&& fcg.tempVectorAsArrayIndex.containsKey(indexString[i])) {
 					tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
