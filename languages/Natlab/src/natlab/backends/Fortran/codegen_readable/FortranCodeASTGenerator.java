@@ -187,6 +187,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		if (this.remainingVars.contains(node.getName().getID())) {
 			if (Debug) System.out.println(node.getName().getID()+" is a variable.");
 			sb.append(node.getName().getID());
+			
 		}
 		else {
 			if (Debug) System.out.println(node.getName().getID()+" is a function name.");
