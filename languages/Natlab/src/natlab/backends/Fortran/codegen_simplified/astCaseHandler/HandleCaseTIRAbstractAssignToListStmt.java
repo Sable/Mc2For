@@ -510,7 +510,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		for (String arg1 : arguments) {
 			argumentList1.add(fcg.getMatrixValue(arg1));
 		}
-		Args arg1 = Args.newInstance(null, nargout, argumentList1);
+		Args arg1 = Args.newInstance(nargout, argumentList1);
 		List<Shape> result1 = shapePropTool.matchByValues(
 				((HasShapePropagationInfo)builtin)
 				.getShapePropagationInfo(), arg1);
@@ -523,7 +523,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			argumentList2.add(basicMatrixValueFactory
 					.newMatrixValueFromInputShape(arg2, null, "1*1"));
 		}
-		Args arg2 = Args.newInstance(null, nargout, argumentList2);
+		Args arg2 = Args.newInstance(nargout, argumentList2);
 		List<Shape> result2 = shapePropTool.matchByValues(
 				((HasShapePropagationInfo)builtin)
 				.getShapePropagationInfo(), arg2);
