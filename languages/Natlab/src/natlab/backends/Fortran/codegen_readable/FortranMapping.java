@@ -21,19 +21,19 @@ public class FortranMapping {
 		/*
 		 * TODO Fortran has kind keyword.
 		 */
-		FortranTypeMap.put("char", "CHARACTER");
-		FortranTypeMap.put("logical", "LOGICAL");
-		FortranTypeMap.put("complex", "COMPLEX");
-		FortranTypeMap.put("single", "REAL");
 		FortranTypeMap.put("double", "DOUBLE PRECISION");
-		FortranTypeMap.put("int8", "INTEGER(Kind=1)");
-		FortranTypeMap.put("int16", "INTEGER(Kind=2)");
-		FortranTypeMap.put("int32", "INTEGER(Kind=4)");
-		FortranTypeMap.put("int64", "INTEGER(Kind=8)");
-		FortranTypeMap.put("uint8", "INTEGER");
+		FortranTypeMap.put("single", "REAL");
+		FortranTypeMap.put("int8", "INTEGER(KIND=1)");
+		FortranTypeMap.put("int16", "INTEGER(KIND=2)");
+		FortranTypeMap.put("int32", "INTEGER(KIND=4)");
+		FortranTypeMap.put("int64", "INTEGER(KIND=8)");
+		FortranTypeMap.put("uint8", "INTEGER(KIND=8)");
 		FortranTypeMap.put("uint16", "INTEGER");
 		FortranTypeMap.put("uint32", "INTEGER");
 		FortranTypeMap.put("uint64", "INTEGER");
+		FortranTypeMap.put("char", "CHARACTER");
+		FortranTypeMap.put("logical", "LOGICAL");
+		FortranTypeMap.put("complex", "COMPLEX");
 	}
 	
 	public String getFortranTypeMapping(String mclassasKey) {
@@ -41,43 +41,66 @@ public class FortranMapping {
 	}
 	
 	private void makeFortranBinaryOperatorMap() {
+		// arithmetic operators
 		FortranBinOperatorMap.put("plus", "+");
 		FortranBinOperatorMap.put("minus", "-");
-		FortranBinOperatorMap.put("mtimes", "*");
-		FortranBinOperatorMap.put("mrdivide", "/");
-		FortranBinOperatorMap.put("mldivide", "\\");
-		FortranBinOperatorMap.put("mpower", "**");
 		FortranBinOperatorMap.put("times", "*");
 		FortranBinOperatorMap.put("rdivide", "/");
-		FortranBinOperatorMap.put("ldivide", "\\");
 		FortranBinOperatorMap.put("power", "**");
-		FortranBinOperatorMap.put("and", ".AND.");
-		FortranBinOperatorMap.put("or", ".OR.");
+		// relational operators
 		FortranBinOperatorMap.put("lt", ".LT.");
-		FortranBinOperatorMap.put("gt", ".GT.");
 		FortranBinOperatorMap.put("le", ".LE.");
+		FortranBinOperatorMap.put("gt", ".GT.");
 		FortranBinOperatorMap.put("ge", ".GE.");
 		FortranBinOperatorMap.put("eq", ".EQ.");
 		FortranBinOperatorMap.put("ne", ".NE.");
+		// logical operators
+		FortranBinOperatorMap.put("and", ".AND.");
+		FortranBinOperatorMap.put("or", ".OR.");
 		FortranBinOperatorMap.put("not", ".NOT.");
+		FortranBinOperatorMap.put("xor", ".XOR.");
 	}
 	
 	private void makeFortranDirectBuiltinMap() {
-		/* 
-		 * TODO create a categorical map here 
-		 */
-		FortranDirectBuiltinMap.put("sqrt", "SQRT");	
-		FortranDirectBuiltinMap.put("sin", "SIN");	
-		FortranDirectBuiltinMap.put("cos", "COS");
-		FortranDirectBuiltinMap.put("sum", "SUM");
-		FortranDirectBuiltinMap.put("size", "SIZE");
-		FortranDirectBuiltinMap.put("length", "SIZE");
-		FortranDirectBuiltinMap.put("exp", "EXP");
+		// arithmetic operators
+		FortranDirectBuiltinMap.put("mtimes", "MATMUL");
 		FortranDirectBuiltinMap.put("transpose", "TRANSPOSE");
+		// commonly used mathematical built-ins
+		FortranDirectBuiltinMap.put("sum", "SUM");
 		FortranDirectBuiltinMap.put("ceil", "CEILING");
+		FortranDirectBuiltinMap.put("floor", "FLOOR");
+		FortranDirectBuiltinMap.put("mod", "MODULO");
+		FortranDirectBuiltinMap.put("rem", "MOD");
+		FortranDirectBuiltinMap.put("round", "NINT");
+		FortranDirectBuiltinMap.put("sin", "SIN");
+		FortranDirectBuiltinMap.put("asin", "ASIN");
+		FortranDirectBuiltinMap.put("sinh", "SINH");
+		FortranDirectBuiltinMap.put("cos", "COS");
+		FortranDirectBuiltinMap.put("acos", "ACOS");
+		FortranDirectBuiltinMap.put("cosh", "COSH");
+		FortranDirectBuiltinMap.put("tan", "TAN");
+		FortranDirectBuiltinMap.put("atan", "ATAN");
+		FortranDirectBuiltinMap.put("tanh", "TANH");
+		FortranDirectBuiltinMap.put("exp", "EXP");
+		FortranDirectBuiltinMap.put("log", "LOG");
+		FortranDirectBuiltinMap.put("log10", "LOG10");
+		FortranDirectBuiltinMap.put("sqrt", "SQRT");
 		FortranDirectBuiltinMap.put("abs", "ABS");
-		FortranDirectBuiltinMap.put("round", "INT");
+		FortranDirectBuiltinMap.put("conj", "CONJG");
+		FortranDirectBuiltinMap.put("min", "MIN");
+		FortranDirectBuiltinMap.put("max", "MAX");
+		FortranDirectBuiltinMap.put("numel", "SIZE");
+		FortranDirectBuiltinMap.put("size", "SHAPE");
+		// logical operators
+		FortranDirectBuiltinMap.put("any", "ANY");
+		FortranDirectBuiltinMap.put("all", "ALL");
+		FortranDirectBuiltinMap.put("bitand", "IAND");
+		FortranDirectBuiltinMap.put("bitor", "IOR");
+		FortranDirectBuiltinMap.put("bitcmp", "NOT");
+		FortranDirectBuiltinMap.put("bitxor", "IEOR");
 	}
+	
+	// TODO add no-directly-mapping built-in functions.
 	
 	public Boolean isFortranBinOperator(String operator) {
 		if (FortranBinOperatorMap.containsKey(operator)) return true;
