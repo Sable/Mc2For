@@ -3,7 +3,7 @@ aspect PrettyPrinter {
 	
 	public void Program.pp(StringBuffer sb) {}
 	
-	public void SubProgram.pp(StringBuffer sb) {
+	public void Subprogram.pp(StringBuffer sb) {
 		getProgramTitle().pp(sb);
 		getDeclarationSection().pp(sb);
 		int size = getNumBackupVar();
@@ -205,6 +205,12 @@ aspect PrettyPrinter {
     	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
     	sb.append(getIndent());
     	sb.append("CALL "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
+    }
+    
+    public void Functions.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	sb.append(getTargetVar()+" = "+getFuncName()+"("+getInputArgsList()+");");
     }
     
     public void IfStmt.pp(StringBuffer sb) {

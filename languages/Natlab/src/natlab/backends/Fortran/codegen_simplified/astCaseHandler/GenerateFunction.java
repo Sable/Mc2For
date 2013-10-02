@@ -3,51 +3,58 @@ package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 import java.util.List;
 
 import natlab.tame.classes.reference.PrimitiveClassReference;
-import natlab.tame.tir.*;
+import natlab.tame.tir.TIRFunction;
 import natlab.tame.valueanalysis.components.shape.DimValue;
-import natlab.backends.Fortran.codegen_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
 import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
-public class CaseNewSubroutine {
+public class GenerateFunction {
 	static boolean Debug = false;
 	
 	/**
-	 * subroutine is one kind of sub-program, and it is like this,
-	 * 		subroutine name(inputArgs+outputArgs)
+	 * function is one kind of subprograms, and it is like this,
+	 * 		FUNCTION name(inputArgs)
+	 * 		USE modules
 	 * 		declaration section
 	 * 		stmt section.
-	 * 		end subroutine
+	 * 		END FUNCTION name
+	 * 
 	 * 1. we try to go through the stmt section first, set the stmt section;
 	 * 2. set the title section;
-	 * 3. and then we can set the declaration sectionn,
-	 * because there may be some shadow variable we generated during the stmt transformation.
-	 * the difference between subroutine and main function is that we need inputArgs 
-	 * following the function name,and declare the input and output variables with the 
-	 * keyword intent(in) and intent(out).
+	 * 3. and then we can set the declaration section,
+	 * 
+	 * because there may be some temporary variable we generated during 
+	 * the stmt transformation. the difference between function and 
+	 * other two sub-programs is that we need input parameters following 
+	 * the function name, and also declare the function name as the return 
+	 * variable (recall that, function in fortran also return one value).
 	 */
-	public FortranCodeASTGenerator newSubroutine(FortranCodeASTGenerator fcg, TIRFunction node) {
-		fcg.isInSubroutine = true;
+	public FortranCodeASTGenerator newFunction(
+			FortranCodeASTGenerator fcg, 
+			TIRFunction node) 
+	{
 		/* 
-		 * first pass of all the statements, collect information.
+		 * first pass of all the statements, collecting information.
 		 */
-		SubProgram preSubroutine = new SubProgram();
-		fcg.subProgram = preSubroutine;
+		Subprogram preFunction = new Subprogram();
+		fcg.subprogram = preFunction;
 		StatementSection preStmtSection = new StatementSection();
-		preSubroutine.setStatementSection(preStmtSection);
+		preFunction.setStatementSection(preStmtSection);
 		fcg.iterateStatements(node.getStmts());
 		/* 
-		 * second pass of all the statements, using information collected from the first pass.
+		 * second pass of all the statements, using information 
+		 * collected from the first pass.
 		 */
-		SubProgram subroutine = new SubProgram();
-		fcg.subProgram = subroutine;
+		Subprogram function = new Subprogram();
+		fcg.subprogram = function;
 		StatementSection stmtSection = new StatementSection();
-		subroutine.setStatementSection(stmtSection);
+		function.setStatementSection(stmtSection);
 		fcg.iterateStatements(node.getStmts());
 		/*
 		 * set the title.
 		 */
 		ProgramTitle title = new ProgramTitle();
-		title.setProgramType("SUBROUTINE");
+		title.setProgramType("FUNCTION");
 		title.setProgramName(fcg.functionName);
 		/*
 		 * set the program parameter list.
@@ -58,21 +65,21 @@ public class CaseNewSubroutine {
 			para.setName(arg);
 			argsList.addParameter(para);
 		}
-		for (String arg : fcg.outRes) {
-			Parameter para = new Parameter();
-			para.setName(arg);
-			argsList.addParameter(para);
-		}
 		title.setProgramParameterList(argsList);
-		subroutine.setProgramTitle(title);
+		function.setProgramTitle(title);
+		
+		// TODO declare modules
+		
 		/*
 		 * set the declaration section.
 		 */		
 		DeclarationSection declSection = new DeclarationSection();
 		DerivedTypeList derivedTypeList = new DerivedTypeList();
 		for (String variable : fcg.getCurrentOutSet().keySet()) {
+			/* 
+			 * cell array declaration, mapping to derived type in Fortran.
+			 */
 			if (fcg.isCell(variable) || !fcg.hasSingleton(variable)) {
-				// cell array declaration, mapping to derived type in Fortran.
 				DerivedType derivedType = new DerivedType();
 				StringBuffer sb = new StringBuffer();
 				boolean skip = false;
@@ -115,8 +122,11 @@ public class CaseNewSubroutine {
 					&& !fcg.outRes.contains(variable) 
 					&& fcg.tempVarsBeforeF.contains(variable) 
 					|| fcg.tempVectorAsArrayIndex.containsKey(variable)) {
-				if (Debug) System.out.println("do constant folding, no declaration.");
+				if (Debug) System.out.println("constant variable replacement, no declaration.");
 			}
+			/*
+			 * normal case.
+			 */
 			else {
 				DeclStmt declStmt = new DeclStmt();
 				// type is already a token, don't forget.
@@ -124,6 +134,9 @@ public class CaseNewSubroutine {
 				ShapeInfo shapeInfo = new ShapeInfo();
 				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
+				/*
+				 * declare types.
+				 */
 				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
 					declStmt.setType(fcg.FortranMapping.getFortranTypeMapping("char")
@@ -132,7 +145,7 @@ public class CaseNewSubroutine {
 				else declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
-				 * declare arrays.
+				 * declare arrays, but not character strings.
 				 */
 				if (!fcg.getMatrixValue(variable).getShape().isScalar() 
 						&& !fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR)) {
@@ -162,23 +175,28 @@ public class CaseNewSubroutine {
 						tempBuf.append(") , ALLOCATABLE");
 						keyword.setName(tempBuf.toString());
 						keywordList.addKeyword(keyword);
-						if (fcg.inArgs.contains(variable) 
-								&& !fcg.inputHasChanged.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(IN)");
-							keywordList.addKeyword(keyword2);
-						}
-						else if (fcg.outRes.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(OUT)");
-							keywordList.addKeyword(keyword2);
-						}
+						/*
+						 * add return variable replacement, using function name to replace.
+						 */
 						Variable var = new Variable();
-						var.setName(variable);
+						if (fcg.outRes.contains(variable)) {
+							var.setName(fcg.functionName);
+						}
+						else {
+							var.setName(variable);
+						}
 						varList.addVariable(var);
 						Variable var_bk = new Variable();
 						var_bk.setName(variable+"_bk");
 						varList.addVariable(var_bk);
+						/*
+						 * declare user-defined functions.
+						 */
+						if (fcg.userDefinedFunctionDeclaration.containsKey(variable)) {
+							Variable userDefFunction = new Variable();
+							userDefFunction.setName(fcg.userDefinedFunctionDeclaration.get(variable));
+							varList.addVariable(userDefFunction);
+						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}
@@ -191,33 +209,31 @@ public class CaseNewSubroutine {
 						StringBuffer tempBuf = new StringBuffer();
 						tempBuf.append("DIMENSION(");
 						for (DimValue dimValue : dim) {
-							if (counter) {
-								tempBuf.append(",");
-							}
+							if (counter) tempBuf.append(",");
 							tempBuf.append(dimValue.toString());
 							counter = true;
 						}
 						tempBuf.append(")");
 						keyword.setName(tempBuf.toString());
 						keywordList.addKeyword(keyword);
-						if (fcg.inArgs.contains(variable) 
-								&& !fcg.inputHasChanged.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(IN)");
-							keywordList.addKeyword(keyword2);
-						}
-						else if (fcg.outRes.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(OUT)");
-							keywordList.addKeyword(keyword2);
-						}
+						/*
+						 * add return variable replacement, using function name to replace.
+						 */
 						Variable var = new Variable();
-						var.setName(variable);
+						if (fcg.outRes.contains(variable)) {
+							var.setName(fcg.functionName);
+						}
+						else {
+							var.setName(variable);
+						}
 						varList.addVariable(var);
-						if (fcg.inputHasChanged.contains(variable)) {
-							Variable varBackup = new Variable();
-							varBackup.setName(variable+"_copy");
-							varList.addVariable(varBackup);
+						/*
+						 * declare user-defined functions.
+						 */
+						if (fcg.userDefinedFunctionDeclaration.containsKey(variable)) {
+							Variable userDefFunction = new Variable();
+							userDefFunction.setName(fcg.userDefinedFunctionDeclaration.get(variable));
+							varList.addVariable(userDefFunction);
 						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
@@ -227,26 +243,24 @@ public class CaseNewSubroutine {
 				 * declare scalars.
 				 */
 				else {
-					if (fcg.inArgs.contains(variable) 
-							&& !fcg.inputHasChanged.contains(variable)) {
-						Keyword keyword = new Keyword();
-						keyword.setName("INTENT(IN)");
-						keywordList.addKeyword(keyword);
-						declStmt.setKeywordList(keywordList);
-					}
-					else if (fcg.outRes.contains(variable)) {
-						Keyword keyword = new Keyword();
-						keyword.setName("INTENT(OUT)");
-						keywordList.addKeyword(keyword);
-						declStmt.setKeywordList(keywordList);
-					}
+					/*
+					 * add return variable replacement, using function name to replace.
+					 */
 					Variable var = new Variable();
-					var.setName(variable);
+					if (fcg.outRes.contains(variable)) {
+						var.setName(fcg.functionName);
+					}
+					else {
+						var.setName(variable);
+					}
 					varList.addVariable(var);
-					if (fcg.inputHasChanged.contains(variable)) {
-						Variable varBackup = new Variable();
-						varBackup.setName(variable+"_copy");
-						varList.addVariable(varBackup);
+					/*
+					 * declare user-defined functions.
+					 */
+					if (fcg.userDefinedFunctionDeclaration.containsKey(variable)) {
+						Variable userDefFunction = new Variable();
+						userDefFunction.setName(fcg.userDefinedFunctionDeclaration.get(variable));
+						varList.addVariable(userDefFunction);
 					}
 					declStmt.setVariableList(varList);
 				}
@@ -278,13 +292,13 @@ public class CaseNewSubroutine {
 			declStmt.setVariableList(varList);
 			declSection.addDeclStmt(declStmt);
 		}
-		subroutine.setDeclarationSection(declSection);
-		subroutine.setProgramEnd("END SUBROUTINE");
+		function.setDeclarationSection(declSection);
+		function.setProgramEnd("END FUNCTION");
 		if (!fcg.inputHasChanged.isEmpty()) {
 			for (String Stmt : fcg.inputHasChanged) {
 				BackupVar backupStmt = new BackupVar();
 				backupStmt.setStmt(Stmt+"_copy = "+Stmt+";");
-				subroutine.addBackupVar(backupStmt);
+				function.addBackupVar(backupStmt);
 			}
 		}
 		fcg.isInSubroutine = false;

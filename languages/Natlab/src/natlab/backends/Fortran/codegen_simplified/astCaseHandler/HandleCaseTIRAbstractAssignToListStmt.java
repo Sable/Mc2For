@@ -25,7 +25,10 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 	 * 1. for rhs, constant folding check;
 	 * 2. for lhs, variable allocation check.
 	 */
-	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node) {
+	public Statement getFortran(
+			FortranCodeASTGenerator fcg, 
+			TIRAbstractAssignToListStmt node) 
+	{
 		if (Debug) System.out.println("in an abstractAssignToList statement");
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
@@ -63,7 +66,17 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					fcg.inputHasChanged.add(name.getID());
 					var.setName(name.getID()+"_copy");
 				}
-				else var.setName(name.getID());
+				/*
+				 * if the variable is the return variable, 
+				 * replaced by the function name.
+				 */
+				else if (!fcg.functionName.equals(fcg.entryPointFile) 
+						&& fcg.outRes.size() == 1 
+						&& fcg.outRes.contains(name.getID())) {
+					var.setName(fcg.functionName);
+				}
+				else 
+					var.setName(name.getID());
 				binExpr.addVariable(var);
 			}
 			/*
@@ -133,7 +146,17 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					fcg.inputHasChanged.add(name.getID());
 					var.setName(name.getID()+"_copy");
 				}
-				else var.setName(name.getID());
+				/*
+				 * if the variable is the return variable, 
+				 * replaced by the function name.
+				 */
+				else if (!fcg.functionName.equals(fcg.entryPointFile) 
+						&& fcg.outRes.size() == 1 
+						&& fcg.outRes.contains(name.getID())) {
+					var.setName(fcg.functionName);
+				}
+				else 
+					var.setName(name.getID());
 				unExpr.addVariable(var);
 			}
 			/*
@@ -194,7 +217,17 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					fcg.inputHasChanged.add(name.getID());
 					var.setName(name.getID()+"_copy");
 				}
-				else var.setName(name.getID());
+				/*
+				 * if the variable is the return variable, 
+				 * replaced by the function name.
+				 */
+				else if (!fcg.functionName.equals(fcg.entryPointFile) 
+						&& fcg.outRes.size() == 1 
+						&& fcg.outRes.contains(name.getID())) {
+					var.setName(fcg.functionName);
+				}
+				else 
+					var.setName(name.getID());
 				dirBuiltinExpr.addVariable(var);
 			}
 			/*
@@ -302,7 +335,17 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					fcg.inputHasChanged.add(name.getID());
 					var.setName(name.getID()+"_copy");
 				}
-				else var.setName(name.getID());
+				/*
+				 * if the variable is the return variable, 
+				 * replaced by the function name.
+				 */
+				else if (!fcg.functionName.equals(fcg.entryPointFile) 
+						&& fcg.outRes.size() == 1 
+						&& fcg.outRes.contains(name.getID())) {
+					var.setName(fcg.functionName);
+				}
+				else 
+					var.setName(name.getID());
 				builtinConst.addVariable(var);
 			}
 			builtinConst.setBuiltinFunc(RHSFortranOperator);
@@ -365,54 +408,117 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			/*
 			 * deal with user defined functions, apparently, there 
 			 * is no corresponding Fortran built-in function for this. 
-			 * mapping all the user defined functions to subroutines 
-			 * in Fortran. Subroutines in Fortran is more similar to 
-			 * functions in MATLAB than functions in Fortran.
+			 * map the matlab functions with exactly one return value 
+			 * to functions in fortran; map the matlab functions with 
+			 * 0 or more than 1 return values to subroutines in fortran.
 			 */
-			Subroutines subroutine = new Subroutines();
-			subroutine.setIndent(indent);
-			ArrayList<String> outputArgsList = new ArrayList<String>();
-			for (ast.Name name : node.getTargets().asNameList()) {
-
+			if (node.getTargets().asNameList().size() == 1) {
+				Functions function = new Functions();
+				function.setIndent(indent);
+				String targetVar = node.getTargets().asNameList().get(0).getID();
+				/*
+				 * for user-defined function declaration.
+				 */
+				fcg.userDefinedFunctionDeclaration.put(targetVar, node.getRHS().getVarName());
 				/*
 				 * if an input argument of the function is on the LHS of an assignment stmt, 
 				 * we assume that this input argument maybe modified.
 				 */
-				if (fcg.isInSubroutine && fcg.inArgs.contains(name.getID())) {
-					if (Debug) System.out.println("subroutine's input "+name.getID()
-							+" has been modified!");
-					fcg.inputHasChanged.add(name.getID());
-					outputArgsList.add(name.getID()+"_copy");
+				if (fcg.isInSubroutine && fcg.inArgs.contains(targetVar)) {
+					if (Debug) System.out.println("subroutine's input " + targetVar	+ " has been modified!");
+					fcg.inputHasChanged.add(targetVar);
+					targetVar = targetVar + "_copy";
 				}
-				else outputArgsList.add(name.getID());
-			}
-			/*
-			 * insert constant folding check.
-			 */
-			for (int i=0;i<arguments.size();i++) {
-				if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
-						&& !fcg.inArgs.contains(arguments.get(i)) 
-						&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
-					Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
-					arguments.remove(i);
-					arguments.add(i, c.toString());
+				/*
+				 * if the variable is the return variable, 
+				 * replaced by the function name.
+				 */
+				else if (!fcg.functionName.equals(fcg.entryPointFile) 
+						&& fcg.outRes.size() == 1 
+						&& fcg.outRes.contains(targetVar)) {
+					targetVar = fcg.functionName;
 				}
-				else {
-					if (fcg.inputHasChanged.contains(arguments.get(i))) {
-						String ArgsNew = arguments.get(i)+"_copy";
+				function.setTargetVar(targetVar);
+				
+				/*
+				 * insert constant folding check.
+				 */
+				for (int i = 0; i < arguments.size(); i++) {
+					if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
+							&& !fcg.inArgs.contains(arguments.get(i)) 
+							&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
+						Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
 						arguments.remove(i);
-						arguments.add(i, ArgsNew);
-					}			
+						arguments.add(i, c.toString());
+					}
+					else {
+						if (fcg.inputHasChanged.contains(arguments.get(i))) {
+							String ArgsNew = arguments.get(i)+"_copy";
+							arguments.remove(i);
+							arguments.add(i, ArgsNew);
+						}			
+					}
 				}
+				String funcName = node.getRHS().getVarName();
+				function.setFuncName(funcName);
+				function.setInputArgsList(getArgsListAsString(arguments));
+				return function;
 			}
-			ArgsListasString = getArgsListAsString(arguments);
-			String funcName;
-			funcName = node.getRHS().getVarName();
-			subroutine.setFuncName(funcName);
-			subroutine.setInputArgsList(ArgsListasString);
-			subroutine.setOutputArgsList(outputArgsList.toString().replace("[", "")
-					.replace("]", ""));
-			return subroutine;
+			else {
+				Subroutines subroutine = new Subroutines();
+				subroutine.setIndent(indent);
+				ArrayList<String> outputArgsList = new ArrayList<String>();
+				for (ast.Name name : node.getTargets().asNameList()) {
+					/*
+					 * if an input argument of the function is on the LHS of an assignment stmt, 
+					 * we assume that this input argument maybe modified.
+					 */
+					if (fcg.isInSubroutine && fcg.inArgs.contains(name.getID())) {
+						if (Debug) System.out.println("subroutine's input "+name.getID()
+								+" has been modified!");
+						fcg.inputHasChanged.add(name.getID());
+						outputArgsList.add(name.getID()+"_copy");
+					}
+					/*
+					 * if the variable is the return variable, 
+					 * replaced by the function name.
+					 */
+					else if (!fcg.functionName.equals(fcg.entryPointFile) 
+							&& fcg.outRes.size() == 1 
+							&& fcg.outRes.contains(name.getID())) {
+						outputArgsList.add(fcg.functionName);
+					}
+					else 
+						outputArgsList.add(name.getID());
+				}
+				/*
+				 * insert constant folding check.
+				 */
+				for (int i=0;i<arguments.size();i++) {
+					if (fcg.getMatrixValue(arguments.get(i)).hasConstant() 
+							&& !fcg.inArgs.contains(arguments.get(i)) 
+							&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
+						Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
+						arguments.remove(i);
+						arguments.add(i, c.toString());
+					}
+					else {
+						if (fcg.inputHasChanged.contains(arguments.get(i))) {
+							String ArgsNew = arguments.get(i)+"_copy";
+							arguments.remove(i);
+							arguments.add(i, ArgsNew);
+						}			
+					}
+				}
+				ArgsListasString = getArgsListAsString(arguments);
+				String funcName;
+				funcName = node.getRHS().getVarName();
+				subroutine.setFuncName(funcName);
+				subroutine.setInputArgsList(ArgsListasString);
+				subroutine.setOutputArgsList(outputArgsList.toString().replace("[", "")
+						.replace("]", ""));
+				return subroutine;				
+			}
 		}
 	}
 	/***************************************helper methods****************************************/

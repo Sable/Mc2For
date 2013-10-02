@@ -1,7 +1,10 @@
 package natlab.backends.Fortran.codegen_simplified;
 
+import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.HashSet;
 
 import ast.ASTNode;
@@ -18,22 +21,25 @@ import natlab.backends.Fortran.codegen_simplified.astCaseHandler.*;
 
 public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	static boolean Debug = false;
-	int callgraphSize;
-	String fileDir;
-	ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet;
+	// this currentOutSet is the out set at the end point of the program.
+	public ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet;
+	public int callgraphSize;
+	public String entryPointFile;
+	public Set<String> userDefinedFunctions;
+	public Subprogram subprogram;
 	public StringBuffer buf;
 	public StringBuffer buf2;
 	public FortranMapping FortranMapping;
 	public String functionName;
-	public ArrayList<String> inArgs;
-	public ArrayList<String> outRes;
+	public List<String> inArgs;
+	public List<String> outRes;
 	public boolean isInSubroutine;
-	public HashSet<String> inputHasChanged; // used to back up input argument.
-	public HashSet<String> arrayConvert;
-	public HashMap<String, BasicMatrixValue> tempVarsFortran; // temporary variables generated in Fortran code generation.
+	// used to back up input argument.
+	public Set<String> inputHasChanged;
+	public Map<String, String> userDefinedFunctionDeclaration;
+	public Set<String> arrayConvert;
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
-	public SubProgram subProgram;
 	public int indentNum;
 	public String standardIndent;
 	/* 
@@ -41,36 +47,53 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	 * K: the name of the temporary vector variable, 
 	 * V: the range of those variables.
 	 */
-	public HashMap<String, ArrayList<String>> tempVectorAsArrayIndex;
-	public HashSet<String> tempVarsBeforeF; // temporary variables generated during McSAF or Tamer simplification.
-	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr; // not support nested cell array.
-	public ArrayList<String> declaredCell;
+	public Map<String, ArrayList<String>> tempVectorAsArrayIndex;
+	// temporary variables generated during McSAF or Tamer simplification.
+	public Set<String> tempVarsBeforeF;
+	// temporary variables generated in Fortran code generation.
+	public Map<String, BasicMatrixValue> tempVarsFortran;
+	// not support nested cell array.
+	public Map<String, ArrayList<BasicMatrixValue>> forCellArr;
+	public List<String> declaredCell;
 	
+	/**
+	 * private constructor, called by helper method generateFortran.
+	 * @param analysis
+	 * @param callgraphSize
+	 * @param index
+	 * @param entryPointFile
+	 */
 	private FortranCodeASTGenerator(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
 			int callgraphSize, 
-			int index, String fileDir) {
+			int index, 
+			String entryPointFile, 
+			Set<String> userDefinedFunctions) {
+		currentOutSet = analysis.getNodeList()
+				.get(index).getAnalysis().getCurrentOutSet();
 		this.callgraphSize = callgraphSize;
-		this.fileDir = fileDir;
-		currentOutSet = analysis.getNodeList().get(index).getAnalysis().getCurrentOutSet();
+		this.entryPointFile = entryPointFile;
+		this.userDefinedFunctions = userDefinedFunctions;
 		FortranMapping = new FortranMapping();
 		functionName = "";
+		subprogram = new Subprogram();
 		inArgs = new ArrayList<String>();
 		outRes = new ArrayList<String>();
 		isInSubroutine = false;
 		inputHasChanged = new HashSet<String>();
+		userDefinedFunctionDeclaration = new HashMap<String, String>();
 		arrayConvert = new HashSet<String>();
-		tempVarsFortran = new HashMap<String,BasicMatrixValue>();
 		ifWhileForBlockNest = 0;
 		stmtSecForIfWhileForBlock = new StatementSection();
-		subProgram = new SubProgram();
 		indentNum = 0;
 		standardIndent = "   ";
 		tempVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
 		tempVarsBeforeF = new HashSet<String>();
+		tempVarsFortran = new HashMap<String,BasicMatrixValue>();
 		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
 		declaredCell = new ArrayList<String>();
-		((TIRNode)analysis.getNodeList().get(index).getFunction().getAst()).tirAnalyze(this);
+		((TIRNode) analysis.getNodeList()
+				.get(index).getFunction().getAst()).tirAnalyze(this);
 	}
 	
 	// ******************************ast node override*************************
@@ -80,17 +103,21 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	
 	@Override
 	public void caseTIRFunction(TIRFunction node) {
-		HandleCaseTIRFunction functionStmt = new HandleCaseTIRFunction();
+		HandleCaseTIRFunction functionStmt = 
+				new HandleCaseTIRFunction();
 		functionStmt.getFortran(this, node);
 	}
 	
 	@Override
 	public void caseTIRCommentStmt(TIRCommentStmt node) {
-		HandleCaseTIRCommentStmt commentStmt = new HandleCaseTIRCommentStmt();
+		HandleCaseTIRCommentStmt commentStmt = 
+				new HandleCaseTIRCommentStmt();
 		if (ifWhileForBlockNest!=0) 
-			stmtSecForIfWhileForBlock.addStatement(commentStmt.getFortran(this, node));
+			stmtSecForIfWhileForBlock.addStatement(
+					commentStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(commentStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(
+					commentStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -105,16 +132,18 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 				&& !inArgs.contains(targetName) 
 				&& node.getTargetName().tmpVar) {
 			tempVarsBeforeF.add(targetName);
-			if (Debug) System.out.println(targetName+" is a constant");
+			if (Debug) System.out.println(targetName 
+					+ " has a constant value and safe to be replaced.");
 		}
 		else {
 			HandleCaseTIRAssignLiteralStmt assignLiteralStmt = 
 					new HandleCaseTIRAssignLiteralStmt();
-			if (ifWhileForBlockNest!=0) 
-				stmtSecForIfWhileForBlock.addStatement(assignLiteralStmt.getFortran(this, node));
+			if (ifWhileForBlockNest != 0) 
+				stmtSecForIfWhileForBlock.addStatement(
+						assignLiteralStmt.getFortran(this, node));
 			else 
-				subProgram.getStatementSection().addStatement(assignLiteralStmt
-						.getFortran(this, node));		
+				subprogram.getStatementSection().addStatement(
+						assignLiteralStmt.getFortran(this, node));		
 		}
 	}
 	
@@ -129,17 +158,18 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 				&& !this.outRes.contains(targetName) 
 				&& node.getTargetName().tmpVar) {
 			tempVarsBeforeF.add(targetName);
-			if (Debug) System.out.println(targetName+" is a constant");
+			if (Debug) System.out.println(targetName 
+					+ " has a constant value and safe to be replaced.");
 		}
 		else {
 			HandleCaseTIRAbstractAssignToVarStmt abstractAssignToVarStmt = 
 					new HandleCaseTIRAbstractAssignToVarStmt();
-			if (ifWhileForBlockNest!=0) 
-				stmtSecForIfWhileForBlock.addStatement(abstractAssignToVarStmt
-						.getFortran(this, node));
+			if (ifWhileForBlockNest != 0) 
+				stmtSecForIfWhileForBlock.addStatement(
+						abstractAssignToVarStmt.getFortran(this, node));
 			else 
-				subProgram.getStatementSection().addStatement(abstractAssignToVarStmt
-						.getFortran(this, node));
+				subprogram.getStatementSection().addStatement(
+						abstractAssignToVarStmt.getFortran(this, node));
 		}
 	}
 
@@ -154,33 +184,36 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		 * And because node.getTargetName().getVarName() can only return 
 		 * the first variable, we need use node.getTargets().asNameList().
 		 */
-		if (HandleCaseTIRAbstractAssignToListStmt.getRHSCaseNumber(this, node)!=6) {
+		if (HandleCaseTIRAbstractAssignToListStmt
+				.getRHSCaseNumber(this, node) != 6) {
 			String targetName = node.getTargetName().getVarName();
 			if(!isCell(targetName) && hasSingleton(targetName) 
 					&& getMatrixValue(targetName).hasConstant() 
 					&& !outRes.contains(targetName) 
 					&& node.getTargetName().tmpVar) {
-				// can a tmp var be tmp and constant scalar at the same time for this case?
 				tempVarsBeforeF.add(targetName);
-				if (Debug) System.out.println(targetName+" is a constant");
+				if (Debug) System.out.println(targetName 
+						+ " has a constant value and safe to be replaced.");
 			}
 			else {
 				HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = 
 						new HandleCaseTIRAbstractAssignToListStmt();
-				if (ifWhileForBlockNest!=0) 
-					stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt
-							.getFortran(this, node));
-				else subProgram.getStatementSection().addStatement(
+				if (ifWhileForBlockNest != 0) 
+					stmtSecForIfWhileForBlock.addStatement(
+							abstractAssignToListStmt.getFortran(this, node));
+				else 
+					subprogram.getStatementSection().addStatement(
 						abstractAssignToListStmt.getFortran(this, node));
 			}
 		}
 		else {
 			HandleCaseTIRAbstractAssignToListStmt abstractAssignToListStmt = 
 					new HandleCaseTIRAbstractAssignToListStmt();
-			if (ifWhileForBlockNest!=0) 
-				stmtSecForIfWhileForBlock.addStatement(abstractAssignToListStmt
-						.getFortran(this, node));
-			else subProgram.getStatementSection().addStatement(
+			if (ifWhileForBlockNest != 0) 
+				stmtSecForIfWhileForBlock.addStatement(
+						abstractAssignToListStmt.getFortran(this, node));
+			else 
+				subprogram.getStatementSection().addStatement(
 					abstractAssignToListStmt.getFortran(this, node));
 		}
 	}
@@ -188,54 +221,71 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	@Override
 	public void caseTIRIfStmt(TIRIfStmt node) {
 		HandleCaseTIRIfStmt ifStmt = new HandleCaseTIRIfStmt();
-		if (ifWhileForBlockNest!=0) 
-			stmtSecForIfWhileForBlock.addStatement(ifStmt.getFortran(this, node));
+		if (ifWhileForBlockNest != 0) 
+			stmtSecForIfWhileForBlock.addStatement(
+					ifStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(ifStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(
+					ifStmt.getFortran(this, node));
 	}
 	
 	@Override
 	public void caseTIRWhileStmt(TIRWhileStmt node) {
 		HandleCaseTIRWhileStmt whileStmt = new HandleCaseTIRWhileStmt();
-		if (ifWhileForBlockNest!=0) 
-			stmtSecForIfWhileForBlock.addStatement(whileStmt.getFortran(this, node));
+		if (ifWhileForBlockNest != 0) 
+			stmtSecForIfWhileForBlock.addStatement(
+					whileStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(whileStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(
+					whileStmt.getFortran(this, node));
 	}
 	
 	@Override
 	public void caseTIRForStmt(TIRForStmt node) {
 		HandleCaseTIRForStmt forStmt = new HandleCaseTIRForStmt();
-		if(ifWhileForBlockNest!=0) 
-			stmtSecForIfWhileForBlock.addStatement(forStmt.getFortran(this, node));
+		if(ifWhileForBlockNest != 0) 
+			stmtSecForIfWhileForBlock.addStatement(
+					forStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(forStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(
+					forStmt.getFortran(this, node));
 	}
 	
 	@Override
 	public void caseTIRArrayGetStmt(TIRArrayGetStmt node) {
 		HandleCaseTIRArrayGetStmt arrGetStmt = new HandleCaseTIRArrayGetStmt();
-		if(ifWhileForBlockNest!=0) 
-			stmtSecForIfWhileForBlock.addStatement(arrGetStmt.getFortran(this, node));
+		if(ifWhileForBlockNest != 0) 
+			stmtSecForIfWhileForBlock.addStatement(
+					arrGetStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(arrGetStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(
+					arrGetStmt.getFortran(this, node));
 	}
 	
 	@Override
 	public void caseTIRArraySetStmt(TIRArraySetStmt node) {
 		HandleCaseTIRArraySetStmt arrSetStmt = new HandleCaseTIRArraySetStmt();
-		if (ifWhileForBlockNest!=0) 
-			stmtSecForIfWhileForBlock.addStatement(arrSetStmt.getFortran(this, node));
+		if (ifWhileForBlockNest != 0) 
+			stmtSecForIfWhileForBlock.addStatement(
+					arrSetStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(arrSetStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(
+					arrSetStmt.getFortran(this, node));
 	}
 	
 	// ******************************helper methods****************************
-	public static SubProgram FortranProgramGen(
+	public static Subprogram generateFortran(
 			ValueAnalysis<AggrValue<BasicMatrixValue>> analysis, 
 			int callgraphSize, 
-			int index, String fileDir) {
-		return new FortranCodeASTGenerator(analysis, callgraphSize, index, fileDir).subProgram;
+			int index, 
+			String entryPointFile, 
+			Set<String> userDefinedFunctions) {
+		return new FortranCodeASTGenerator(
+				analysis, 
+				callgraphSize, 
+				index, 
+				entryPointFile, 
+				userDefinedFunctions).subprogram;
 	}
 
 	public void iterateStatements(ast.List<ast.Stmt> stmts) {
@@ -247,9 +297,8 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public boolean hasArrayAsInput() {
 		boolean result = false;
 		for (String inArg : inArgs) {
-			if (!getMatrixValue(inArg).getShape().isScalar()) {
+			if (!getMatrixValue(inArg).getShape().isScalar()) 
 				result = true;
-			}
 		}
 		return result;
 	}
@@ -259,12 +308,13 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	}
 	
 	public BasicMatrixValue getMatrixValue(String variable) {
-		if (variable.indexOf("_copy")!=-1) {
+		if (variable.indexOf("_copy") != -1) {
 			int index = variable.indexOf("_copy");
 			String originalVar = variable.substring(0, index);
 			return (BasicMatrixValue) currentOutSet.get(originalVar).getSingleton();
 		}
-		return (BasicMatrixValue) currentOutSet.get(variable).getSingleton();
+		else 
+			return (BasicMatrixValue) currentOutSet.get(variable).getSingleton();
 	}
 	
 	public boolean isCell(String variable) {
@@ -275,8 +325,9 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	}
 	
 	public boolean hasSingleton(String variable) {
-		if (currentOutSet.get(variable).getSingleton()==null) return false;
-		return true;
+		if (currentOutSet.get(variable).getSingleton() == null) 
+			return false;
+		else return true;
 	}
 	
 	@SuppressWarnings("rawtypes")

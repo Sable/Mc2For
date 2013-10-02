@@ -11,7 +11,10 @@ public class HandleCaseTIRFunction {
 	 * Functions in MATLAB are mapped to programs and subroutines in Fortran, 
 	 * SubProgram ::= ProgramTitle DeclarationSection StatementSection;
 	 */ 
-	public FortranCodeASTGenerator getFortran(FortranCodeASTGenerator fcg, TIRFunction node) {
+	public FortranCodeASTGenerator getFortran(
+			FortranCodeASTGenerator fcg, 
+			TIRFunction node) 
+	{
 		fcg.functionName = node.getName();
 		for (Name param : node.getInputParams()) {
 			fcg.inArgs.add(param.getVarName());
@@ -20,21 +23,28 @@ public class HandleCaseTIRFunction {
 			fcg.outRes.add(result.getVarName());
 		}
 		/*
-		 * deal with main entry program, actually, sometimes, a subroutine can 
-		 * also be with 0 output...TODO think of a better way to distinguish 
-		 * whether it is a main entry point or a 0-output subroutine. 
+		 *  since all of our input matlab files are matlab functions, 
+		 *  we use that entry point file name to determine which function 
+		 *  should be transformed as the main program in fortran.
 		 */
-		if (fcg.outRes.size()==0) {
-			CaseNewMainEntryPoint mainEntryPoint = new CaseNewMainEntryPoint();
+		if (fcg.entryPointFile.equals(node.getName())) {
+			GenerateMainEntryPoint mainEntryPoint = new GenerateMainEntryPoint();
 			mainEntryPoint.newMain(fcg, node);
 		}
+		/* 
+		 * transform matlab functions, which are not entry point functions 
+		 * but has only one return value, to function files in fortran.
+		 */
+		else if (fcg.outRes.size() == 1) {
+			GenerateFunction function = new GenerateFunction();
+			function.newFunction(fcg, node);			
+		}
 		/*
-		 * deal with subroutines. All the calling functions in MATLAB will be 
-		 * mapped to subroutines in generated Fortran, which will be inlined 
-		 * inside the main program by using the Fortran key word, "CONTAINS".
+		 * transform matlab functions, which are not entry point functions 
+		 * but has 0 or more than one return values, to subroutines in fortran.
 		 */
 		else {
-			CaseNewSubroutine subroutine = new CaseNewSubroutine();
+			GenerateSubroutine subroutine = new GenerateSubroutine();
 			subroutine.newSubroutine(fcg, node);
 		}
 		return fcg;

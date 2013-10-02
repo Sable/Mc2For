@@ -1,5 +1,5 @@
-Program ::= SubProgram*;
-SubProgram ::= ProgramTitle DeclarationSection BackupVar* StatementSection <ProgramEnd>;
+Program ::= Subprogram*;
+Subprogram ::= ProgramTitle DeclarationSection BackupVar* StatementSection <ProgramEnd>;
 BackupVar ::= <Stmt: String>;
 
 ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList];
@@ -35,6 +35,7 @@ BuiltinConstantExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Var
 IOOperationExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <IOOperator> <ArgsList>;
 
 Subroutines: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <FuncName> <InputArgsList> <OutputArgsList>;
+Functions: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <TargetVar> <FuncName> <InputArgsList>;
 
 IfStmt: Statement ::= <Indent> <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
 
