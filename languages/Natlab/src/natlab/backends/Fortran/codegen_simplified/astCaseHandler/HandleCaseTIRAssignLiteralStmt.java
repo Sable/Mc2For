@@ -19,7 +19,7 @@ public class HandleCaseTIRAssignLiteralStmt {
 		if (Debug) System.out.println("in an assignLiteral statement");
 		AssignLiteralStmt stmt = new AssignLiteralStmt();
 		String indent = new String();
-		for (int i=0; i<fcg.indentNum; i++) {
+		for (int i = 0; i < fcg.indentNum; i++) {
 			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
@@ -41,7 +41,10 @@ public class HandleCaseTIRAssignLiteralStmt {
 				fcg.inputHasChanged.add(targetName);
 				var.setName(targetName+"_copy");
 			}
-			else var.setName(targetName);
+			else if (fcg.outRes.contains(targetName))
+				var.setName(fcg.functionName);
+			else 
+				var.setName(targetName);
 			stmt.setVariable(var);
 			stmt.setLiteral(node.getRHS().getNodeString());
 			/*

@@ -55,9 +55,14 @@ public class GenerateMainEntryPoint {
 		title.setProgramType("PROGRAM");
 		title.setProgramName(fcg.functionName);
 		mainEntry.setProgramTitle(title);
-		
-		// TODO declare modules
-		
+		/* 
+		 * declare modules
+		 */
+		for (String builtin : fcg.allSubprograms) {
+			Module module = new Module();
+			module.setName(builtin);
+			title.addModule(module);
+		}
 		/*
 		 *  set the declaration section.
 		 */
@@ -155,7 +160,7 @@ public class GenerateMainEntryPoint {
 					if (!variableShapeIsKnown) {
 						StringBuffer tempBuf = new StringBuffer();
 						tempBuf.append("DIMENSION(");
-						for (int i=1; i<=dim.size(); i++) {
+						for (int i = 0; i < dim.size(); i++) {
 							if (counter) tempBuf.append(",");
 							tempBuf.append(":");
 							counter = true;
@@ -169,14 +174,6 @@ public class GenerateMainEntryPoint {
 						Variable var_bk = new Variable();
 						var_bk.setName(variable+"_bk");
 						varList.addVariable(var_bk);
-						/*
-						 * declare user-defined functions.
-						 */
-						if (fcg.userDefinedFunctionDeclaration.containsKey(variable)) {
-							Variable userDefFunction = new Variable();
-							userDefFunction.setName(fcg.userDefinedFunctionDeclaration.get(variable));
-							varList.addVariable(userDefFunction);
-						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}
@@ -188,10 +185,15 @@ public class GenerateMainEntryPoint {
 					else {
 						StringBuffer tempBuf = new StringBuffer();
 						tempBuf.append("DIMENSION(");
-						for (DimValue dimValue : dim) {
-							if (counter) tempBuf.append(",");
-							tempBuf.append(dimValue.toString());
-							counter = true;
+						for (int i = 0; i < dim.size(); i++) {
+							if (i == 0 && dim.get(0).getIntValue().equals(1)) {
+								// transform 2-dimensional 1-by-n array to a vector.
+							}
+							else {
+								if (counter) tempBuf.append(",");
+								tempBuf.append(dim.get(i).toString());
+								counter = true;
+							}
 						}
 						tempBuf.append(")");
 						keyword.setName(tempBuf.toString());
@@ -199,14 +201,6 @@ public class GenerateMainEntryPoint {
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
-						/*
-						 * declare user-defined functions.
-						 */
-						if (fcg.userDefinedFunctionDeclaration.containsKey(variable)) {
-							Variable userDefFunction = new Variable();
-							userDefFunction.setName(fcg.userDefinedFunctionDeclaration.get(variable));
-							varList.addVariable(userDefFunction);
-						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}
@@ -218,14 +212,6 @@ public class GenerateMainEntryPoint {
 					Variable var = new Variable();
 					var.setName(variable);
 					varList.addVariable(var);
-					/*
-					 * declare user-defined functions.
-					 */
-					if (fcg.userDefinedFunctionDeclaration.containsKey(variable)) {
-						Variable userDefFunction = new Variable();
-						userDefFunction.setName(fcg.userDefinedFunctionDeclaration.get(variable));
-						varList.addVariable(userDefFunction);
-					}
 					declStmt.setVariableList(varList);
 				}
 				declSection.addDeclStmt(declStmt);

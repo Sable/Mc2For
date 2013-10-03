@@ -38,10 +38,10 @@ public class FortranMapping {
 		FortranTypeMap.put("int16", "INTEGER(KIND=2)");
 		FortranTypeMap.put("int32", "INTEGER(KIND=4)");
 		FortranTypeMap.put("int64", "INTEGER(KIND=8)");
-		FortranTypeMap.put("uint8", "INTEGER(KIND=8)");
-		FortranTypeMap.put("uint16", "INTEGER");
-		FortranTypeMap.put("uint32", "INTEGER");
-		FortranTypeMap.put("uint64", "INTEGER");
+		FortranTypeMap.put("uint8", "INTEGER(KIND=2)");
+		FortranTypeMap.put("uint16", "INTEGER(KIND=4)");
+		FortranTypeMap.put("uint32", "INTEGER(KIND=8)");
+		FortranTypeMap.put("uint64", "INTEGER(KIND=16)");
 		FortranTypeMap.put("char", "CHARACTER");
 		FortranTypeMap.put("logical", "LOGICAL");
 		FortranTypeMap.put("complex", "COMPLEX");
@@ -147,12 +147,9 @@ public class FortranMapping {
 		 */
 		FortranNoDirectBuiltinSet.add("horzcat");
 		FortranNoDirectBuiltinSet.add("vertcat");
-		FortranNoDirectBuiltinSet.add("ones");
-		FortranNoDirectBuiltinSet.add("zeros");
+		FortranNoDirectBuiltinSet.add("ldivide");
 		FortranNoDirectBuiltinSet.add("colon");
-		FortranNoDirectBuiltinSet.add("randperm");
 		FortranNoDirectBuiltinSet.add("cellhorzcat");
-		// FortranNoDirectBuiltinSet.add("rand");
 	}
 	
 	private void makeFortranBuiltinConstMap() {

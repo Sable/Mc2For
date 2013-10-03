@@ -15,8 +15,11 @@ public class FortranCodeASTInliner {
 	static boolean Debug = false;
 	
 	@SuppressWarnings("rawtypes")
-	public static NoDirectBuiltinExpr inline(FortranCodeASTGenerator fcg, TIRAbstractAssignToListStmt node, 
-			List<Shape> currentShape) {
+	public static NoDirectBuiltinExpr inline(
+			FortranCodeASTGenerator fcg, 
+			TIRAbstractAssignToListStmt node, 
+			List<Shape> currentShape) 
+	{
 		NoDirectBuiltinExpr noDirBuiltinExpr = new NoDirectBuiltinExpr();
 		String indent = new String();
 		for (int i=0; i<fcg.indentNum; i++) {
@@ -110,80 +113,7 @@ public class FortranCodeASTInliner {
 			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 					+" is over.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
-		}
-		else if (rhsFunName.equals("ones")) {
-			/*
-			 * need constant folding check.
-			 */
-			if (rhsArgs.size()==1) {
-				return noDirBuiltinExpr;
-			}
-			if (fcg.getMatrixValue(rhsArgs.get(0)).hasConstant()) {
-				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
-						.getConstant();
-				int ci = c.getValue().intValue();
-				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , "+ci+"\n");
-			}
-			else {
-				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , int("+rhsArgs.get(0)+")\n");
-			}
-			if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant()) {
-				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
-						.getConstant();
-				int ci = c.getValue().intValue();
-				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
-			}
-			else {
-				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget+"_j = 1 , int("+rhsArgs.get(1)
-						+")\n");
-			}
-			tempBuf.append(indent+fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(tmp_"+lhsTarget
-					+"_i,tmp_"+lhsTarget+"_j) = 1;\n");
-			tempBuf.append(indent+fcg.standardIndent+"ENDDO\n");
-			tempBuf.append(indent+"ENDDO");
-			BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
-					(new ShapeFactory()).getScalarShape(), null);
-			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
-			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_j", tmp);
-			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
-					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
-		}		
-		else if (rhsFunName.equals("zeros")) {
-			/*
-			 * need constant folding check.
-			 */
-			if (fcg.getMatrixValue(rhsArgs.get(0)).hasConstant()) {
-				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
-						.getConstant();
-				int ci = c.getValue().intValue();
-				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , "+ci+"\n");
-			}
-			else {
-				tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = 1 , int("+rhsArgs.get(0)+")\n");
-			}
-			if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant()){
-				DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
-						.getConstant();
-				int ci = c.getValue().intValue();
-				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget+"_j = 1 , "+ci+"\n");
-			}
-			else {
-				tempBuf.append(indent+fcg.standardIndent+"DO tmp_"+lhsTarget
-						+"_j = 1 , int("+rhsArgs.get(1)+")\n");
-			}
-			tempBuf.append(indent+fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(tmp_"+lhsTarget
-					+"_i,tmp_"+lhsTarget+"_j) = 0;\n");
-			tempBuf.append(indent+fcg.standardIndent+"ENDDO\n");
-			tempBuf.append(indent+"ENDO");
-			BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
-					(new ShapeFactory()).getScalarShape(), null);
-			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
-			fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_j", tmp);
-			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
-					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
-		}		
+		}	
 		else if (rhsFunName.equals("colon")) {
 			/*
 			 * Depending on the fact that whether the target variable is temporary, 
@@ -209,17 +139,9 @@ public class FortranCodeASTInliner {
 			}
 			else {
 				/*
-				 * a=1:10 -> a=[1,2,3,...,10]
-				 * a=1:2:10 -> a=[1,3,5,...,9]
-				 * so, depends on the number of input parameters, there are two transformations.
+				 * a = lower : upper --> a = (/I, I=lower, upper/)
 				 */
-				if (numOfArgs==2) {
-					/* a = arg1:arg2
-					 * -->
-					 * do tmp_a_i = arg1,arg2
-				  	 *   a(1,tmp_a_i) = tmp_a_i;
-				     * enddo
-				     */
+				if (numOfArgs == 2) {
 					/*
 					 * need constant folding check.
 					 */
@@ -228,38 +150,26 @@ public class FortranCodeASTInliner {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+ci);
+						tempBuf.append(indent + lhsTarget + " = DBLE((/(I, I=" + ci);
 					}
 					else {
-						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+rhsArgs.get(0));
+						tempBuf.append(indent+lhsTarget + " = DBLE((/(I, I=INT(" + rhsArgs.get(0) + ")");
 					}
 					if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant() 
 							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(1))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tempBuf.append(","+ci+"\n");
+						tempBuf.append(", " + ci + ")/);");
 					}
 					else {
-						tempBuf.append(","+rhsArgs.get(1)+"\n");
+						tempBuf.append(", INT(" + rhsArgs.get(1) + "))/));");
 					}
-					tempBuf.append(fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(1,tmp_"+lhsTarget
-							+"_i) = tmp_"+lhsTarget+"_i;\n");
-					tempBuf.append(indent+"ENDDO");
-					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
-							(new ShapeFactory()).getScalarShape(), null);
-					fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
 				}
-				else if (numOfArgs==3) {
-					/* a = lower:inc:upper
-					 * -->
-					 * tmp_a_index = 1;
-					 * do tmp_a_i = lower,upper,inc
-				  	 *   a(1,tmp_a_index) = tmp_a_i;
-				  	 *   tmp_a_index=tmp_a_index+1;
-				     * enddo
-				     */
-					tempBuf.append("tmp_"+lhsTarget+"_index = 1;\n");
+				/*
+				 * a = lower : inc : upper --> a = (/I, I=lower, upper, inc/)
+			     */
+				else if (numOfArgs == 3) {
 					/*
 					 * need constant folding check.
 					 */
@@ -268,77 +178,42 @@ public class FortranCodeASTInliner {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+ci);
+						tempBuf.append(indent+lhsTarget + " = DBLE((/(I, I=" + ci);
 					}
 					else {
-						tempBuf.append(indent+"DO tmp_"+lhsTarget+"_i = "+rhsArgs.get(0));
+						tempBuf.append(indent+lhsTarget + " = DBLE(/(I, I=INT(" + rhsArgs.get(0) + ")");
 					}
 					if (fcg.getMatrixValue(rhsArgs.get(2)).hasConstant() 
 							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(2))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(2))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tempBuf.append(","+ci);
+						tempBuf.append(", " + ci);
 					}
 					else {
-						tempBuf.append(","+rhsArgs.get(2));
+						tempBuf.append(", INT(" + rhsArgs.get(2) + ")");
 					}
 					if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant() 
 							&& fcg.tempVarsBeforeF.contains(rhsArgs.get(1))) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(1))
 								.getConstant();
 						int ci = c.getValue().intValue();
-						tempBuf.append(","+ci+"\n");
+						tempBuf.append(", " + ci + "/)));");
 					}
 					else {
-						tempBuf.append(","+rhsArgs.get(1)+"\n");
+						tempBuf.append(", INT(" + rhsArgs.get(1) + "))/));");
 					}
-					tempBuf.append(fcg.standardIndent+fcg.standardIndent+cellLHSTarget+"(1,tmp_"+lhsTarget
-							+"_index) = tmp_"+lhsTarget+"_i;\n");
-					tempBuf.append(fcg.standardIndent+fcg.standardIndent+"tmp_"+lhsTarget+"_index = tmp_"
-							+lhsTarget+"_index+1;\n");
-					tempBuf.append(indent+"ENDDO");
-					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
-							(new ShapeFactory()).getScalarShape(), null);
-					fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_i", tmp);
-					fcg.tempVarsFortran.put("tmp_"+lhsTarget+"_index", tmp);
 				}
 				else {
 					// TODO this should be an error, throw an exception?
 				}
+				BasicMatrixValue varI = new BasicMatrixValue(
+						null, PrimitiveClassReference.INT32, new ShapeFactory().getScalarShape(), null);
+				fcg.tempVarsFortran.put("I", varI);
 				tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 						+" is over.");
 			}
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
-		}		
-		else if (rhsFunName.equals("randperm")) {
-			/*
-			 * a=randperm(6) will get a=[1,4,3,6,5,2],
-			 */
-			if (numOfArgs==1) {
-				if (fcg.getMatrixValue(rhsArgs.get(0)).hasConstant()) {
-					DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(0))
-							.getConstant();
-					int ci = c.getValue().intValue();
-					tempBuf.append(indent+"call randperm("+ci+","+cellLHSTarget+")");
-				}
-				else {
-					tempBuf.append(indent+"call randperm("+rhsArgs.get(0)+","+cellLHSTarget+")");
-				}
-			}
-			else if (numOfArgs==2) {
-				// TODO
-			}
-			else {
-				// TODO this should be an error, throw an exception?
-			}
-			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
-					+" is over.");
-			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
-		}		
-		else if (rhsFunName.equals("rand")) {
-			// TODO what is people implement a rand function in MATLAB? 
-			noDirBuiltinExpr.setCodeInline(indent+"call random_number("+cellLHSTarget+");");
 		}
 		else if (rhsFunName.equals("cellhorzcat")) {
 			ArrayList<BasicMatrixValue> fields = new ArrayList<BasicMatrixValue>();

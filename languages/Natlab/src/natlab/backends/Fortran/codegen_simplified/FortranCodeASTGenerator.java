@@ -26,6 +26,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public int callgraphSize;
 	public String entryPointFile;
 	public Set<String> userDefinedFunctions;
+	public Set<String> allSubprograms;
 	public Subprogram subprogram;
 	public StringBuffer buf;
 	public StringBuffer buf2;
@@ -36,7 +37,6 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public boolean isInSubroutine;
 	// used to back up input argument.
 	public Set<String> inputHasChanged;
-	public Map<String, String> userDefinedFunctionDeclaration;
 	public Set<String> arrayConvert;
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
@@ -74,6 +74,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		this.callgraphSize = callgraphSize;
 		this.entryPointFile = entryPointFile;
 		this.userDefinedFunctions = userDefinedFunctions;
+		allSubprograms = new HashSet<String>();
 		FortranMapping = new FortranMapping();
 		functionName = "";
 		subprogram = new Subprogram();
@@ -81,7 +82,6 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		outRes = new ArrayList<String>();
 		isInSubroutine = false;
 		inputHasChanged = new HashSet<String>();
-		userDefinedFunctionDeclaration = new HashMap<String, String>();
 		arrayConvert = new HashSet<String>();
 		ifWhileForBlockNest = 0;
 		stmtSecForIfWhileForBlock = new StatementSection();

@@ -16,11 +16,14 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 	 * 1. for rhs, constant folding check;
 	 * 2. for lhs, do we need to inline allocate code check.
 	 */
-	public Statement getFortran(FortranCodeASTGenerator fcg, TIRAbstractAssignToVarStmt node) {
+	public Statement getFortran(
+			FortranCodeASTGenerator fcg, 
+			TIRAbstractAssignToVarStmt node) 
+	{
 		if (Debug) System.out.println("in an abstractAssignToVar statement");
 		AbstractAssignToVarStmt stmt = new AbstractAssignToVarStmt();
 		String indent = new String();
-		for (int i=0; i<fcg.indentNum; i++) {
+		for (int i = 0; i < fcg.indentNum; i++) {
 			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
@@ -35,7 +38,10 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 			fcg.inputHasChanged.add(targetName);
 			stmt.setTargetVariable(targetName+"_copy");
 		}
-		else stmt.setTargetVariable(targetName);
+		else if (fcg.outRes.contains(targetName)) 
+			stmt.setTargetVariable(fcg.functionName);
+		else 
+			stmt.setTargetVariable(targetName);
 		/*
 		 * for rhs, insert constant folding check.
 		 */
@@ -51,7 +57,8 @@ public class HandleCaseTIRAbstractAssignToVarStmt {
 		else {
 			if (fcg.inputHasChanged.contains(rhsNodeString)) 
 				stmt.setSourceVariable(rhsNodeString+"_copy");
-			else stmt.setSourceVariable(rhsNodeString);
+			else 
+				stmt.setSourceVariable(rhsNodeString);
 		}
 		if (fcg.isCell(rhsNodeString) || !fcg.hasSingleton(rhsNodeString)) {
 			fcg.forCellArr.put(targetName, fcg.forCellArr.get(rhsNodeString));

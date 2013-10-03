@@ -21,8 +21,8 @@ public class Main_simplified {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "fileDir";
-	    String entryPointFile = "entry";
+		String fileDir = "/home/aaron/for_test/code-gen/no-directly-mapping/";
+	    String entryPointFile = "main";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		BasicTamerTool tool = new BasicTamerTool();
@@ -53,12 +53,18 @@ public class Main_simplified {
 			System.out.println(
 					"\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 			StringBuffer sb = new StringBuffer();
+			String pFilename = prg.getSubprogram(i).getProgramTitle().getProgramName();
+			if (!pFilename.equals(entryPointFile)) {
+				sb.append("MODULE mod_"+pFilename+"\n\nCONTAINS\n\n");
+			}
 			prg.getSubprogram(i).pp(sb);
+			if (!pFilename.equals(entryPointFile)) {
+				sb.append("\nEND MODULE");
+			}			
 			System.out.println(sb);
 			
 			// write the generated fortran code to files.
 			try {
-				String pFilename = prg.getSubprogram(i).getProgramTitle().getProgramName();
 				BufferedWriter out = new BufferedWriter(new FileWriter(fileDir+pFilename+".f95"));  
 		        out.write(sb.toString());  
 		        out.flush();  

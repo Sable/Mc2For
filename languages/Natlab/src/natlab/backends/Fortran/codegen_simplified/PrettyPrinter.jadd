@@ -25,6 +25,12 @@ aspect PrettyPrinter {
 	    	getProgramParameterList().pp(sb);
 	    	sb.append(")");
 	    }
+	    int size = getNumModule();
+	    if (size>0) {
+		    for (int i=0;i<size;i++) {
+		    	getModule(i).pp(sb);
+	    	}
+	    }
 	    sb.append("\nIMPLICIT NONE\n");
 	}
     
@@ -38,6 +44,10 @@ aspect PrettyPrinter {
     
     public void Parameter.pp(StringBuffer sb) {
     	sb.append(getName());
+    }
+    
+    public void Module.pp(StringBuffer sb) {
+    	sb.append("\nUSE mod_"+getName());
     }
     
     public void DeclarationSection.pp(StringBuffer sb) {

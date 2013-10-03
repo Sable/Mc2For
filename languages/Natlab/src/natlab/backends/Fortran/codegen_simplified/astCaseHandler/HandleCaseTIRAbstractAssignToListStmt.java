@@ -288,7 +288,6 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			 */
 			currentShape = getCurrentShape(fcg, node, node.getRHS().getVarName(), arguments);
 			noDirBuiltinExpr = FortranCodeASTInliner.inline(fcg, node, currentShape);
-			System.out.println(node.getTargetName().getID());
 			if (!fcg.isCell(node.getTargetName().getID()) 
 				&& fcg.hasSingleton(node.getTargetName().getID()) 
 				&& !fcg.getMatrixValue(node.getTargetName().getID()).getShape().isConstant() 
@@ -417,12 +416,14 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				function.setIndent(indent);
 				String targetVar = node.getTargets().asNameList().get(0).getID();
 				/*
-				 * for user-defined function declaration.
+				 * when cannot find directly-mapping functions, there are two 
+				 * possibilities: it's a user-defined function; or it's a 
+				 * matlab built-in function which doesn't have a directly-
+				 * mapping in fortran.
 				 */
-				fcg.userDefinedFunctionDeclaration.put(targetVar, node.getRHS().getVarName());
 				/*
-				 * if an input argument of the function is on the LHS of an assignment stmt, 
-				 * we assume that this input argument maybe modified.
+				 * if an input argument of the function is on the LHS of an assignment 
+				 * stmt, we assume that this input argument maybe modified.
 				 */
 				if (fcg.isInSubroutine && fcg.inArgs.contains(targetVar)) {
 					if (Debug) System.out.println("subroutine's input " + targetVar	+ " has been modified!");
@@ -449,7 +450,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
 						Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
 						arguments.remove(i);
-						arguments.add(i, c.toString());
+						arguments.add(i, c.toString()+"d+0");
 					}
 					else {
 						if (fcg.inputHasChanged.contains(arguments.get(i))) {
@@ -461,6 +462,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 				}
 				String funcName = node.getRHS().getVarName();
 				function.setFuncName(funcName);
+				fcg.allSubprograms.add(funcName);
 				function.setInputArgsList(getArgsListAsString(arguments));
 				return function;
 			}
@@ -500,7 +502,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 							&& fcg.tempVarsBeforeF.contains(arguments.get(i))) {
 						Constant c = fcg.getMatrixValue(arguments.get(i)).getConstant();
 						arguments.remove(i);
-						arguments.add(i, c.toString());
+						arguments.add(i, c.toString()+"d+0");
 					}
 					else {
 						if (fcg.inputHasChanged.contains(arguments.get(i))) {
@@ -511,9 +513,9 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 					}
 				}
 				ArgsListasString = getArgsListAsString(arguments);
-				String funcName;
-				funcName = node.getRHS().getVarName();
+				String funcName = node.getRHS().getVarName();
 				subroutine.setFuncName(funcName);
+				fcg.allSubprograms.add(funcName);
 				subroutine.setInputArgsList(ArgsListasString);
 				subroutine.setOutputArgsList(outputArgsList.toString().replace("[", "")
 						.replace("]", ""));
