@@ -148,6 +148,12 @@ aspect PrettyPrinter {
     	sb.append(getBlock());
     }
     
+    public void FSubroutines.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	sb.append("CALL "+getFunctionCall()+";");
+    }
+    
     public void FIfStmt.pp(StringBuffer sb) {
     	sb.append(getIndent());
     	sb.append("IF ("+getFIfCondition()+") THEN\n");

@@ -25,6 +25,8 @@ FCommentStmt: Statement ::= <Indent> <FComment>;
 FAssignStmt: Statement ::= <Indent> [RuntimeAllocate] <FLHS> <FRHS>;
 RuntimeAllocate ::= <Block: String>;
 
+FSubroutines: FAssignStmt ::= <Indent> [RuntimeAllocate] <FunctionCall>;
+
 FIfStmt: Statement ::= <Indent> <FIfCondition> FIfBlock: StatementSection [FElseBlock: StatementSection];
 
 FWhileStmt: Statement ::= <Indent> <FWhileCondition> FWhileBlock: StatementSection;

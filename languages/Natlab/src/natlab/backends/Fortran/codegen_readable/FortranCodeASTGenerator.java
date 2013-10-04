@@ -115,6 +115,42 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				indent = indent + this.standardIndent;
 			}
 			fAssignStmt.setIndent(indent);
+			/*
+			 * translate matlab function with more than 
+			 * one returns to subroutines in fortran.
+			 */
+			if (node.getLHS() instanceof MatrixExpr) {
+				MatrixExpr lhsMatrix = (MatrixExpr)node.getLHS();
+				if (lhsMatrix.getChild(0) instanceof List) {
+					List lhsList = (List)lhsMatrix.getChild(0);
+					if (lhsList.getChild(0) instanceof Row) {
+						Row lhsRow = (Row)lhsList.getChild(0);
+						if (lhsRow.getChild(0).getNumChild() > 1) {
+							FSubroutines fSubroutines = new FSubroutines();
+							node.getRHS().analyze(this);
+							sb.replace(sb.length()-1, sb.length(), "");
+							sb.append(", ");
+							for (int i = 0; i < lhsRow.getChild(0).getNumChild(); i++) {
+								if (this.outRes.contains(lhsRow.getChild(0).getChild(i).getNodeString())) {
+									sb.append(this.functionName);
+								}
+								else {
+									sb.append(lhsRow.getChild(0).getChild(i).getNodeString());
+								}
+								if (i < lhsRow.getChild(0).getNumChild() - 1) {
+									sb.append(", ");
+								}
+							}
+							sb.append(")");
+							if (Debug) System.out.println(sb);
+							fSubroutines.setFunctionCall(sb.toString());
+							sb.setLength(0);
+							subprogram.getStatementSection().addStatement(fSubroutines);
+							return;
+						}
+					}
+				}
+			}
 			node.getLHS().analyze(this);
 			fAssignStmt.setFLHS(sb.toString());
 			sb.setLength(0);
@@ -195,7 +231,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						node.getChild(0).analyze(this);
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
-						sb.append(" ,");
+						sb.append(", ");
 						node.getChild(1).getChild(1).analyze(this);
 						sb.append(")");
 						this.allSubprograms.add(node.getChild(0).getNodeString());
@@ -313,7 +349,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	@SuppressWarnings("rawtypes")
 	public void caseList(List node) {
 		for (int i=0; i<node.getNumChild(); i++) {
-			// System.out.println(node.getChild(i));
+			if (Debug) System.out.println(node.getNumChild());
 			if (!(node.getChild(i) instanceof EmptyStmt)) {
 				node.getChild(i).analyze(this);
 				if (insideArray && i < node.getNumChild()-1) 
