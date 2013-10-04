@@ -528,12 +528,12 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 			TIRAbstractAssignToListStmt node) {
 		String RHSMatlabOperator;
 		RHSMatlabOperator = node.getRHS().getVarName();
-		if (fcg.FortranMapping.isFortranBinOperator(RHSMatlabOperator)) return 1;
-		else if (fcg.FortranMapping.isFortranUnOperator(RHSMatlabOperator)) return 2;
-		else if (fcg.FortranMapping.isFortranDirectBuiltin(RHSMatlabOperator)) return 3;
-		else if(fcg.FortranMapping.isFortranNoDirectBuiltin(RHSMatlabOperator))	return 4;
-		else if(fcg.FortranMapping.isBuiltinConst(RHSMatlabOperator)) return 5;
-		else if(fcg.FortranMapping.isFortranIOOperation(RHSMatlabOperator)) return 6;
+		if (fcg.fortranMapping.isFortranBinOperator(RHSMatlabOperator)) return 1;
+		else if (fcg.fortranMapping.isFortranUnOperator(RHSMatlabOperator)) return 2;
+		else if (fcg.fortranMapping.isFortranDirectBuiltin(RHSMatlabOperator)) return 3;
+		else if(fcg.fortranMapping.isFortranNoDirectBuiltin(RHSMatlabOperator))	return 4;
+		else if(fcg.fortranMapping.isBuiltinConst(RHSMatlabOperator)) return 5;
+		else if(fcg.fortranMapping.isFortranIOOperation(RHSMatlabOperator)) return 6;
 		else return 7; // "user defined function";
 	}
 	
@@ -554,23 +554,23 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		String RHSFortranOperator;
 		String RHSMatlabOperator;
 		RHSMatlabOperator = node.getRHS().getVarName();
-		if (fcg.FortranMapping.isFortranBinOperator(RHSMatlabOperator)) {
-			RHSFortranOperator = fcg.FortranMapping.getFortranBinOpMapping(RHSMatlabOperator);
+		if (fcg.fortranMapping.isFortranBinOperator(RHSMatlabOperator)) {
+			RHSFortranOperator = fcg.fortranMapping.getFortranBinOpMapping(RHSMatlabOperator);
 		}
-		else if (fcg.FortranMapping.isFortranUnOperator(RHSMatlabOperator)) {
-			RHSFortranOperator = fcg.FortranMapping.getFortranUnOpMapping(RHSMatlabOperator);
+		else if (fcg.fortranMapping.isFortranUnOperator(RHSMatlabOperator)) {
+			RHSFortranOperator = fcg.fortranMapping.getFortranUnOpMapping(RHSMatlabOperator);
 		}
-		else if (fcg.FortranMapping.isFortranDirectBuiltin(RHSMatlabOperator)) {
-			RHSFortranOperator = fcg.FortranMapping.getFortranDirectBuiltinMapping(RHSMatlabOperator);
+		else if (fcg.fortranMapping.isFortranDirectBuiltin(RHSMatlabOperator)) {
+			RHSFortranOperator = fcg.fortranMapping.getFortranDirectBuiltinMapping(RHSMatlabOperator);
 		}
-		else if (fcg.FortranMapping.isFortranNoDirectBuiltin(RHSMatlabOperator)) {
+		else if (fcg.fortranMapping.isFortranNoDirectBuiltin(RHSMatlabOperator)) {
 			RHSFortranOperator = RHSMatlabOperator;
 		}
-		else if (fcg.FortranMapping.isBuiltinConst(RHSMatlabOperator)) {
-			RHSFortranOperator = fcg.FortranMapping.getFortranBuiltinConstMapping(RHSMatlabOperator);
+		else if (fcg.fortranMapping.isBuiltinConst(RHSMatlabOperator)) {
+			RHSFortranOperator = fcg.fortranMapping.getFortranBuiltinConstMapping(RHSMatlabOperator);
 		}
-		else if (fcg.FortranMapping.isFortranIOOperation(RHSMatlabOperator)) {
-			RHSFortranOperator = fcg.FortranMapping.getFortranIOOperationMapping(RHSMatlabOperator);
+		else if (fcg.fortranMapping.isFortranIOOperation(RHSMatlabOperator)) {
+			RHSFortranOperator = fcg.fortranMapping.getFortranIOOperationMapping(RHSMatlabOperator);
 		}
 		else RHSFortranOperator = "user defined function, no mapping, sorry.";
 		return RHSFortranOperator;

@@ -8,8 +8,11 @@ public class HandleCaseTIRFunction {
 	static boolean Debug =false;
 	
 	/**
-	 * Functions in MATLAB are mapped to programs and subroutines in Fortran, 
-	 * SubProgram ::= ProgramTitle DeclarationSection StatementSection;
+	 * main entry point MATLAB functions are mapped to main programs in fortran;
+	 * functions with only one return value are mapped to functions in fortran;
+	 * functions with 0 or more than 1 return values are mapped to subroutines.
+	 *  
+	 * Subprogram ::= ProgramTitle DeclarationSection StatementSection;
 	 */ 
 	public FortranCodeASTGenerator getFortran(
 			FortranCodeASTGenerator fcg, 

@@ -25,12 +25,12 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	public ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet;
 	public int callgraphSize;
 	public String entryPointFile;
-	public Set<String> userDefinedFunctions;
+	// public Set<String> userDefinedFunctions;
 	public Set<String> allSubprograms;
 	public Subprogram subprogram;
 	public StringBuffer buf;
 	public StringBuffer buf2;
-	public FortranMapping FortranMapping;
+	public FortranMapping fortranMapping;
 	public String functionName;
 	public List<String> inArgs;
 	public List<String> outRes;
@@ -51,7 +51,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	// temporary variables generated during McSAF or Tamer simplification.
 	public Set<String> tempVarsBeforeF;
 	// temporary variables generated in Fortran code generation.
-	public Map<String, BasicMatrixValue> tempVarsFortran;
+	public Map<String, BasicMatrixValue> fortranTemporaries;
 	// not support nested cell array.
 	public Map<String, ArrayList<BasicMatrixValue>> forCellArr;
 	public List<String> declaredCell;
@@ -68,14 +68,15 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 			int callgraphSize, 
 			int index, 
 			String entryPointFile, 
-			Set<String> userDefinedFunctions) {
+			Set<String> userDefinedFunctions) 
+	{
 		currentOutSet = analysis.getNodeList()
 				.get(index).getAnalysis().getCurrentOutSet();
 		this.callgraphSize = callgraphSize;
 		this.entryPointFile = entryPointFile;
-		this.userDefinedFunctions = userDefinedFunctions;
+		// this.userDefinedFunctions = userDefinedFunctions;
 		allSubprograms = new HashSet<String>();
-		FortranMapping = new FortranMapping();
+		fortranMapping = new FortranMapping();
 		functionName = "";
 		subprogram = new Subprogram();
 		inArgs = new ArrayList<String>();
@@ -89,7 +90,7 @@ public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 		standardIndent = "   ";
 		tempVectorAsArrayIndex = new HashMap<String, ArrayList<String>>();
 		tempVarsBeforeF = new HashSet<String>();
-		tempVarsFortran = new HashMap<String,BasicMatrixValue>();
+		fortranTemporaries = new HashMap<String,BasicMatrixValue>();
 		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
 		declaredCell = new ArrayList<String>();
 		((TIRNode) analysis.getNodeList()

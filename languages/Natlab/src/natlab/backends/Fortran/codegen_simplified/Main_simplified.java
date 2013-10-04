@@ -21,7 +21,7 @@ public class Main_simplified {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "/home/aaron/for_test/code-gen/no-directly-mapping/";
+		String fileDir = "/home/aaron/for_test/readable/";
 	    String entryPointFile = "main";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
@@ -39,11 +39,11 @@ public class Main_simplified {
 		}
 		
 		// generate the Fortran AST and then let the AST pretty print itself.
-		Program prg = new Program();
+		Program program = new Program();
 		for (int i = 0; i < size; i++) {
 			System.out.println(
 					"\n~~~~~~~~~~~~~~~~Analysis during Code Generation~~~~~~~~~~~~~~~~~~~~~~~\n");
-			prg.setSubprogram(FortranCodeASTGenerator.generateFortran(
+			program.setSubprogram(FortranCodeASTGenerator.generateFortran(
 					analysis, 
 					size, 
 					i, 
@@ -53,19 +53,21 @@ public class Main_simplified {
 			System.out.println(
 					"\n~~~~~~~~~~~~~~~~~~~~~Generated Fortran Code~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 			StringBuffer sb = new StringBuffer();
-			String pFilename = prg.getSubprogram(i).getProgramTitle().getProgramName();
-			if (!pFilename.equals(entryPointFile)) {
-				sb.append("MODULE mod_"+pFilename+"\n\nCONTAINS\n\n");
-			}
-			prg.getSubprogram(i).pp(sb);
-			if (!pFilename.equals(entryPointFile)) {
+			String currentFunction = program.getSubprogram(i).getProgramTitle().getProgramName();
+			if (!currentFunction.equals(entryPointFile)) {
+				sb.append("MODULE mod_"+currentFunction+"\n\nCONTAINS\n\n");
+				program.getSubprogram(i).pp(sb);
 				sb.append("\nEND MODULE");
-			}			
+			}
+			else {
+				program.getSubprogram(i).pp(sb);
+			}
 			System.out.println(sb);
 			
 			// write the generated fortran code to files.
 			try {
-				BufferedWriter out = new BufferedWriter(new FileWriter(fileDir+pFilename+".f95"));  
+				BufferedWriter out = new BufferedWriter(
+						new FileWriter(fileDir+currentFunction+".f95"));  
 		        out.write(sb.toString());  
 		        out.flush();  
 		        out.close(); 

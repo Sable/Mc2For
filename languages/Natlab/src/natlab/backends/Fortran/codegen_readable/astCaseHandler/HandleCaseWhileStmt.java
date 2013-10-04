@@ -13,11 +13,12 @@ public class HandleCaseWhileStmt {
 	 */
 	public Statement getFortran(
 			FortranCodeASTGenerator fcg, 
-			WhileStmt node) {
+			WhileStmt node) 
+	{
 		if (Debug) System.out.println("in while statement.");		
 		FWhileStmt stmt = new FWhileStmt();
 		String indent = new String();
-		for (int i=0; i<fcg.indentNum; i++) {
+		for (int i = 0; i < fcg.indentNum; i++) {
 			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);

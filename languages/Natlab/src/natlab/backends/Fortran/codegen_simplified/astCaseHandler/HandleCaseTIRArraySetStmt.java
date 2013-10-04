@@ -58,7 +58,7 @@ public class HandleCaseTIRArraySetStmt {
 				tempBuf.append(indent+lhsArrayName+"_d"+(i+1)+" = SIZE("+lhsArrayName+", "+(i+1)+");\n");
 				BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 						(new ShapeFactory()).getScalarShape(), null);
-				fcg.tempVarsFortran.put(lhsArrayName+"_d"+(i+1), tmp);
+				fcg.fortranTemporaries.put(lhsArrayName+"_d"+(i+1), tmp);
 			}
 			tempBuf.append(indent+"IF (");
 			for (int i=0; i<lhsArrayShape.getDimensions().size(); i++) {
@@ -125,7 +125,7 @@ public class HandleCaseTIRArraySetStmt {
 				}
 				BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
 						(new ShapeFactory()).getScalarShape(), null);
-				fcg.tempVarsFortran.put(lhsArrayName+"_d"+(i+1)+"max", tmp);				
+				fcg.fortranTemporaries.put(lhsArrayName+"_d"+(i+1)+"max", tmp);				
 			}
 			tempBuf.append(indent+fcg.standardIndent+"ALLOCATE("+lhsArrayName+"(");
 			for (int i=0; i<lhsArrayShape.getDimensions().size(); i++) {

@@ -40,8 +40,8 @@ public class GenerateMainEntryPoint {
 		preMainEntry.setStatementSection(preStmtSection);
 		fcg.iterateStatements(node.getStmts());
 		/* 
-		 * second pass of all the statements, using information 
-		 * collected from the first pass.
+		 * second pass of all the statements, using 
+		 * information collected from the first pass.
 		 */
 		Subprogram mainEntry = new Subprogram();
 		fcg.subprogram = mainEntry;
@@ -70,7 +70,7 @@ public class GenerateMainEntryPoint {
 		DerivedTypeList derivedTypeList = new DerivedTypeList();
 		for (String variable : fcg.getCurrentOutSet().keySet()) {
 			/*
-			 *  cell array declaration, mapping to derived type in Fortran.
+			 * cell array declaration, mapping to derived type in Fortran.
 			 */
 			if (fcg.isCell(variable) || !fcg.hasSingleton(variable)) {
 				DerivedType derivedType = new DerivedType();
@@ -86,7 +86,7 @@ public class GenerateMainEntryPoint {
 				if (!skip) {
 					sb.append("TYPE "+"cellStruct_"+variable+"\n");
 					for (int i=0; i<fcg.forCellArr.get(variable).size(); i++) {
-						sb.append("   "+fcg.FortranMapping.getFortranTypeMapping(
+						sb.append("   "+fcg.fortranMapping.getFortranTypeMapping(
 								fcg.forCellArr.get(variable).get(i).getMatlabClass().toString()));
 						if (!fcg.forCellArr.get(variable).get(i).getShape().isScalar()) {
 							if (fcg.forCellArr.get(variable).get(i).getMatlabClass()
@@ -131,11 +131,11 @@ public class GenerateMainEntryPoint {
 				 */
 				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
-					declStmt.setType(fcg.FortranMapping.getFortranTypeMapping("char") 
+					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char") 
 							+ "("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1) + ")");
 				}
 				else 
-					declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
+					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
 				 * declare arrays, but not character strings.
@@ -221,17 +221,17 @@ public class GenerateMainEntryPoint {
 		 * declare those variables generated during the code generation,
 		 * like extra variables for runtime shape check
 		 */
-		for (String tmpVariable : fcg.tempVarsFortran.keySet()) {
+		for (String tmpVariable : fcg.fortranTemporaries.keySet()) {
 			DeclStmt declStmt = new DeclStmt();
 			// type is already a token, don't forget.
 			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
-			declStmt.setType(fcg.FortranMapping.getFortranTypeMapping(
-					fcg.tempVarsFortran.get(tmpVariable).getMatlabClass().toString()));
-			if (!fcg.tempVarsFortran.get(tmpVariable).getShape().isScalar()) {
+			declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
+					fcg.fortranTemporaries.get(tmpVariable).getMatlabClass().toString()));
+			if (!fcg.fortranTemporaries.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();
 				Keyword keyword = new Keyword();
-				keyword.setName("DIMENSION("+fcg.tempVarsFortran.get(tmpVariable).getShape()
+				keyword.setName("DIMENSION("+fcg.fortranTemporaries.get(tmpVariable).getShape()
 						.toString().replace(" ", "").replace("[", "").replace("]", "")+")");
 				keywordList.addKeyword(keyword);
 				declStmt.setKeywordList(keywordList);

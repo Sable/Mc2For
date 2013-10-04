@@ -20,47 +20,64 @@ import natlab.backends.Fortran.codegen_readable.astCaseHandler.*;
 
 public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	static boolean Debug = false;
+	// this currentOutSet is the out set at the end point of the program.
 	ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet;
 	public Set<String> remainingVars;
+	public String entryPointFile;
+	public Set<String> allSubprograms;
+	public Subprogram subprogram;
+	public StringBuffer sb;
 	public FortranMapping fortranMapping;
 	public String functionName;
 	public ArrayList<String> inArgs;
 	public ArrayList<String> outRes;
 	public boolean isInSubroutine;
-	public HashSet<String> inputHasChanged; // used to back up input argument.
-	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr; // not support nested cell array.
-	public ArrayList<String> declaredCell;
-	public HashMap<String, BasicMatrixValue> tmpVariables; // generated in Fortran code gen.
-	public int indentNum;
-	public String standardIndent;
+	// used to back up input argument.
+	public HashSet<String> inputHasChanged;
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
-	public SubProgram subProgram;
-	public StringBuffer sb;
-	boolean insideArray; // ParameterizedExpr can be array index or function call.
+	public int indentNum;
+	public String standardIndent;
+	// ParameterizedExpr can be array index or function call.
+	boolean insideArray;
+	// temporary variables generated in Fortran code generation.
+	public HashMap<String, BasicMatrixValue> fotranTemporaries;
+	// not support nested cell array.
+	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr;
+	public ArrayList<String> declaredCell;
 	
+	/**
+	 * private constructor, called by helper method generateFortran.
+	 * @param fNode
+	 * @param currentOutSet
+	 * @param remainingVars
+	 */
 	private FortranCodeASTGenerator(
 			Function fNode, 
 			ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet, 
-			Set<String> remainingVars) {
+			Set<String> remainingVars, 
+			String entryPointFile) 
+	{
 		this.currentOutSet = currentOutSet;
 		this.remainingVars = remainingVars;
+		this.entryPointFile = entryPointFile;
+		allSubprograms = new HashSet<String>();
+		subprogram = new Subprogram();
+		sb = new StringBuffer();
 		fortranMapping = new FortranMapping();
 		functionName = "";
 		inArgs = new ArrayList<String>();
 		outRes = new ArrayList<String>();
 		isInSubroutine = false;
 		inputHasChanged = new HashSet<String>();
-		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
-		declaredCell = new ArrayList<String>();
-		tmpVariables = new HashMap<String,BasicMatrixValue>();
-		indentNum = 0;
-		standardIndent = "   ";
 		ifWhileForBlockNest = 0;
 		stmtSecForIfWhileForBlock = new StatementSection();
-		subProgram = new SubProgram();
-		sb = new StringBuffer();
+		indentNum = 0;
+		standardIndent = "   ";
 		insideArray = false;
+		fotranTemporaries = new HashMap<String,BasicMatrixValue>();
+		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
+		declaredCell = new ArrayList<String>();
 		fNode.analyze(this);
 	}
 	// ******************************ast node override*************************
@@ -76,10 +93,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	
 	@Override
 	public void caseAssignStmt(AssignStmt node)	{
-		if (ifWhileForBlockNest!=0) {
+		if (ifWhileForBlockNest != 0) {
 			FAssignStmt fAssignStmt = new FAssignStmt();
 			String indent = "";
-			for (int i=0; i<indentNum; i++) {
+			for (int i = 0; i < indentNum; i++) {
 				indent = indent + this.standardIndent;
 			}
 			fAssignStmt.setIndent(indent);
@@ -94,7 +111,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		else {
 			FAssignStmt fAssignStmt = new FAssignStmt();
 			String indent = "";
-			for (int i=0; i<indentNum; i++) {
+			for (int i = 0; i < indentNum; i++) {
 				indent = indent + this.standardIndent;
 			}
 			fAssignStmt.setIndent(indent);
@@ -104,11 +121,19 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			node.getRHS().analyze(this);
 			fAssignStmt.setFRHS(sb.toString());
 			sb.setLength(0);
-			subProgram.getStatementSection().addStatement(fAssignStmt);			
+			subprogram.getStatementSection().addStatement(fAssignStmt);			
 		}
 	}
 	
 	@Override
+	/**
+	 * in the readable version of fortran code generation, this is 
+	 * one of the most important case handler and also the most 
+	 * different part from the simplified version of fortran code 
+	 * generation, together with the caseAssignStmt, they two cover 
+	 * all the different assignments in simplified version, like 
+	 * assignToVar, assignToList and so on.
+	 */
 	public void caseParameterizedExpr(ParameterizedExpr node) {
 		// NameExpr(List), NameExpr is the first child, List is the second child.
 		if (Debug) System.out.println("parameterized expr: " 
@@ -117,6 +142,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			String name = ((NameExpr) node.getChild(0)).getName().getID();
 			if (this.remainingVars.contains(name)) {
 				if (Debug) System.out.println("this is an array index.");
+				// TODO add rigorous array indexing transformation and runtime abc.
 				node.getChild(0).analyze(this);
 				sb.append("(");
 				insideArray = true;
@@ -126,47 +152,69 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			}
 			else {
 				if (Debug) System.out.println("this is a function call");
-				if (node.getChild(1).getNumChild()==1) {
+				/*
+				 * functions with only one input or operand.
+				 */
+				if (node.getChild(1).getNumChild() == 1) {
 					if (fortranMapping.isFortranDirectBuiltin(name)) {
-						sb.append(" "+fortranMapping
-								.getFortranDirectBuiltinMapping(name));
+						sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
 						sb.append(")");						
 					}
 					else {
+						// no directly-mapping functions, leave the hole.
 						node.getChild(0).analyze(this);
 						sb.append("(");
 						node.getChild(1).analyze(this);
-						sb.append(")");						
+						sb.append(")");
+						this.allSubprograms.add(node.getChild(0).getNodeString());
 					}
 				}
-				else if (node.getChild(1).getNumChild()==2) {
+				/*
+				 * functions with two inputs or operands.
+				 */
+				else if (node.getChild(1).getNumChild() == 2) {
 					if (fortranMapping.isFortranBinOperator(name)) {
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
-						sb.append(" "+fortranMapping
-								.getFortranBinOpMapping(name)+" ");
+						sb.append(" " + fortranMapping.getFortranBinOpMapping(name) + " ");
 						node.getChild(1).getChild(1).analyze(this);
-						sb.append(")");						
+						sb.append(")");
 					}
 					else if (fortranMapping.isFortranDirectBuiltin(name)) {
-						sb.append(" "+fortranMapping
-								.getFortranDirectBuiltinMapping(name));
+						sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
-						sb.append(" ,");
+						sb.append(", ");
 						node.getChild(1).getChild(1).analyze(this);
-						sb.append(")");						
+						sb.append(")");
 					}
 					else {
+						// no directly-mapping functions, also leave the hole.
 						node.getChild(0).analyze(this);
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
 						sb.append(" ,");
 						node.getChild(1).getChild(1).analyze(this);
 						sb.append(")");
+						this.allSubprograms.add(node.getChild(0).getNodeString());
 					}
+				}
+				/*
+				 * functions with more than two inputs, leave the hole.
+				 */
+				else {
+					node.getChild(0).analyze(this);
+					sb.append("(");
+					for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
+						node.getChild(1).getChild(i).analyze(this);
+						if (i < node.getChild(1).getNumChild() - 1) {
+							sb.append(", ");
+						}
+					}
+					sb.append(")");
+					this.allSubprograms.add(node.getChild(0).getNodeString());
 				}
 			}
 		}
@@ -178,6 +226,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	
 	@Override
 	public void caseName(Name node) {
+		// what is the difference from cseNameExpr?
 		System.err.println(node.getID());
 	}
 	
@@ -186,7 +235,14 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		// System.out.println("nameExpr:" + node.getName().getID());
 		if (this.remainingVars.contains(node.getName().getID())) {
 			if (Debug) System.out.println(node.getName().getID()+" is a variable.");
-			sb.append(node.getName().getID());
+			if (!this.functionName.equals(this.entryPointFile) 
+					&& !this.isInSubroutine 
+					&& this.outRes.contains(node.getName().getID())) {
+				sb.append(this.functionName);
+			}
+			else {
+				sb.append(node.getName().getID());
+			}
 			
 		}
 		else {
@@ -213,7 +269,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		if(ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(forStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(forStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(forStmt.getFortran(this, node));
     }
 	
 	@Override
@@ -234,7 +290,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		if (ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(ifStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(ifStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(ifStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -243,7 +299,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		if (ifWhileForBlockNest!=0) 
 			stmtSecForIfWhileForBlock.addStatement(whileStmt.getFortran(this, node));
 		else 
-			subProgram.getStatementSection().addStatement(whileStmt.getFortran(this, node));
+			subprogram.getStatementSection().addStatement(whileStmt.getFortran(this, node));
 	}
 	
 	@Override
@@ -272,11 +328,17 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	}
 	
 	// ******************************helper methods****************************
-	public static SubProgram FortranProgramGen(
+	public static Subprogram generateFortran(
 			Function fNode, 
 			ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet, 
-			Set<String> remainingVars) {
-		return new FortranCodeASTGenerator(fNode, currentOutSet, remainingVars).subProgram;
+			Set<String> remainingVars, 
+			String entryPointFile) 
+	{
+		return new FortranCodeASTGenerator(
+				fNode, 
+				currentOutSet, 
+				remainingVars, 
+				entryPointFile).subprogram;
 	}
 
 	public void iterateStatements(ast.List<ast.Stmt> stmts) {

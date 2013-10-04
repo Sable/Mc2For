@@ -1,12 +1,13 @@
-package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
+package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
 import java.util.List;
 
+import ast.Function;
+
 import natlab.tame.classes.reference.PrimitiveClassReference;
-import natlab.tame.tir.*;
 import natlab.tame.valueanalysis.components.shape.DimValue;
-import natlab.backends.Fortran.codegen_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.backends.Fortran.codegen_readable.*;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
 
 public class GenerateSubroutine {
 	static boolean Debug = false;
@@ -30,11 +31,11 @@ public class GenerateSubroutine {
 	 */
 	public FortranCodeASTGenerator newSubroutine(
 			FortranCodeASTGenerator fcg, 
-			TIRFunction node) 
+			Function node) 
 	{
 		fcg.isInSubroutine = true;
 		/* 
-		 * first pass of all the statements, collecting information.
+		 * first pass of all the statements, collect information.
 		 */
 		Subprogram preSubroutine = new Subprogram();
 		fcg.subprogram = preSubroutine;
@@ -42,8 +43,7 @@ public class GenerateSubroutine {
 		preSubroutine.setStatementSection(preStmtSection);
 		fcg.iterateStatements(node.getStmts());
 		/* 
-		 * second pass of all the statements, using information 
-		 * collected from the first pass.
+		 * second pass of all the statements, using information collected from the first pass.
 		 */
 		Subprogram subroutine = new Subprogram();
 		fcg.subprogram = subroutine;
@@ -72,7 +72,7 @@ public class GenerateSubroutine {
 		}
 		title.setProgramParameterList(argsList);
 		subroutine.setProgramTitle(title);
-		/* 
+		/*
 		 * declare modules
 		 */
 		for (String builtin : fcg.allSubprograms) {
@@ -85,11 +85,11 @@ public class GenerateSubroutine {
 		 */		
 		DeclarationSection declSection = new DeclarationSection();
 		DerivedTypeList derivedTypeList = new DerivedTypeList();
-		for (String variable : fcg.getCurrentOutSet().keySet()) {
-			/* 
-			 * cell array declaration, mapping to derived type in Fortran.
-			 */
+		for (String variable : fcg.remainingVars) {
 			if (fcg.isCell(variable) || !fcg.hasSingleton(variable)) {
+				/*
+				 * cell array declaration, mapping to derived type in Fortran.
+				 */
 				DerivedType derivedType = new DerivedType();
 				StringBuffer sb = new StringBuffer();
 				boolean skip = false;
@@ -127,13 +127,6 @@ public class GenerateSubroutine {
 				derivedTypeList.addDerivedType(derivedType);
 				declSection.setDerivedTypeList(derivedTypeList);
 			}
-			else if (fcg.getMatrixValue(variable).hasConstant() 
-					&& !fcg.inArgs.contains(variable) 
-					&& !fcg.outRes.contains(variable) 
-					&& fcg.tempVarsBeforeF.contains(variable) 
-					|| fcg.tempVectorAsArrayIndex.containsKey(variable)) {
-				if (Debug) System.out.println("constant variable replacement, no declaration.");
-			}
 			/*
 			 * normal case.
 			 */
@@ -145,7 +138,7 @@ public class GenerateSubroutine {
 				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
 				/*
-				 * declare types.
+				 * declare types
 				 */
 				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
@@ -155,10 +148,10 @@ public class GenerateSubroutine {
 				else declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
-				 * declare arrays, but not character strings.
+				 * declare arrays.
 				 */
-				if (!fcg.getMatrixValue(variable).getShape().isScalar() 
-						&& !fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR)) {
+				if (!fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
 					if (Debug) System.out.println("add dimension here!");
 					Keyword keyword = new Keyword();
 					List<DimValue> dim = fcg.getMatrixValue(variable).getShape().getDimensions();
@@ -177,7 +170,7 @@ public class GenerateSubroutine {
 					if (!variableShapeIsKnown) {
 						StringBuffer tempBuf = new StringBuffer();
 						tempBuf.append("DIMENSION(");
-						for (int i = 0; i < dim.size(); i++) {
+						for (int i=1; i<=dim.size(); i++) {
 							if (counter) tempBuf.append(",");
 							tempBuf.append(":");
 							counter = true;
@@ -289,17 +282,17 @@ public class GenerateSubroutine {
 		 * declare those variables generated during the code generation,
 		 * like extra variables for runtime shape check
 		 */
-		for (String tmpVariable : fcg.fortranTemporaries.keySet()) {
+		for (String tmpVariable : fcg.fotranTemporaries.keySet()) {
 			DeclStmt declStmt = new DeclStmt();
 			// type is already a token, don't forget.
 			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
 			declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
-					fcg.fortranTemporaries.get(tmpVariable).getMatlabClass().toString()));
-			if (!fcg.fortranTemporaries.get(tmpVariable).getShape().isScalar()) {
+					fcg.fotranTemporaries.get(tmpVariable).getMatlabClass().toString()));
+			if (!fcg.fotranTemporaries.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();
 				Keyword keyword = new Keyword();
-				keyword.setName("DIMENSION("+fcg.fortranTemporaries.get(tmpVariable).getShape()
+				keyword.setName("DIMENSION("+fcg.fotranTemporaries.get(tmpVariable).getShape()
 						.toString().replace(" ", "").replace("[", "").replace("]", "")+")");
 				keywordList.addKeyword(keyword);
 				declStmt.setKeywordList(keywordList);

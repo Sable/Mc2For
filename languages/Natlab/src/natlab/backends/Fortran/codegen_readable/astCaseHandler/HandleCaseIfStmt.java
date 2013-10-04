@@ -12,11 +12,14 @@ public class HandleCaseIfStmt {
 	 * IfStmt: Statement 
 	 * ::= <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
 	 */
-	public Statement getFortran(FortranCodeASTGenerator fcg, IfStmt node) {
+	public Statement getFortran(
+			FortranCodeASTGenerator fcg, 
+			IfStmt node) 
+	{
 		if (Debug) System.out.println("in if statement.");
 		FIfStmt stmt = new FIfStmt();
 		String indent = new String();
-		for (int i=0; i<fcg.indentNum; i++) {
+		for (int i = 0; i < fcg.indentNum; i++) {
 			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);

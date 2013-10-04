@@ -1,10 +1,11 @@
-Program ::= SubProgram*;
-SubProgram ::= ProgramTitle DeclarationSection BackupVar* StatementSection <ProgramEnd>;
+Program ::= Subprogram*;
+Subprogram ::= ProgramTitle DeclarationSection BackupVar* StatementSection <ProgramEnd>;
 BackupVar ::= <Stmt: String>;
 
-ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList];
+ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList] Module*;
 ProgramParameterList ::= Parameter*;
 Parameter ::= <Name: String>;
+Module ::= <Name: String>;
 
 DeclarationSection ::= DeclStmt* [DerivedTypeList];
 DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList;

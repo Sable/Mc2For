@@ -79,7 +79,7 @@ public class FortranCodeASTInliner {
 		
 		/*********************built-in function enumeration*******************/
 		if (rhsFunName.equals("horzcat")) {
-			for (int i=1; i<=numOfArgs; i++) {
+			for (int i = 1; i <= numOfArgs; i++) {
 				/*
 				 * need constant folding check.
 				 */
@@ -90,14 +90,14 @@ public class FortranCodeASTInliner {
 				else {
 					tempBuf.append(indent+cellLHSTarget+"(1,"+i+") = "+rhsArgs.get(i-1)+";");
 				}
-				if (i<numOfArgs) tempBuf.append("\n");
+				if (i < numOfArgs) tempBuf.append("\n");
 			}
 			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
-					+" is over.");
+					+" is done.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}		
 		else if (rhsFunName.equals("vertcat")) {
-			for (int i=1; i<=numOfArgs; i++) {
+			for (int i = 1; i <= numOfArgs; i++) {
 				/*
 				 * need constant folding check.
 				 */
@@ -111,9 +111,39 @@ public class FortranCodeASTInliner {
 				if(i<numOfArgs) tempBuf.append("\n");
 			}
 			tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
-					+" is over.");
+					+" is done.");
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
-		}	
+		}
+		else if (rhsFunName.equals("ldivide")) {
+			/*
+			 * swap operands and then use right division
+			 */
+			if (numOfArgs == 2) {
+				tempBuf.append(indent+lhsTarget+" = ");
+				if (fcg.getMatrixValue(rhsArgs.get(1)).hasConstant()) {
+					Constant c = fcg.getMatrixValue(rhsArgs.get(1)).getConstant();
+					tempBuf.append(c);
+				}
+				else {
+					tempBuf.append(rhsArgs.get(1));
+				}
+				tempBuf.append(" / ");
+				if (fcg.getMatrixValue(rhsArgs.get(0)).hasConstant()) {
+					Constant c = fcg.getMatrixValue(rhsArgs.get(0)).getConstant();
+					tempBuf.append(c);
+				}
+				else {
+					tempBuf.append(rhsArgs.get(0));
+				}
+				tempBuf.append(";");
+				tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
+						+" is done.");
+				noDirBuiltinExpr.setCodeInline(tempBuf.toString());
+			}
+			else {
+				// TODO this should be an error, throw an exception?
+			}
+		}
 		else if (rhsFunName.equals("colon")) {
 			/*
 			 * Depending on the fact that whether the target variable is temporary, 
@@ -125,7 +155,7 @@ public class FortranCodeASTInliner {
 			 */
 			if (node.getTargets().asNameList().get(0).tmpVar) {
 				// TODO store the range information of this temp variable for later use.
-				for (int i=0 ; i<rhsArgs.size() ; i++) {
+				for (int i = 0 ; i < rhsArgs.size() ; i++) {
 					if (fcg.getMatrixValue(rhsArgs.get(i)).hasConstant()) {
 						DoubleConstant c = (DoubleConstant) fcg.getMatrixValue(rhsArgs.get(i))
 								.getConstant();
@@ -209,19 +239,19 @@ public class FortranCodeASTInliner {
 				}
 				BasicMatrixValue varI = new BasicMatrixValue(
 						null, PrimitiveClassReference.INT32, new ShapeFactory().getScalarShape(), null);
-				fcg.tempVarsFortran.put("I", varI);
+				fcg.fortranTemporaries.put("I", varI);
 				tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
-						+" is over.");
+						+" is done.");
 			}
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}
 		else if (rhsFunName.equals("cellhorzcat")) {
 			ArrayList<BasicMatrixValue> fields = new ArrayList<BasicMatrixValue>();
-			for (int i=0; i<rhsArgs.size(); i++) {
+			for (int i = 0; i < rhsArgs.size(); i++) {
 				fields.add(fcg.getMatrixValue(rhsArgs.get(i)));				
 			}
 			fcg.forCellArr.put(lhsTarget, fields);
-			for (int i=0; i<rhsArgs.size(); i++) {
+			for (int i = 0; i < rhsArgs.size(); i++) {
 				tempBuf.append(indent+lhsTarget+"%f"+i+" = ");
 				if (fcg.getMatrixValue(rhsArgs.get(i)).hasConstant() 
 						&& fcg.tempVarsBeforeF.contains(rhsArgs.get(i))) {
@@ -230,7 +260,7 @@ public class FortranCodeASTInliner {
 					tempBuf.append(c+";");
 				}
 				else tempBuf.append(rhsArgs.get(i)+";");
-				if (i<rhsArgs.size()-1) tempBuf.append("\n");
+				if (i < rhsArgs.size()-1) tempBuf.append("\n");
 			}
 			noDirBuiltinExpr.setCodeInline(tempBuf.toString());
 		}

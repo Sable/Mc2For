@@ -12,11 +12,14 @@ public class HandleCaseForStmt {
 	 * ForStmt: Statement 
 	 * ::= <LoopVar> <LowBoundary> <UpperBoundary> [Inc] ForBlock: StatementSection;
 	 */
-	public Statement getFortran(FortranCodeASTGenerator fcg, ForStmt node) {
+	public Statement getFortran(
+			FortranCodeASTGenerator fcg, 
+			ForStmt node) 
+	{
 		if (Debug) System.out.println("in for statement.");
 		FForStmt stmt = new FForStmt();
 		String indent = "";
-		for (int i=0; i<fcg.indentNum; i++) {
+		for (int i = 0; i < fcg.indentNum; i++) {
 			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
