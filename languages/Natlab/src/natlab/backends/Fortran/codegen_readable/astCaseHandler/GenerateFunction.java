@@ -81,7 +81,7 @@ static boolean Debug = false;
 		 */		
 		DeclarationSection declSection = new DeclarationSection();
 		DerivedTypeList derivedTypeList = new DerivedTypeList();
-		for (String variable : fcg.getCurrentOutSet().keySet()) {
+		for (String variable : fcg.remainingVars) {
 			/* 
 			 * cell array declaration, mapping to derived type in Fortran.
 			 */

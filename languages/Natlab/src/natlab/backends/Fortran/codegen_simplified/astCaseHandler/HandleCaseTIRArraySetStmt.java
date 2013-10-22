@@ -62,28 +62,31 @@ public class HandleCaseTIRArraySetStmt {
 			}
 			tempBuf.append(indent+"IF (");
 			for (int i=0; i<lhsArrayShape.getDimensions().size(); i++) {
-				if (indexString[i].equals(":")) 
-					; // do nothing.
-				else if (fcg.getMatrixValue(indexString[i]).hasConstant() 
-						&& fcg.tempVarsBeforeF.contains(indexString[i])) {
-					int intValue = ((Double) fcg.getMatrixValue(indexString[i])
-							.getConstant().getValue()).intValue();
-					tempBuf.append("("+String.valueOf(intValue)
-							+" > "+lhsArrayName+"_d"+(i+1)+")");
-				}
-				else if (fcg.getMatrixValue(indexString[i]).getShape().isScalar()) 
-					tempBuf.append("("+indexString[i]
-							+" > "+lhsArrayName+"_d"+(i+1)+")");
-				else if (!fcg.getMatrixValue(indexString[i]).getShape().isScalar() 
-						&& fcg.tempVectorAsArrayIndex.containsKey(indexString[i])) {
-					tempBuf.append("("+fcg.tempVectorAsArrayIndex.get(indexString[i]).get(1)
-							+" > "+lhsArrayName+"_d"+(i+1)+")");
-				}
+				if (i >= indexString.length) {}
 				else {
-					// TODO deal with the rest cases.
+					if (indexString[i].equals(":")) 
+						; // do nothing.
+					else if (fcg.getMatrixValue(indexString[i]).hasConstant() 
+							&& fcg.tempVarsBeforeF.contains(indexString[i])) {
+						int intValue = ((Double) fcg.getMatrixValue(indexString[i])
+								.getConstant().getValue()).intValue();
+						tempBuf.append("("+String.valueOf(intValue)
+								+" > "+lhsArrayName+"_d"+(i+1)+")");
+					}
+					else if (fcg.getMatrixValue(indexString[i]).getShape().isScalar()) 
+						tempBuf.append("("+indexString[i]
+								+" > "+lhsArrayName+"_d"+(i+1)+")");
+					else if (!fcg.getMatrixValue(indexString[i]).getShape().isScalar() 
+							&& fcg.tempVectorAsArrayIndex.containsKey(indexString[i])) {
+						tempBuf.append("("+fcg.tempVectorAsArrayIndex.get(indexString[i]).get(1)
+								+" > "+lhsArrayName+"_d"+(i+1)+")");
+					}
+					else {
+						// TODO deal with the rest cases.
+					}
+					if (i+1!=lhsArrayShape.getDimensions().size())// && !indexString[i+1].equals(":")) 
+						tempBuf.append(" .OR. ");					
 				}
-				if (i+1!=lhsArrayShape.getDimensions().size() && !indexString[i+1].equals(":")) 
-					tempBuf.append(" .OR. ");
 			}
 			tempBuf.append(") THEN\n");
 			tempBuf.append(indent+fcg.standardIndent+"IF (ALLOCATED("+lhsArrayName+"_bk)) THEN\n");
@@ -99,33 +102,36 @@ public class HandleCaseTIRArraySetStmt {
 			tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_bk = "+lhsArrayName+";\n");
 			tempBuf.append(indent+fcg.standardIndent+"DEALLOCATE("+lhsArrayName+");\n");
 			for (int i=0; i<lhsArrayShape.getDimensions().size(); i++) {
-				if (indexString[i].equals(":")) 
-					tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
-							"= "+lhsArrayName+"_d"+(i+1)+";\n");
-				else if (fcg.getMatrixValue(indexString[i]).hasConstant() 
-						&& fcg.tempVarsBeforeF.contains(indexString[i])) {
-					int intValue = ((Double) fcg.getMatrixValue(indexString[i])
-							.getConstant().getValue()).intValue();
-					tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
-							"= MAX"+"("+String.valueOf(intValue)
-							+", "+lhsArrayName+"_d"+(i+1)+");\n");
-				}
-				else if (fcg.getMatrixValue(indexString[i]).getShape().isScalar()) 
-					tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
-							"= MAX"+"(INT("+indexString[i]
-							+"), "+lhsArrayName+"_d"+(i+1)+");\n");
-				else if (!fcg.getMatrixValue(indexString[i]).getShape().isScalar() 
-						&& fcg.tempVectorAsArrayIndex.containsKey(indexString[i])) {
-					tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
-							"= MAX"+"("+fcg.tempVectorAsArrayIndex.get(indexString[i]).get(1)
-							+", "+lhsArrayName+"_d"+(i+1)+");\n");
-				}
+				if (i >= indexString.length) {}
 				else {
-					// TODO deal with the rest cases.
+					if (indexString[i].equals(":")) 
+						tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
+								"= "+lhsArrayName+"_d"+(i+1)+";\n");
+					else if (fcg.getMatrixValue(indexString[i]).hasConstant() 
+							&& fcg.tempVarsBeforeF.contains(indexString[i])) {
+						int intValue = ((Double) fcg.getMatrixValue(indexString[i])
+								.getConstant().getValue()).intValue();
+						tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
+								"= MAX"+"("+String.valueOf(intValue)
+								+", "+lhsArrayName+"_d"+(i+1)+");\n");
+					}
+					else if (fcg.getMatrixValue(indexString[i]).getShape().isScalar()) 
+						tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
+								"= MAX"+"(INT("+indexString[i]
+								+"), "+lhsArrayName+"_d"+(i+1)+");\n");
+					else if (!fcg.getMatrixValue(indexString[i]).getShape().isScalar() 
+							&& fcg.tempVectorAsArrayIndex.containsKey(indexString[i])) {
+						tempBuf.append(indent+fcg.standardIndent+lhsArrayName+"_d"+(i+1)+"max " +
+								"= MAX"+"("+fcg.tempVectorAsArrayIndex.get(indexString[i]).get(1)
+								+", "+lhsArrayName+"_d"+(i+1)+");\n");
+					}
+					else {
+						// TODO deal with the rest cases.
+					}
+					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
+							(new ShapeFactory()).getScalarShape(), null);
+					fcg.fortranTemporaries.put(lhsArrayName+"_d"+(i+1)+"max", tmp);					
 				}
-				BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
-						(new ShapeFactory()).getScalarShape(), null);
-				fcg.fortranTemporaries.put(lhsArrayName+"_d"+(i+1)+"max", tmp);				
 			}
 			tempBuf.append(indent+fcg.standardIndent+"ALLOCATE("+lhsArrayName+"(");
 			for (int i=0; i<lhsArrayShape.getDimensions().size(); i++) {

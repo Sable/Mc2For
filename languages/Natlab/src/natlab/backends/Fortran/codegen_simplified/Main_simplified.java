@@ -21,8 +21,8 @@ public class Main_simplified {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "/home/aaron/for_test/readable/";
-	    String entryPointFile = "main";
+		String fileDir = "/home/aaron/Dropbox/benchmarks/sample/";
+	    String entryPointFile = "drv_babai";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		BasicTamerTool tool = new BasicTamerTool();

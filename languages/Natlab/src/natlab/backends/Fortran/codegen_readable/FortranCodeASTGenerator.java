@@ -316,7 +316,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			sb.append(", ");
 			node.getChild(2).analyze(this);
 			sb.append(", ");
-			node.getChild(1).getChild(0).analyze(this);
+			if (node.getChild(1).getNumChild() != 0) {
+				node.getChild(1).getChild(0).analyze(this);
+			}
 		}
 	}
 	
