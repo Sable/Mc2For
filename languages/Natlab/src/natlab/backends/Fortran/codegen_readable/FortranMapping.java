@@ -1,20 +1,26 @@
 package natlab.backends.Fortran.codegen_readable;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class FortranMapping {
 
-	private static HashMap<String, String> FortranTypeMap = 
+	private static Map<String, String> FortranTypeMap = 
 			new HashMap<String, String>();
-	private static HashMap<String, String> FortranBinOperatorMap = 
+	private static Map<String, String> FortranBinOperatorMap = 
 			new HashMap<String, String>();
-	private static HashMap<String, String> FortranDirectBuiltinMap = 
+	private static Map<String, String> FortranUnOperatorMap = 
 			new HashMap<String, String>();
+	private static Map<String, String> FortranDirectBuiltinMap = 
+			new HashMap<String, String>();
+	private static Set<String> FortranEasilyTransformedSet = 
+			new HashSet<String>();
 	
 	public FortranMapping() {
 		makeFortranTypeMap();
 		makeFortranBinaryOperatorMap();
+		makeFortranUnaryOperatorMap();
 		makeFortranDirectBuiltinMap();
+		makeFortranEasilyTransformedSet();
 	}
 	
 	private void makeFortranTypeMap() {
@@ -61,6 +67,30 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("xor", ".XOR.");
 	}
 	
+	public boolean isFortranBinOperator(String operator) {
+		if (FortranBinOperatorMap.containsKey(operator)) return true;
+		else return false;
+	}
+	
+	public String getFortranBinOpMapping(String operator) {
+		return FortranBinOperatorMap.get(operator);
+	}
+	
+	private void makeFortranUnaryOperatorMap() {
+		// arithmetic operators
+		FortranUnOperatorMap.put("uplus", "+");
+		FortranUnOperatorMap.put("uminus", "-");
+	}
+	
+	public boolean isFortranUnOperator(String expType) {
+		if (FortranUnOperatorMap.containsKey(expType)) return true;
+		else return false;
+	}
+	
+	public String getFortranUnOpMapping(String Operator) {
+		return FortranUnOperatorMap.get(Operator);
+	}
+	
 	private void makeFortranDirectBuiltinMap() {
 		// arithmetic operators
 		FortranDirectBuiltinMap.put("mtimes", "MATMUL");
@@ -91,6 +121,7 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("max", "MAX");
 		FortranDirectBuiltinMap.put("numel", "SIZE");
 		FortranDirectBuiltinMap.put("size", "SHAPE");
+		FortranDirectBuiltinMap.put("length", "SIZE");
 		// logical operators
 		FortranDirectBuiltinMap.put("any", "ANY");
 		FortranDirectBuiltinMap.put("all", "ALL");
@@ -100,18 +131,7 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("bitxor", "IEOR");
 	}
 	
-	// TODO add no-directly-mapping built-in functions.
-	
-	public Boolean isFortranBinOperator(String operator) {
-		if (FortranBinOperatorMap.containsKey(operator)) return true;
-		else return false;
-	}
-	
-	public String getFortranBinOpMapping(String operator) {
-		return FortranBinOperatorMap.get(operator);
-	}
-	
-	public Boolean isFortranDirectBuiltin(String builtinName) {
+	public boolean isFortranDirectBuiltin(String builtinName) {
 		if (FortranDirectBuiltinMap.containsKey(builtinName)) return true;
 		else return false;
 	}
@@ -119,4 +139,16 @@ public class FortranMapping {
 	public String getFortranDirectBuiltinMapping (String builtinName) {
 		 return FortranDirectBuiltinMap.get(builtinName);		
 	}
+	
+	private void makeFortranEasilyTransformedSet() {
+		FortranEasilyTransformedSet.add("ldivide");
+		FortranEasilyTransformedSet.add("colon");
+	}
+	
+	public boolean isFortranEasilyTransformed(String builtinName) {
+		if (FortranEasilyTransformedSet.contains(builtinName)) return true;
+		else return false;
+	}
+	
+	// TODO add no-directly-mapping built-in functions.
 }

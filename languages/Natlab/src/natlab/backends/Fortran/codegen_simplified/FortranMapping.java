@@ -104,6 +104,7 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("max", "MAX");
 		FortranDirectBuiltinMap.put("numel", "SIZE");
 		FortranDirectBuiltinMap.put("size", "SHAPE");
+		FortranDirectBuiltinMap.put("length", "SIZE");
 		// logical operators
 		FortranDirectBuiltinMap.put("any", "ANY");
 		FortranDirectBuiltinMap.put("all", "ALL");
@@ -174,7 +175,7 @@ public class FortranMapping {
 	
 	public String getFortranBinOpMapping(String Operator) {
 		return FortranBinOperatorMap.get(Operator);
-	}	
+	}
 	
 	public Boolean isFortranUnOperator(String expType) {
 		if (FortranUnOperatorMap.containsKey(expType)) return true;
@@ -190,7 +191,7 @@ public class FortranMapping {
 		else return false;
 	}
 	
-	public String getFortranDirectBuiltinMapping (String BuiltinName) {
+	public String getFortranDirectBuiltinMapping(String BuiltinName) {
 		 return FortranDirectBuiltinMap.get(BuiltinName);		
 	}
 	
@@ -203,7 +204,7 @@ public class FortranMapping {
 		else return false;
 	}
 	
-	public String getFortranBuiltinConstMapping (String BuiltinName) {
+	public String getFortranBuiltinConstMapping(String BuiltinName) {
 		 return FortranBuiltinConstMap.get(BuiltinName);		
 	}
 	

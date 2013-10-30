@@ -201,14 +201,9 @@ static boolean Debug = false;
 						StringBuffer tempBuf = new StringBuffer();
 						tempBuf.append("DIMENSION(");
 						for (int i = 0; i < dim.size(); i++) {
-							if (i == 0 && dim.get(0).getIntValue().equals(1)) {
-								// transform 2-dimensional 1-by-n array to a vector.
-							}
-							else {
-								if (counter) tempBuf.append(",");
-								tempBuf.append(dim.get(i).toString());
-								counter = true;								
-							}
+							if (counter) tempBuf.append(",");
+							tempBuf.append(dim.get(i).toString());
+							counter = true;	
 						}
 						tempBuf.append(")");
 						keyword.setName(tempBuf.toString());

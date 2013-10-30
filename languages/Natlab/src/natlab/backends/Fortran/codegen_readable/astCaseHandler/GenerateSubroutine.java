@@ -138,7 +138,7 @@ public class GenerateSubroutine {
 				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
 				/*
-				 * declare types
+				 * declare types, especially character string.
 				 */
 				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
@@ -148,7 +148,7 @@ public class GenerateSubroutine {
 				else declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*
-				 * declare arrays.
+				 * declare arrays, but not character string.
 				 */
 				if (!fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
@@ -170,7 +170,7 @@ public class GenerateSubroutine {
 					if (!variableShapeIsKnown) {
 						StringBuffer tempBuf = new StringBuffer();
 						tempBuf.append("DIMENSION(");
-						for (int i=1; i<=dim.size(); i++) {
+						for (int i = 0; i < dim.size(); i++) {
 							if (counter) tempBuf.append(",");
 							tempBuf.append(":");
 							counter = true;
@@ -208,14 +208,9 @@ public class GenerateSubroutine {
 						StringBuffer tempBuf = new StringBuffer();
 						tempBuf.append("DIMENSION(");
 						for (int i = 0; i < dim.size(); i++) {
-							if (i == 0 && dim.get(0).getIntValue().equals(1)) {
-								// transform 2-dimensional 1-by-n array to a vector.
-							}
-							else {
-								if (counter) tempBuf.append(",");
-								tempBuf.append(dim.get(i).toString());
-								counter = true;								
-							}
+							if (counter) tempBuf.append(",");
+							tempBuf.append(dim.get(i).toString());
+							counter = true;
 						}
 						tempBuf.append(")");
 						keyword.setName(tempBuf.toString());

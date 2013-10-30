@@ -11,6 +11,8 @@ public class HandleCaseFunction {
 	 * main entry point MATLAB functions are mapped to main programs in fortran;
 	 * functions with only one return value are mapped to functions in fortran;
 	 * functions with 0 or more than 1 return values are mapped to subroutines.
+	 * 
+	 * user-defined functions are mapped to subroutines.
 	 *  
 	 * Subprogram ::= ProgramTitle DeclarationSection StatementSection;
 	 */ 
@@ -37,8 +39,9 @@ public class HandleCaseFunction {
 		/* 
 		 * transform matlab functions, which are not entry point functions 
 		 * but has only one return value, to function files in fortran.
+		 * TODO currently, this case cannot happen...
 		 */
-		else if (fcg.outRes.size() == 1) {
+		else if (fcg.outRes.size() == 1 && !fcg.userDefinedFunctions.contains(node.getName())) {
 			GenerateFunction function = new GenerateFunction();
 			function.newFunction(fcg, node);			
 		}
