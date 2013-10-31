@@ -1,11 +1,15 @@
 package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import ast.Function;
 
 import natlab.tame.classes.reference.PrimitiveClassReference;
+import natlab.tame.valueanalysis.aggrvalue.AggrValue;
+import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.shape.DimValue;
+import natlab.tame.valueanalysis.components.shape.ShapeFactory;
 import natlab.backends.Fortran.codegen_readable.*;
 import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
 
@@ -63,6 +67,35 @@ public class GenerateMainEntryPoint {
 			Module module = new Module();
 			module.setName(builtin);
 			title.addModule(module);
+		}
+		if (fcg.inArgs.size() != 0) {
+			GetInput getInput = new GetInput();
+			StringBuffer temp = new StringBuffer();
+			temp.append("\nint_tmpvar = 0\n");
+			temp.append("arg_buffer = '0000000000'\n");
+			temp.append("DO int_tmpvar = 1 , IARGC()\n");
+			temp.append(fcg.standardIndent + "CALL GETARG(int_tmpvar, arg_buffer)\n");
+			temp.append(fcg.standardIndent + "IF ((int_tmpvar == 1)) THEN\n");
+			temp.append(fcg.standardIndent + fcg.standardIndent + "READ(arg_buffer, *) scale\n");
+			temp.append(fcg.standardIndent + "END IF\n");
+			temp.append("END DO\n");
+			getInput.setBlock(temp.toString());
+			mainEntry.setGetInput(getInput);
+			fcg.fotranTemporaries.put("int_tempvar", new BasicMatrixValue(
+					null, 
+					PrimitiveClassReference.INT32, 
+					new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+					null));
+			ArrayList<Integer> tempShape = new ArrayList<Integer>();
+			tempShape.add(1);
+			tempShape.add(10);
+			fcg.fotranTemporaries.put("arg_buffer", new BasicMatrixValue(
+					null, 
+					PrimitiveClassReference.CHAR, 
+					new ShapeFactory<AggrValue<BasicMatrixValue>>().newShapeFromIntegers(tempShape), 
+					null));
+			// TODO currently, we only support one input.
+			fcg.forceToInt.add(fcg.inArgs.get(0));
 		}
 		/*
 		 *  set the declaration section.
@@ -128,6 +161,9 @@ public class GenerateMainEntryPoint {
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
 					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
 							+"("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1)+")");
+				}
+				else if (fcg.forceToInt.contains(variable)) {
+					declStmt.setType("INTEGER(KIND=4)");
 				}
 				else 
 					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
@@ -218,9 +254,19 @@ public class GenerateMainEntryPoint {
 			// type is already a token, don't forget.
 			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
-			declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
+			/*
+			 * declare types, especially character string.
+			 */
+			if (fcg.fotranTemporaries.get(tmpVariable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+					&& !fcg.fotranTemporaries.get(tmpVariable).getShape().isScalar()) {
+				declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
+						+"("+fcg.fotranTemporaries.get(tmpVariable).getShape().getDimensions().get(1)+")");
+			}
+			else 
+				declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 					fcg.fotranTemporaries.get(tmpVariable).getMatlabClass().toString()));
-			if (!fcg.fotranTemporaries.get(tmpVariable).getShape().isScalar()) {
+			if (!fcg.fotranTemporaries.get(tmpVariable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+					&& !fcg.fotranTemporaries.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();
 				Keyword keyword = new Keyword();
 				keyword.setName("DIMENSION("+fcg.fotranTemporaries.get(tmpVariable).getShape()

@@ -23,7 +23,9 @@ public class HandleCaseForStmt {
 			indent = indent + fcg.standardIndent;
 		}
 		stmt.setIndent(indent);
+		fcg.mustBeInt = true;
 		node.getChild(0).getChild(0).analyze(fcg);
+		fcg.mustBeInt = false;
 		fcg.sb.append(" = ");
 		node.getChild(0).getChild(1).analyze(fcg);
 		stmt.setFForCondition(fcg.sb.toString());

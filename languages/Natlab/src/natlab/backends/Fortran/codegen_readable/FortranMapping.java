@@ -141,8 +141,9 @@ public class FortranMapping {
 	}
 	
 	private void makeFortranEasilyTransformedSet() {
-		FortranEasilyTransformedSet.add("ldivide");
 		FortranEasilyTransformedSet.add("colon");
+		FortranEasilyTransformedSet.add("ldivide");
+		FortranEasilyTransformedSet.add("randn");
 	}
 	
 	public boolean isFortranEasilyTransformed(String builtinName) {

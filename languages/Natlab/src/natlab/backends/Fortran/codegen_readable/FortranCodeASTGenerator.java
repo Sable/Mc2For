@@ -1,9 +1,6 @@
 package natlab.backends.Fortran.codegen_readable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import ast.ASTNode;
 import ast.List;
@@ -37,7 +34,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public ArrayList<String> outRes;
 	public boolean isInSubroutine;
 	// used to back up input argument.
-	public HashSet<String> inputHasChanged;
+	public Set<String> inputHasChanged;
 	public int ifWhileForBlockNest;
 	public StatementSection stmtSecForIfWhileForBlock;
 	public int indentNum;
@@ -45,10 +42,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	// ParameterizedExpr can be array index or function call, array index can be nested.
 	public int insideArray;
 	public boolean colonFlag;
+	public boolean randnFlag;
 	// temporary variables generated in Fortran code generation.
-	public HashMap<String, BasicMatrixValue> fotranTemporaries;
+	public Map<String, BasicMatrixValue> fotranTemporaries;
+	public boolean mustBeInt;
+	public Set<String> forceToInt;
 	// not support nested cell array.
-	public HashMap<String, ArrayList<BasicMatrixValue>> forCellArr;
+	public Map<String, ArrayList<BasicMatrixValue>> forCellArr;
 	public ArrayList<String> declaredCell;
 	
 	/**
@@ -85,7 +85,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		standardIndent = "   ";
 		insideArray = 0;
 		colonFlag = false;
+		randnFlag = false;
 		fotranTemporaries = new HashMap<String,BasicMatrixValue>();
+		mustBeInt = false;
+		forceToInt = new HashSet<String>();
 		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
 		declaredCell = new ArrayList<String>();
 		fNode.analyze(this);
@@ -110,13 +113,67 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				indent = indent + this.standardIndent;
 			}
 			fAssignStmt.setIndent(indent);
-			node.getLHS().analyze(this);
-			fAssignStmt.setFLHS(sb.toString());
-			sb.setLength(0);
+			/*
+			 * translate matlab function with more than 
+			 * one returns to subroutines in fortran.
+			 */
+			if (node.getLHS() instanceof MatrixExpr) {
+				MatrixExpr lhsMatrix = (MatrixExpr)node.getLHS();
+				if (lhsMatrix.getChild(0) instanceof List) {
+					List lhsList = (List)lhsMatrix.getChild(0);
+					if (lhsList.getChild(0) instanceof Row) {
+						Row lhsRow = (Row)lhsList.getChild(0);
+						if (lhsRow.getChild(0).getNumChild() > 1 || userDefinedFunctions.contains(
+								(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0)).getName().getID()))) {
+							FSubroutines fSubroutines = new FSubroutines();
+							fSubroutines.setIndent(indent);
+							node.getRHS().analyze(this);
+							sb.replace(sb.length()-1, sb.length(), "");
+							sb.append(", ");
+							for (int i = 0; i < lhsRow.getChild(0).getNumChild(); i++) {
+								if (this.outRes.contains(lhsRow.getChild(0).getChild(i).getNodeString())) {
+									sb.append(this.functionName);
+								}
+								else {
+									sb.append(lhsRow.getChild(0).getChild(i).getNodeString());
+								}
+								if (i < lhsRow.getChild(0).getNumChild() - 1) {
+									sb.append(", ");
+								}
+							}
+							sb.append(")");
+							if (Debug) System.out.println(sb);
+							fSubroutines.setFunctionCall(sb.toString());
+							sb.setLength(0);
+							stmtSecForIfWhileForBlock.addStatement(fSubroutines);
+							return;
+						}
+					}
+				}
+			}
 			node.getRHS().analyze(this);
 			fAssignStmt.setFRHS(sb.toString());
 			sb.setLength(0);
-			stmtSecForIfWhileForBlock.addStatement(fAssignStmt);			
+			node.getLHS().analyze(this);
+			if (colonFlag) {
+				fAssignStmt.setFLHS(sb.toString()+"(1, :)");
+				colonFlag = false;
+				sb.setLength(0);
+				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
+			}
+			else if (randnFlag) {
+				FSubroutines fSubroutines = new FSubroutines();
+				fSubroutines.setIndent(indent);
+				fSubroutines.setFunctionCall("RANDOM_NUMBER("+sb.toString()+")");
+				randnFlag = false;
+				sb.setLength(0);
+				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
+			}
+			else {
+				fAssignStmt.setFLHS(sb.toString());
+				sb.setLength(0);
+				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
+			}
 		}
 		else {
 			FAssignStmt fAssignStmt = new FAssignStmt();
@@ -135,8 +192,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					List lhsList = (List)lhsMatrix.getChild(0);
 					if (lhsList.getChild(0) instanceof Row) {
 						Row lhsRow = (Row)lhsList.getChild(0);
-						if (lhsRow.getChild(0).getNumChild() > 1) {
+						if (lhsRow.getChild(0).getNumChild() > 1 || userDefinedFunctions.contains(
+								(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0)).getName().getID()))) {
 							FSubroutines fSubroutines = new FSubroutines();
+							fSubroutines.setIndent(indent);
 							node.getRHS().analyze(this);
 							sb.replace(sb.length()-1, sb.length(), "");
 							sb.append(", ");
@@ -165,12 +224,25 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			fAssignStmt.setFRHS(sb.toString());
 			sb.setLength(0);
 			node.getLHS().analyze(this);
-			if (colonFlag) 
+			if (colonFlag) {
 				fAssignStmt.setFLHS(sb.toString()+"(1, :)");
-			else 
+				colonFlag = false;
+				sb.setLength(0);
+				subprogram.getStatementSection().addStatement(fAssignStmt);
+			}
+			else if (randnFlag) {
+				FSubroutines fSubroutines = new FSubroutines();
+				fSubroutines.setIndent(indent);
+				fSubroutines.setFunctionCall("RANDOM_NUMBER("+sb.toString()+")");
+				randnFlag = false;
+				sb.setLength(0);
+				subprogram.getStatementSection().addStatement(fSubroutines);
+			}
+			else {
 				fAssignStmt.setFLHS(sb.toString());
-			sb.setLength(0);
-			subprogram.getStatementSection().addStatement(fAssignStmt);			
+				sb.setLength(0);
+				subprogram.getStatementSection().addStatement(fAssignStmt);
+			}	
 		}
 	}
 	
@@ -300,7 +372,14 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							}
 						}
 						else if (name.equals("ldivide")) {
-							
+							sb.append("(");
+							node.getChild(1).getChild(1).analyze(this);
+							sb.append(" / ");
+							node.getChild(1).getChild(0).analyze(this);
+							sb.append(")");
+						}
+						else if (name.equals("randn")) {
+							randnFlag = true;
 						}
 					}
 					else {
@@ -345,9 +424,14 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	
 	@Override
 	public void caseNameExpr(NameExpr node) {
-		// System.out.println("nameExpr:" + node.getName().getID());
+		if (Debug) System.out.println("nameExpr:" + node.getName().getID());
 		if (this.remainingVars.contains(node.getName().getID())) {
 			if (Debug) System.out.println(node.getName().getID()+" is a variable.");
+			
+			if (mustBeInt) {
+				forceToInt.add(node.getName().getID());
+			}
+			
 			if (!this.functionName.equals(this.entryPointFile) 
 					&& !this.isInSubroutine 
 					&& this.outRes.contains(node.getName().getID())) {

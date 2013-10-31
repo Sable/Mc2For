@@ -10,12 +10,19 @@ aspect PrettyPrinter {
     	for (int i=0;i<size;i++) {
     		getBackupVar(i).pp(sb);
     	}
+    	if (hasGetInput()) {
+    		getGetInput().pp(sb);
+    	}
 		getStatementSection().pp(sb);
 		sb.append(getProgramEnd()+"\n");
 	}
     
     public void BackupVar.pp(StringBuffer sb) {
     	sb.append(getStmt()+"\n");
+    }
+    
+    public void GetInput.pp(StringBuffer sb) {
+    	sb.append(getBlock()+"\n");
     }
 	
 	public void ProgramTitle.pp(StringBuffer sb) {

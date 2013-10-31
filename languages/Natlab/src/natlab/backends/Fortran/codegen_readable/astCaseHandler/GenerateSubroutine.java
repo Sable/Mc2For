@@ -145,6 +145,9 @@ public class GenerateSubroutine {
 					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
 							+"("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1)+")");
 				}
+				else if (fcg.forceToInt.contains(variable)) {
+					declStmt.setType("INTEGER(KIND=4)");
+				}
 				else declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
 				/*

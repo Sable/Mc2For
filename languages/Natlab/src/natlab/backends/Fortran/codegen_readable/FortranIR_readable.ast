@@ -1,6 +1,7 @@
 Program ::= Subprogram*;
-Subprogram ::= ProgramTitle DeclarationSection BackupVar* StatementSection <ProgramEnd>;
+Subprogram ::= ProgramTitle DeclarationSection BackupVar* [GetInput] StatementSection <ProgramEnd>;
 BackupVar ::= <Stmt: String>;
+GetInput ::= <Block: String>;
 
 ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList] Module*;
 ProgramParameterList ::= Parameter*;
