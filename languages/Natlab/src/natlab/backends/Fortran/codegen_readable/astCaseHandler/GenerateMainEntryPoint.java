@@ -43,6 +43,9 @@ public class GenerateMainEntryPoint {
 		fcg.subprogram = preMainEntry;
 		StatementSection preStmtSection = new StatementSection();
 		preMainEntry.setStatementSection(preStmtSection);
+		if (fcg.inArgs.size() != 0) {
+			fcg.forceToInt.add(fcg.inArgs.get(0));
+		}
 		fcg.iterateStatements(node.getStmts());
 		/* 
 		 * second pass of all the statements, using 
@@ -52,22 +55,6 @@ public class GenerateMainEntryPoint {
 		fcg.subprogram = mainEntry;
 		StatementSection stmtSection = new StatementSection();
 		mainEntry.setStatementSection(stmtSection);
-		fcg.iterateStatements(node.getStmts());
-		/*
-		 *  set the title.
-		 */
-		ProgramTitle title = new ProgramTitle();
-		title.setProgramType("PROGRAM");
-		title.setProgramName(fcg.functionName);
-		mainEntry.setProgramTitle(title);
-		/*
-		 * declare modules
-		 */
-		for (String builtin : fcg.allSubprograms) {
-			Module module = new Module();
-			module.setName(builtin);
-			title.addModule(module);
-		}
 		if (fcg.inArgs.size() != 0) {
 			GetInput getInput = new GetInput();
 			StringBuffer temp = new StringBuffer();
@@ -79,6 +66,20 @@ public class GenerateMainEntryPoint {
 			temp.append(fcg.standardIndent + fcg.standardIndent + "READ(arg_buffer, *) scale\n");
 			temp.append(fcg.standardIndent + "END IF\n");
 			temp.append("END DO\n");
+			
+			// here is a hack to add timing TODO find a better way.
+			temp.append("\nCALL CPU_TIME(t1);\n");
+			fcg.fotranTemporaries.put("t1", new BasicMatrixValue(
+					null, 
+					PrimitiveClassReference.DOUBLE, 
+					new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+					null));
+			fcg.fotranTemporaries.put("t2", new BasicMatrixValue(
+					null, 
+					PrimitiveClassReference.DOUBLE, 
+					new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+					null));
+			
 			getInput.setBlock(temp.toString());
 			mainEntry.setGetInput(getInput);
 			fcg.fotranTemporaries.put("int_tmpvar", new BasicMatrixValue(
@@ -96,6 +97,22 @@ public class GenerateMainEntryPoint {
 					null));
 			// TODO currently, we only support one input.
 			fcg.forceToInt.add(fcg.inArgs.get(0));
+		}
+		fcg.iterateStatements(node.getStmts());
+		/*
+		 *  set the title.
+		 */
+		ProgramTitle title = new ProgramTitle();
+		title.setProgramType("PROGRAM");
+		title.setProgramName(fcg.functionName);
+		mainEntry.setProgramTitle(title);
+		/*
+		 * declare modules
+		 */
+		for (String builtin : fcg.allSubprograms) {
+			Module module = new Module();
+			module.setName(builtin);
+			title.addModule(module);
 		}
 		/*
 		 *  set the declaration section.
@@ -202,10 +219,10 @@ public class GenerateMainEntryPoint {
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
-						// need extra temporaries for runtime allocate variables.
+						/*// need extra temporaries for runtime reallocate variables.
 						Variable var_bk = new Variable();
 						var_bk.setName(variable+"_bk");
-						varList.addVariable(var_bk);
+						varList.addVariable(var_bk);*/
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}
@@ -281,7 +298,11 @@ public class GenerateMainEntryPoint {
 			declSection.addDeclStmt(declStmt);
 		}
 		mainEntry.setDeclarationSection(declSection);
-		mainEntry.setProgramEnd("END PROGRAM");
+		// here a hack to add timing TODO find a better way.
+		StringBuffer timeEnd = new StringBuffer();
+		timeEnd.append("\nCALL CPU_TIME(t2);\n");
+		timeEnd.append("PRINT '(\"Time = \", f6.3, \" seconds.\")', t2-t1;\n\n");
+		mainEntry.setProgramEnd(timeEnd + "END PROGRAM");
 		return fcg;
 	}
 }

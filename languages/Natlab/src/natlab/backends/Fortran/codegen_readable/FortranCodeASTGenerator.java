@@ -212,6 +212,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							}
 							sb.append(")");
 							if (Debug) System.out.println(sb);
+							
 							fSubroutines.setFunctionCall(sb.toString());
 							sb.setLength(0);
 							subprogram.getStatementSection().addStatement(fSubroutines);
@@ -233,9 +234,23 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			else if (randnFlag) {
 				FSubroutines fSubroutines = new FSubroutines();
 				fSubroutines.setIndent(indent);
-				fSubroutines.setFunctionCall("RANDOM_NUMBER("+sb.toString()+")");
+				String name = sb.toString();
+				fSubroutines.setFunctionCall("RANDOM_NUMBER("+name+")");
 				randnFlag = false;
 				sb.setLength(0);
+				if (!getMatrixValue(name).getShape().isConstant()) {
+					// need to inline run-time allocate.
+					insideArray++; // this is a hack.
+					node.getRHS().getChild(1).analyze(this);
+					insideArray--;
+					StringBuffer rtBuffer = new StringBuffer();
+					rtBuffer.append(indent + "IF ((.NOT. ALLOCATED(" + name + "))) THEN\n");
+					rtBuffer.append(indent + standardIndent + "ALLOCATE(" + name + "(" + sb.toString() + "))\n");
+					rtBuffer.append(indent + "END IF\n");
+					RuntimeAllocate rtAllocate = new RuntimeAllocate();
+					rtAllocate.setBlock(rtBuffer.toString());
+					fSubroutines.setRuntimeAllocate(rtAllocate);
+				}
 				subprogram.getStatementSection().addStatement(fSubroutines);
 			}
 			else {
@@ -570,8 +585,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				else {
 					node.getChild(i).analyze(this);
 				}
-				if (insideArray > 0 && i < node.getNumChild()-1) 
-					sb.append(", ");
+				if (insideArray > 0 && i < node.getNumChild()-1) sb.append(", ");
 			}
 		}
 	}

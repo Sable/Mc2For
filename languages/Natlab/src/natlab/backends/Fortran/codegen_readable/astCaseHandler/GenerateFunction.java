@@ -13,6 +13,8 @@ public class GenerateFunction {
 static boolean Debug = false;
 	
 	/**
+	 * currently, this class isn't being used and maintained.
+	 * 
 	 * function is one kind of subprograms, and it is like this,
 	 * 		FUNCTION name(inputArgs)
 	 * 		USE modules
