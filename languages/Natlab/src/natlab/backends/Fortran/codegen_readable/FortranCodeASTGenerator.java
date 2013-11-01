@@ -265,9 +265,18 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				if (Debug) System.out.println("this is an array index.");
 				// TODO add rigorous array indexing transformation and runtime abc.
 				node.getChild(0).analyze(this);
+				if (!this.getMatrixValue(name).getShape().isConstant()) {
+					System.out.println("unknown shape, need run-time abc.");
+				}
 				sb.append("(");
 				insideArray++;
 				node.getChild(1).analyze(this);
+				if (node.getChild(1) instanceof List 
+						&& this.getMatrixValue(name).getShape().getDimensions().size() 
+							!= ((List)node.getChild(1)).getNumChild()) {
+					// TODO this is a hack for n-by-1 vectors.
+					sb.append(", 1");
+				}
 				insideArray--;
 				sb.append(")");
 			}
@@ -339,7 +348,22 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append(")");
 					}
 					else if (fortranMapping.isFortranDirectBuiltin(name)) {
-						sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
+						if (name.equals("mtimes")) {
+							if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+								String op1 = ((NameExpr)((ParameterizedExpr)node.getChild(1)
+										.getChild(0)).getChild(0)).getName().getID();
+								String op2 = ((NameExpr)((ParameterizedExpr)node.getChild(1)
+										.getChild(1)).getChild(0)).getName().getID();
+								if (getMatrixValue(op1).getShape().maybeVector() 
+										|| getMatrixValue(op2).getShape().maybeVector()) {
+									sb.append("DOT_PRODUCT");
+								}
+							}
+								
+						}
+						else {
+							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
+						}
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
 						sb.append(", ");
@@ -349,13 +373,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					else if (fortranMapping.isFortranEasilyTransformed(name)) {
 						if (name.equals("colon")) {
 							if (insideArray > 0) {
-								sb.append("INT(");
+								// sb.append("INT(");
 								node.getChild(1).getChild(0).analyze(this);
-								sb.append("");
+								// sb.append(")");
 								sb.append(":");
 								sb.append("INT(");
 								node.getChild(1).getChild(1).analyze(this);
-								sb.append("");
+								sb.append(")");
 							}
 							else {
 								sb.append("(/(I, I=INT(");
@@ -411,7 +435,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			}
 		}
 		else {
-			System.err.println("can this happen?");
+			System.err.println("how does this happen?");
 			System.exit(0);
 		}
 	}
@@ -471,15 +495,34 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	
 	@Override
 	public void caseRangeExpr(RangeExpr node) {
-		if (node.getNumChild()==3) {
+		if (node.getNumChild() == 3) {
 			if (Debug) System.out.println("has increment.");
-			node.getChild(0).analyze(this);
+			if (node.getChild(0) instanceof NameExpr 
+					&& !forceToInt.contains(((NameExpr)node.getChild(0)).getName().getID())
+					&& !getMatrixValue(((NameExpr)node.getChild(0)).getName().getID())
+					.getMatlabClass().equals(PrimitiveClassReference.INT32)) {
+				sb.append("INT(");
+				node.getChild(0).analyze(this);
+				sb.append(")");
+			}
+			else if (node.getChild(0) instanceof ParameterizedExpr) {
+				sb.append("INT(");
+				node.getChild(0).analyze(this);
+				sb.append(")");
+			}
+			else {
+				node.getChild(0).analyze(this);
+			}
 			sb.append(", ");
 			node.getChild(2).analyze(this);
-			sb.append(", ");
 			if (node.getChild(1).getNumChild() != 0) {
+				sb.append(", ");
 				node.getChild(1).getChild(0).analyze(this);
 			}
+		}
+		else {
+			System.err.println("how does this happen?");
+			System.exit(0);
 		}
 	}
 	
@@ -514,7 +557,19 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		for (int i=0; i<node.getNumChild(); i++) {
 			if (Debug) System.out.println(node.getNumChild());
 			if (!(node.getChild(i) instanceof EmptyStmt)) {
-				node.getChild(i).analyze(this);
+				if (node.getChild(i) instanceof NameExpr 
+						&& insideArray > 0 
+						&& !forceToInt.contains(((NameExpr)node.getChild(i)).getName().getID())
+						&& !getMatrixValue(((NameExpr)node.getChild(i)).getName().getID())
+						.getMatlabClass().equals(PrimitiveClassReference.INT32)) {
+					if (Debug) System.out.println("I am a variable index!");
+					sb.append("INT(");
+					node.getChild(i).analyze(this);
+					sb.append(")");
+				}
+				else {
+					node.getChild(i).analyze(this);
+				}
 				if (insideArray > 0 && i < node.getNumChild()-1) 
 					sb.append(", ");
 			}

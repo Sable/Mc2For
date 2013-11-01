@@ -81,7 +81,7 @@ public class GenerateMainEntryPoint {
 			temp.append("END DO\n");
 			getInput.setBlock(temp.toString());
 			mainEntry.setGetInput(getInput);
-			fcg.fotranTemporaries.put("int_tempvar", new BasicMatrixValue(
+			fcg.fotranTemporaries.put("int_tmpvar", new BasicMatrixValue(
 					null, 
 					PrimitiveClassReference.INT32, 
 					new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 

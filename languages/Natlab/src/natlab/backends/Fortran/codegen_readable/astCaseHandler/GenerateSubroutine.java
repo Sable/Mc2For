@@ -181,7 +181,7 @@ public class GenerateSubroutine {
 						tempBuf.append(") , ALLOCATABLE");
 						keyword.setName(tempBuf.toString());
 						keywordList.addKeyword(keyword);
-						if (fcg.inArgs.contains(variable) 
+						/*if (fcg.inArgs.contains(variable) 
 								&& !fcg.inputHasChanged.contains(variable)) {
 							Keyword keyword2 = new Keyword();
 							keyword2.setName("INTENT(IN)");
@@ -191,7 +191,7 @@ public class GenerateSubroutine {
 							Keyword keyword2 = new Keyword();
 							keyword2.setName("INTENT(OUT)");
 							keywordList.addKeyword(keyword2);
-						}
+						}*/
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
@@ -223,7 +223,7 @@ public class GenerateSubroutine {
 						 * the input has been modified, but for main 
 						 * programs or functions, we don't need to care.
 						 */
-						if (fcg.inArgs.contains(variable) 
+						/*if (fcg.inArgs.contains(variable) 
 								&& !fcg.inputHasChanged.contains(variable)) {
 							Keyword keyword2 = new Keyword();
 							keyword2.setName("INTENT(IN)");
@@ -233,7 +233,7 @@ public class GenerateSubroutine {
 							Keyword keyword2 = new Keyword();
 							keyword2.setName("INTENT(OUT)");
 							keywordList.addKeyword(keyword2);
-						}
+						}*/
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
@@ -250,7 +250,7 @@ public class GenerateSubroutine {
 				 * declare scalars.
 				 */
 				else {
-					if (fcg.inArgs.contains(variable) 
+					/*if (fcg.inArgs.contains(variable) 
 							&& !fcg.inputHasChanged.contains(variable)) {
 						Keyword keyword = new Keyword();
 						keyword.setName("INTENT(IN)");
@@ -262,7 +262,7 @@ public class GenerateSubroutine {
 						keyword.setName("INTENT(OUT)");
 						keywordList.addKeyword(keyword);
 						declStmt.setKeywordList(keywordList);
-					}
+					}*/
 					Variable var = new Variable();
 					var.setName(variable);
 					varList.addVariable(var);
