@@ -281,8 +281,10 @@ public class GenerateSubroutine {
 				boolean redundant = false;
 				for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
 					if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
-						// TODO this is a hack, assume variable list has only one variable.
-						declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+						for (int j = 0; j < declStmt.getVariableList().getNumChild(); j++) {
+							declSection.getDeclStmt(i).getVariableList().addVariable(
+									declStmt.getVariableList().getVariable(j));
+						}
 						redundant = true;
 					}
 				}
@@ -320,8 +322,10 @@ public class GenerateSubroutine {
 			boolean redundant = false;
 			for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
 				if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
-					// TODO this is a hack, assume variable list has only one variable.
-					declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+					for (int j = 0; j < declStmt.getVariableList().getNumChild(); j++) {
+						declSection.getDeclStmt(i).getVariableList().addVariable(
+								declStmt.getVariableList().getVariable(j));
+					}
 					redundant = true;
 				}
 			}

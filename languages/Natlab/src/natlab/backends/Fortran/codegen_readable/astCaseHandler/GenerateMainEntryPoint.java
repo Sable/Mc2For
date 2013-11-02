@@ -267,8 +267,10 @@ public class GenerateMainEntryPoint {
 				boolean redundant = false;
 				for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
 					if (compareDecl(declSection.getDeclStmt(i), declStmt)) {
-						// TODO this is a hack, assume variable list has only one variable.
-						declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+						for (int j = 0; j < declStmt.getVariableList().getNumChild(); j++) {
+							declSection.getDeclStmt(i).getVariableList().addVariable(
+									declStmt.getVariableList().getVariable(j));
+						}
 						redundant = true;
 					}
 				}
@@ -316,8 +318,10 @@ public class GenerateMainEntryPoint {
 			boolean redundant = false;
 			for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
 				if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
-					// TODO this is a hack, assume variable list has only one variable.
-					declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+					for (int j = 0; j < declStmt.getVariableList().getNumChild(); j++) {
+						declSection.getDeclStmt(i).getVariableList().addVariable(
+								declStmt.getVariableList().getVariable(j));
+					}
 					redundant = true;
 				}
 			}
@@ -345,12 +349,14 @@ public class GenerateMainEntryPoint {
 			return false;
 		}
 		if (declStmt1.hasKeywordList() && declStmt2.hasKeywordList()) {
-			if (declStmt1.getKeywordList().getNumChild() != declStmt2.getKeywordList().getNumChild()) {
+			if (declStmt1.getKeywordList().getNumChild() 
+					!= declStmt2.getKeywordList().getNumChild()) {
 				return false;
 			}
 			else {
 				for (int i = 0; i < declStmt1.getKeywordList().getNumChild(); i++) {
-					if (!declStmt1.getKeywordList().getChild(i).equals(declStmt2.getKeywordList().getChild(i))) {
+					if (!declStmt1.getKeywordList().getChild(i).equals(
+							declStmt2.getKeywordList().getChild(i))) {
 						return false;
 					}			
 				}
