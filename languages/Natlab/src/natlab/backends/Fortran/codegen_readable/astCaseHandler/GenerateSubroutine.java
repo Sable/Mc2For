@@ -273,7 +273,20 @@ public class GenerateSubroutine {
 					}
 					declStmt.setVariableList(varList);
 				}
-				declSection.addDeclStmt(declStmt);
+				/* 
+				 * if several variables have the same type declaration, 
+				 * we should declare them in one line (for readability).
+				 * we need a method to compare declStmt.
+				 */
+				boolean redundant = false;
+				for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
+					if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
+						// TODO this is a hack, assume variable list has only one variable.
+						declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+						redundant = true;
+					}
+				}
+				if (!redundant) declSection.addDeclStmt(declStmt);
 			}
 		}
 		/*
@@ -299,7 +312,20 @@ public class GenerateSubroutine {
 			var.setName(tmpVariable);
 			varList.addVariable(var);
 			declStmt.setVariableList(varList);
-			declSection.addDeclStmt(declStmt);
+			/* 
+			 * if several variables have the same type declaration, 
+			 * we should declare them in one line (for readability).
+			 * we need a method to compare declStmt.
+			 */
+			boolean redundant = false;
+			for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
+				if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
+					// TODO this is a hack, assume variable list has only one variable.
+					declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+					redundant = true;
+				}
+			}
+			if (!redundant) declSection.addDeclStmt(declStmt);
 		}
 		subroutine.setDeclarationSection(declSection);
 		subroutine.setProgramEnd("END SUBROUTINE");

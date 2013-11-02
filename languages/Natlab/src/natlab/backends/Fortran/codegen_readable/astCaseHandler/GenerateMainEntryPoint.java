@@ -259,7 +259,20 @@ public class GenerateMainEntryPoint {
 					varList.addVariable(var);
 					declStmt.setVariableList(varList);
 				}
-				declSection.addDeclStmt(declStmt);
+				/* 
+				 * if several variables have the same type declaration, 
+				 * we should declare them in one line (for readability).
+				 * we need a method to compare declStmt.
+				 */
+				boolean redundant = false;
+				for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
+					if (compareDecl(declSection.getDeclStmt(i), declStmt)) {
+						// TODO this is a hack, assume variable list has only one variable.
+						declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+						redundant = true;
+					}
+				}
+				if (!redundant) declSection.addDeclStmt(declStmt);
 			}
 		}
 		/*
@@ -295,7 +308,20 @@ public class GenerateMainEntryPoint {
 			var.setName(tmpVariable);
 			varList.addVariable(var);
 			declStmt.setVariableList(varList);
-			declSection.addDeclStmt(declStmt);
+			/* 
+			 * if several variables have the same type declaration, 
+			 * we should declare them in one line (for readability).
+			 * we need a method to compare declStmt.
+			 */
+			boolean redundant = false;
+			for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
+				if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
+					// TODO this is a hack, assume variable list has only one variable.
+					declSection.getDeclStmt(i).getVariableList().addVariable(declStmt.getVariableList().getVariable(0));
+					redundant = true;
+				}
+			}
+			if (!redundant) declSection.addDeclStmt(declStmt);
 		}
 		mainEntry.setDeclarationSection(declSection);
 		// here a hack to add timing TODO find a better way.
@@ -304,5 +330,32 @@ public class GenerateMainEntryPoint {
 		timeEnd.append("PRINT '(\"Time = \", f6.3, \" seconds.\")', t2-t1;\n\n");
 		mainEntry.setProgramEnd(timeEnd + "END PROGRAM");
 		return fcg;
+	}
+	
+	/**
+	 *  helper method to compare declStmt. since 
+	 *  DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList
+	 *  we should compare each of the components.
+	 */
+	public static boolean compareDecl(DeclStmt declStmt1, DeclStmt declStmt2) {
+		if (!declStmt1.getType().equals(declStmt2.getType())) {
+			return false;
+		}
+		if (declStmt1.hasKeywordList() ^ declStmt2.hasKeywordList()) {
+			return false;
+		}
+		if (declStmt1.hasKeywordList() && declStmt2.hasKeywordList()) {
+			if (declStmt1.getKeywordList().getNumChild() != declStmt2.getKeywordList().getNumChild()) {
+				return false;
+			}
+			else {
+				for (int i = 0; i < declStmt1.getKeywordList().getNumChild(); i++) {
+					if (!declStmt1.getKeywordList().getChild(i).equals(declStmt2.getKeywordList().getChild(i))) {
+						return false;
+					}			
+				}
+			}
+		}		
+		return true;
 	}
 }
