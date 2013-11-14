@@ -43,9 +43,7 @@ public class GenerateMainEntryPoint {
 		fcg.subprogram = preMainEntry;
 		StatementSection preStmtSection = new StatementSection();
 		preMainEntry.setStatementSection(preStmtSection);
-		if (fcg.inArgs.size() != 0) {
-			fcg.forceToInt.add(fcg.inArgs.get(0));
-		}
+		// the inputs of the main program in Fortran don't have to be INTEGER.
 		fcg.iterateStatements(node.getStmts());
 		/* 
 		 * second pass of all the statements, using 
@@ -55,9 +53,11 @@ public class GenerateMainEntryPoint {
 		fcg.subprogram = mainEntry;
 		StatementSection stmtSection = new StatementSection();
 		mainEntry.setStatementSection(stmtSection);
-		if (fcg.inArgs.size() != 0) {
-			GetInput getInput = new GetInput();
-			StringBuffer temp = new StringBuffer();
+		
+		GetInput getInput = new GetInput();
+		StringBuffer temp = new StringBuffer();
+		// TODO currently, we only support one input.
+		if (fcg.inArgs.size() == 1 && fcg.inputsUsed.contains(fcg.inArgs.get(0))) {
 			temp.append("\nint_tmpvar = 0\n");
 			temp.append("arg_buffer = '0000000000'\n");
 			temp.append("DO int_tmpvar = 1 , IARGC()\n");
@@ -67,21 +67,6 @@ public class GenerateMainEntryPoint {
 			temp.append(fcg.standardIndent + "END IF\n");
 			temp.append("END DO\n");
 			
-			// here is a hack to add timing TODO find a better way.
-			temp.append("\nCALL CPU_TIME(t1);\n");
-			fcg.fotranTemporaries.put("t1", new BasicMatrixValue(
-					null, 
-					PrimitiveClassReference.DOUBLE, 
-					new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-					null));
-			fcg.fotranTemporaries.put("t2", new BasicMatrixValue(
-					null, 
-					PrimitiveClassReference.DOUBLE, 
-					new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-					null));
-			
-			getInput.setBlock(temp.toString());
-			mainEntry.setGetInput(getInput);
 			fcg.fotranTemporaries.put("int_tmpvar", new BasicMatrixValue(
 					null, 
 					PrimitiveClassReference.INT32, 
@@ -95,9 +80,22 @@ public class GenerateMainEntryPoint {
 					PrimitiveClassReference.CHAR, 
 					new ShapeFactory<AggrValue<BasicMatrixValue>>().newShapeFromIntegers(tempShape), 
 					null));
-			// TODO currently, we only support one input.
-			fcg.forceToInt.add(fcg.inArgs.get(0));
 		}
+		// here is a hack to add timing TODO find a better way.
+		temp.append("\nCALL CPU_TIME(t1);\n");
+		fcg.fotranTemporaries.put("t1", new BasicMatrixValue(
+				null, 
+				PrimitiveClassReference.DOUBLE, 
+				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+				null));
+		fcg.fotranTemporaries.put("t2", new BasicMatrixValue(
+				null, 
+				PrimitiveClassReference.DOUBLE, 
+				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+				null));
+		getInput.setBlock(temp.toString());		
+		mainEntry.setGetInput(getInput);
+		
 		fcg.iterateStatements(node.getStmts());
 		/*
 		 *  set the title.
