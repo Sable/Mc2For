@@ -63,7 +63,7 @@ public class GenerateMainEntryPoint {
 			temp.append("DO int_tmpvar = 1 , IARGC()\n");
 			temp.append(fcg.standardIndent + "CALL GETARG(int_tmpvar, arg_buffer)\n");
 			temp.append(fcg.standardIndent + "IF ((int_tmpvar == 1)) THEN\n");
-			temp.append(fcg.standardIndent + fcg.standardIndent + "READ(arg_buffer, *) scale\n");
+			temp.append(fcg.standardIndent + fcg.standardIndent + "READ(arg_buffer, *) "+ fcg.inArgs.get(0)  +"\n");
 			temp.append(fcg.standardIndent + "END IF\n");
 			temp.append("END DO\n");
 			
