@@ -144,6 +144,8 @@ public class FortranMapping {
 		FortranEasilyTransformedSet.add("colon");
 		FortranEasilyTransformedSet.add("ldivide");
 		FortranEasilyTransformedSet.add("randn");
+		FortranEasilyTransformedSet.add("horzcat");
+		FortranEasilyTransformedSet.add("vertcat");
 	}
 	
 	public boolean isFortranEasilyTransformed(String builtinName) {

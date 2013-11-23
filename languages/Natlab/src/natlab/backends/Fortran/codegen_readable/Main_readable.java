@@ -31,8 +31,8 @@ public class Main_readable {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "/home/aaron/Dropbox/benchmarks/sample/";
-	    String entryPointFile = "drv_babai";
+		String fileDir = "/home/aaron/for_test/fortran/vector/";
+	    String entryPointFile = "testMultiArray";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		BasicTamerTool tool = new BasicTamerTool();

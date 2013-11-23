@@ -43,6 +43,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public int insideArray;
 	public boolean colonFlag;
 	public boolean randnFlag;
+	public boolean horzvertcatFlag;
 	// temporary variables generated in Fortran code generation.
 	public Map<String, BasicMatrixValue> fotranTemporaries;
 	public boolean mustBeInt;
@@ -87,6 +88,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		insideArray = 0;
 		colonFlag = false;
 		randnFlag = false;
+		horzvertcatFlag = false;
 		fotranTemporaries = new HashMap<String,BasicMatrixValue>();
 		mustBeInt = false;
 		forceToInt = new HashSet<String>();
@@ -158,8 +160,34 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			sb.setLength(0);
 			node.getLHS().analyze(this);
 			if (colonFlag) {
-				fAssignStmt.setFLHS(sb.toString()+"(1, :)");
+				// this is a quick fix to distinguish whether left hand side has an array index
+				if (sb.toString().indexOf("(") != -1) {
+					fAssignStmt.setFLHS(sb.toString());
+				}
+				else {
+					fAssignStmt.setFLHS(sb.toString()+"(1, :)");
+				}
 				colonFlag = false;
+				sb.setLength(0);
+				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
+			}
+			else if (horzvertcatFlag) {
+				// this is a quick fix to distinguish whether left hand side has an array index
+				if (sb.toString().indexOf("(") != -1) {
+					fAssignStmt.setFLHS(sb.toString());
+				}
+				else {
+					if (getMatrixValue(sb.toString()).getShape().isRowVectro()) {
+						fAssignStmt.setFLHS(sb.toString()+"(1, :)");
+					}
+					else if (getMatrixValue(sb.toString()).getShape().isColVector()) {
+						fAssignStmt.setFLHS(sb.toString()+"(:, 1)");
+					}
+					else {
+						fAssignStmt.setFLHS(sb.toString());
+					}
+				}
+				horzvertcatFlag = false;
 				sb.setLength(0);
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
 			}
@@ -228,8 +256,34 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			sb.setLength(0);
 			node.getLHS().analyze(this);
 			if (colonFlag) {
-				fAssignStmt.setFLHS(sb.toString()+"(1, :)");
+				// this is a quick fix to distinguish whether left hand side has an array index
+				if (sb.toString().indexOf("(") != -1) {
+					fAssignStmt.setFLHS(sb.toString());
+				}
+				else {
+					fAssignStmt.setFLHS(sb.toString()+"(1, :)");
+				}
 				colonFlag = false;
+				sb.setLength(0);
+				subprogram.getStatementSection().addStatement(fAssignStmt);
+			}
+			else if (horzvertcatFlag) {
+				// this is a quick fix to distinguish whether left hand side has an array index
+				if (sb.toString().indexOf("(") != -1) {
+					fAssignStmt.setFLHS(sb.toString());
+				}
+				else {
+					if (getMatrixValue(sb.toString()).getShape().isRowVectro()) {
+						fAssignStmt.setFLHS(sb.toString()+"(1, :)");
+					}
+					else if (getMatrixValue(sb.toString()).getShape().isColVector()) {
+						fAssignStmt.setFLHS(sb.toString()+"(:, 1)");
+					}
+					else {
+						fAssignStmt.setFLHS(sb.toString());
+					}
+				}
+				horzvertcatFlag = false;
 				sb.setLength(0);
 				subprogram.getStatementSection().addStatement(fAssignStmt);
 			}
@@ -388,6 +442,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append(")");
 					}
 					else if (fortranMapping.isFortranEasilyTransformed(name)) {
+						if (Debug) System.out.println("******transformed function name: "+name+"******");
 						if (name.equals("colon")) {
 							if (insideArray > 0) {
 								// sb.append("INT(");
@@ -399,11 +454,11 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								sb.append(")");
 							}
 							else {
-								sb.append("(/(I, I=INT(");
+								sb.append("[(I, I=INT(");
 								node.getChild(1).getChild(0).analyze(this);
 								sb.append("),INT(");
 								node.getChild(1).getChild(1).analyze(this);
-								sb.append("))/)");
+								sb.append("))]");
 								colonFlag = true;
 								fotranTemporaries.put("I", new BasicMatrixValue(
 										null, 
@@ -438,16 +493,31 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 * functions with more than two inputs, leave the hole.
 				 */
 				else {
-					node.getChild(0).analyze(this);
-					sb.append("(");
-					for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
-						node.getChild(1).getChild(i).analyze(this);
-						if (i < node.getChild(1).getNumChild() - 1) {
-							sb.append(", ");
+					if (fortranMapping.isFortranEasilyTransformed(name)) {
+						if (name.equals("horzcat") || name.equals("vertcat")) {
+							sb.append("[");
+							for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
+								node.getChild(1).getChild(i).analyze(this);
+								if (i < node.getChild(1).getNumChild() - 1) {
+									sb.append(", ");
+								}
+							}
+							sb.append("]");
+							horzvertcatFlag = true;
 						}
 					}
-					sb.append(")");
-					allSubprograms.add(node.getChild(0).getNodeString());
+					else {
+						node.getChild(0).analyze(this);
+						sb.append("(");
+						for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
+							node.getChild(1).getChild(i).analyze(this);
+							if (i < node.getChild(1).getNumChild() - 1) {
+								sb.append(", ");
+							}
+						}
+						sb.append(")");
+						allSubprograms.add(node.getChild(0).getNodeString());						
+					}
 				}
 			}
 		}
@@ -594,6 +664,11 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				if (insideArray > 0 && i < node.getNumChild()-1) sb.append(", ");
 			}
 		}
+	}
+	
+	@Override
+	public void caseColonExpr(ColonExpr node) {
+		sb.append(":");
 	}
 	
 	@Override
