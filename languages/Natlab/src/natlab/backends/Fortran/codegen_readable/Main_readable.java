@@ -31,8 +31,8 @@ public class Main_readable {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "/home/aaron/for_test/readable/if-else/";
-	    String entryPointFile = "ifelse";
+		String fileDir = "/home/aaron/Dropbox/benchmarks/adpt/";
+	    String entryPointFile = "drv_adpt";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		
@@ -88,7 +88,6 @@ public class Main_readable {
 		        /*
 		         * Fortran code generation.
 		         */
-		        System.err.println("pretty print the generated Fortran code:");
 		        Subprogram subprogram = FortranCodeASTGenerator.generateFortran(
 		        		(Function)fTree, 
 		        		currentOutSet, 
@@ -106,6 +105,7 @@ public class Main_readable {
 		        else {
 		        	subprogram.pp(sb);
 		        }
+		        System.err.println("pretty print the generated Fortran code:");
 		        System.out.println(sb);
 				
 				// write the generated fortran code to files.
@@ -196,7 +196,6 @@ public class Main_readable {
 		        	System.out.println("with run-time ABC code.");
 		        }
 		        
-		        System.err.println("pretty print the generated Fortran code:");
 		        Subprogram subprogram = FortranCodeASTGenerator.generateFortran(
 		        		(Function)fTree, 
 		        		currentOutSet, 
@@ -214,6 +213,7 @@ public class Main_readable {
 		        else {
 		        	subprogram.pp(sb);
 		        }
+		        System.err.println("pretty print the generated Fortran code:");
 		        System.out.println(sb);
 				
 		        // write the transformed result to files.
