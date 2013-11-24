@@ -53,7 +53,7 @@ public class HandleCaseIfStmt {
 		StatementSection elseStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = elseStmtSec;
 		fcg.indentNum++;
-		node.getElseBlock().analyze(fcg);
+		node.getElseBlock().getStmtList().analyze(fcg);
 		stmt.setFElseBlock(elseStmtSec);
 		fcg.indentNum--;
 		fcg.ifWhileForBlockNest--;
