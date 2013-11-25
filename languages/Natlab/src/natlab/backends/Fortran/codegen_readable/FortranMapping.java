@@ -102,6 +102,7 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("mod", "MODULO");
 		FortranDirectBuiltinMap.put("rem", "MOD");
 		FortranDirectBuiltinMap.put("round", "NINT");
+		FortranDirectBuiltinMap.put("fix", "INT");
 		FortranDirectBuiltinMap.put("sin", "SIN");
 		FortranDirectBuiltinMap.put("asin", "ASIN");
 		FortranDirectBuiltinMap.put("sinh", "SINH");
