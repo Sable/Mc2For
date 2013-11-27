@@ -28,6 +28,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public Set<String> allSubprograms;
 	public Subprogram subprogram;
 	public StringBuffer sb;
+	public StringBuffer sbForRuntimeInline;
 	public FortranMapping fortranMapping;
 	public String functionName;
 	public ArrayList<String> inArgs;
@@ -77,6 +78,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		allSubprograms = new HashSet<String>();
 		subprogram = new Subprogram();
 		sb = new StringBuffer();
+		sbForRuntimeInline = new StringBuffer();
 		fortranMapping = new FortranMapping();
 		functionName = "";
 		inArgs = new ArrayList<String>();
@@ -245,6 +247,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
 			}
 			else {
+				// if there is runtime abc or allocate, add here.
+				if (sbForRuntimeInline.length() != 0) {
+					RuntimeAllocate runtimeInline = new RuntimeAllocate();
+					runtimeInline.setBlock(sbForRuntimeInline.toString());
+					fAssignStmt.setRuntimeAllocate(runtimeInline);
+					sbForRuntimeInline.setLength(0);
+				}
 				fAssignStmt.setFLHS(sb.toString());
 				sb.setLength(0);
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
@@ -361,6 +370,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				subprogram.getStatementSection().addStatement(fSubroutines);
 			}
 			else {
+				// if there is runtime abc or allocate, add here.
+				if (sbForRuntimeInline.length() != 0) {
+					RuntimeAllocate runtimeInline = new RuntimeAllocate();
+					runtimeInline.setBlock(sbForRuntimeInline.toString());
+					fAssignStmt.setRuntimeAllocate(runtimeInline);
+					sbForRuntimeInline.setLength(0);
+				}
 				fAssignStmt.setFLHS(sb.toString());
 				sb.setLength(0);
 				subprogram.getStatementSection().addStatement(fAssignStmt);
@@ -399,7 +415,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					 */
 					System.out.println("unknown shape array indexing " +
 							"on right hand side, need run-time abc.");
-					sb.append("! need run-time abc.\n");
+					sbForRuntimeInline.append("! need run-time abc.\n");
 				}
 				else if (!getMatrixValue(name).getShape().isConstant() 
 						&& leftOfAssign) {
@@ -408,7 +424,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					 */
 					System.out.println("unknown shape array indexing " +
 							"on left hand side, need run-time abc and reallocation.");
-					sb.append("! need run-time abc and reallocation.\n");
+					sbForRuntimeInline.append("! need run-time abc and reallocation.\n");
 				}
 				
 				node.getChild(0).analyze(this);

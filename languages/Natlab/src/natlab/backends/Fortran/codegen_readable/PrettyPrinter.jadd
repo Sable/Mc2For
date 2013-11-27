@@ -142,8 +142,11 @@ aspect PrettyPrinter {
     }
     
     public void FAssignStmt.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) {
+    		sb.append(getIndent());
+    		getRuntimeAllocate().pp(sb);
+    	}
     	sb.append(getIndent());
-    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
     	if (!getFLHS().equals("")) {
     		sb.append(getFLHS());
     		sb.append(" = ");
