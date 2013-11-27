@@ -93,7 +93,13 @@ public class FortranMapping {
 	
 	private void makeFortranDirectBuiltinMap() {
 		// arithmetic operators
-		FortranDirectBuiltinMap.put("mtimes", "MATMUL");
+		/* 
+		 * FortranDirectBuiltinMap.put("mtimes", "MATMUL");
+		 * comment off the builtin function mtimes, 
+		 * since mtimes is highly overloaded in 
+		 * benchmarks, and the easiest way I think 
+		 * is to use a fortran interface to map it.
+		 */
 		FortranDirectBuiltinMap.put("transpose", "TRANSPOSE");
 		// commonly used mathematical built-ins
 		FortranDirectBuiltinMap.put("sum", "SUM");

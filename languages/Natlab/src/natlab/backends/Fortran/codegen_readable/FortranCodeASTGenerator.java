@@ -44,6 +44,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public boolean colonFlag;
 	public boolean randnFlag;
 	public boolean horzvertcatFlag;
+	public boolean leftOfAssign;
+	public boolean rightOfAssign;
 	// temporary variables generated in Fortran code generation.
 	public Map<String, BasicMatrixValue> fotranTemporaries;
 	public boolean mustBeInt;
@@ -89,6 +91,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		colonFlag = false;
 		randnFlag = false;
 		horzvertcatFlag = false;
+		leftOfAssign = false;
+		rightOfAssign = false;
 		fotranTemporaries = new HashMap<String,BasicMatrixValue>();
 		mustBeInt = false;
 		forceToInt = new HashSet<String>();
@@ -107,6 +111,41 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		HandleCaseFunction functionStmt = new HandleCaseFunction();
 		functionStmt.getFortran(this, node);
     }
+	
+	@Override
+	/**
+	 * for comment statements.
+	 */
+	public void caseEmptyStmt(EmptyStmt node) {
+		if (ifWhileForBlockNest != 0) {
+			if (!node.getPrettyPrinted().equals("")) {
+				String comment = node.getPrettyPrinted();
+				if (Debug) System.out.println(comment);
+				FCommentStmt fComment = new FCommentStmt();
+				String indent = "";
+				for (int i = 0; i < indentNum; i++) {
+					indent = indent + standardIndent;
+				}
+				fComment.setIndent(indent);
+				fComment.setFComment(comment.subSequence(1, comment.length()).toString());
+				stmtSecForIfWhileForBlock.addStatement(fComment);
+			}
+		}
+		else {
+			if (!node.getPrettyPrinted().equals("")) {
+				String comment = node.getPrettyPrinted();
+				if (Debug) System.out.println(comment);
+				FCommentStmt fComment = new FCommentStmt();
+				String indent = "";
+				for (int i = 0; i < indentNum; i++) {
+					indent = indent + standardIndent;
+				}
+				fComment.setIndent(indent);
+				fComment.setFComment(comment.subSequence(1, comment.length()).toString());
+				subprogram.getStatementSection().addStatement(fComment);
+			}
+		}
+	}
 	
 	@Override
 	public void caseAssignStmt(AssignStmt node)	{
@@ -155,25 +194,30 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 				}
 			}
+			rightOfAssign = true;
 			node.getRHS().analyze(this);
 			fAssignStmt.setFRHS(sb.toString());
 			sb.setLength(0);
+			rightOfAssign = false;
+			leftOfAssign = true;
 			node.getLHS().analyze(this);
+			leftOfAssign = false;
 			if (colonFlag) {
 				// this is a quick fix to distinguish whether left hand side has an array index
-				if (sb.toString().indexOf("(") != -1) {
+				/*if (sb.toString().indexOf("(") != -1) {
 					fAssignStmt.setFLHS(sb.toString());
 				}
 				else {
 					fAssignStmt.setFLHS(sb.toString()+"(1, :)");
-				}
+				}*/
+				fAssignStmt.setFLHS(sb.toString());
 				colonFlag = false;
 				sb.setLength(0);
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
 			}
 			else if (horzvertcatFlag) {
 				// this is a quick fix to distinguish whether left hand side has an array index
-				if (sb.toString().indexOf("(") != -1) {
+				/*if (sb.toString().indexOf("(") != -1) {
 					fAssignStmt.setFLHS(sb.toString());
 				}
 				else {
@@ -186,7 +230,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					else {
 						fAssignStmt.setFLHS(sb.toString());
 					}
-				}
+				}*/
+				fAssignStmt.setFLHS(sb.toString());
 				horzvertcatFlag = false;
 				sb.setLength(0);
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
@@ -251,25 +296,30 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 				}
 			}
+			rightOfAssign = true;
 			node.getRHS().analyze(this);
 			fAssignStmt.setFRHS(sb.toString());
 			sb.setLength(0);
+			rightOfAssign = false;
+			leftOfAssign = true;
 			node.getLHS().analyze(this);
+			leftOfAssign = false;
 			if (colonFlag) {
 				// this is a quick fix to distinguish whether left hand side has an array index
-				if (sb.toString().indexOf("(") != -1) {
+				/*if (sb.toString().indexOf("(") != -1) {
 					fAssignStmt.setFLHS(sb.toString());
 				}
 				else {
 					fAssignStmt.setFLHS(sb.toString()+"(1, :)");
-				}
+				}*/
+				fAssignStmt.setFLHS(sb.toString());
 				colonFlag = false;
 				sb.setLength(0);
 				subprogram.getStatementSection().addStatement(fAssignStmt);
 			}
 			else if (horzvertcatFlag) {
 				// this is a quick fix to distinguish whether left hand side has an array index
-				if (sb.toString().indexOf("(") != -1) {
+				/*if (sb.toString().indexOf("(") != -1) {
 					fAssignStmt.setFLHS(sb.toString());
 				}
 				else {
@@ -282,7 +332,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					else {
 						fAssignStmt.setFLHS(sb.toString());
 					}
-				}
+				}*/
+				fAssignStmt.setFLHS(sb.toString());
 				horzvertcatFlag = false;
 				sb.setLength(0);
 				subprogram.getStatementSection().addStatement(fAssignStmt);
@@ -334,20 +385,64 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			String name = ((NameExpr) node.getChild(0)).getName().getID();
 			if (remainingVars.contains(name)) {
 				if (Debug) System.out.println("this is an array index.");
-				// TODO add rigorous array indexing transformation and runtime abc.
-				node.getChild(0).analyze(this);
-				if (!getMatrixValue(name).getShape().isConstant()) {
-					System.out.println("unknown shape, need run-time abc.");
+				/*
+				 * TODO note that, need to find a way to distinguish the array 
+				 * indexing is on which side. the array indexing on left hand 
+				 * side must be inlined with runtime abc and reallocation, while 
+				 * the runtime abc of the array indexing on right hand side is 
+				 * optional.
+				 */
+				if (!getMatrixValue(name).getShape().isConstant() 
+						&& rightOfAssign && !nocheck) {
+					/*
+					 * TODO add runtime abc.
+					 */
+					System.out.println("unknown shape array indexing " +
+							"on right hand side, need run-time abc.");
+					sb.append("! need run-time abc.\n");
 				}
+				else if (!getMatrixValue(name).getShape().isConstant() 
+						&& leftOfAssign) {
+					/*
+					 * TODO add runtime abc and reallocation.
+					 */
+					System.out.println("unknown shape array indexing " +
+							"on left hand side, need run-time abc and reallocation.");
+					sb.append("! need run-time abc and reallocation.\n");
+				}
+				
+				node.getChild(0).analyze(this);
 				sb.append("(");
 				insideArray++;
-				node.getChild(1).analyze(this);
-				if (node.getChild(1) instanceof List 
+				/*
+				 * add rigorous array indexing transformation.
+				 */
+				/*if (node.getChild(1) instanceof List 
 						&& getMatrixValue(name).getShape().getDimensions().size() 
-							!= ((List)node.getChild(1)).getNumChild()) {
-					// TODO this is a hack for n-by-1 vectors.
+							!= ((List)node.getChild(1)).getNumChild() 
+							&& getMatrixValue(name).getShape().isColVector()) {
+					node.getChild(1).analyze(this);
+					
+					 * TODO this is a hack for n-by-1 vector linear indexing,
+					 * won't work for multidimensional matrix linear indexing.
+					 
 					sb.append(", 1");
 				}
+				else if (node.getChild(1) instanceof List 
+						&& getMatrixValue(name).getShape().getDimensions().size() 
+						!= ((List)node.getChild(1)).getNumChild() 
+						&& getMatrixValue(name).getShape().isRowVectro()) {
+					
+					 * TODO this is a hack for 1-by-n vector linear indexing,
+					 * won't work for multidimensional matrix linear indexing.
+					 
+					sb.append("1, ");
+					node.getChild(1).analyze(this);
+				}
+				else {
+					node.getChild(1).analyze(this);
+				}*/
+				node.getChild(1).analyze(this);
 				insideArray--;
 				sb.append(")");
 			}
@@ -419,22 +514,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append(")");
 					}
 					else if (fortranMapping.isFortranDirectBuiltin(name)) {
-						if (name.equals("mtimes")) {
-							if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
-								String op1 = ((NameExpr)((ParameterizedExpr)node.getChild(1)
-										.getChild(0)).getChild(0)).getName().getID();
-								String op2 = ((NameExpr)((ParameterizedExpr)node.getChild(1)
-										.getChild(1)).getChild(0)).getName().getID();
-								if (getMatrixValue(op1).getShape().maybeVector() 
-										|| getMatrixValue(op2).getShape().maybeVector()) {
-									sb.append("DOT_PRODUCT");
-								}
-							}
-								
-						}
-						else {
-							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
-						}
+						sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
 						sb.append(", ");
@@ -445,9 +525,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						if (Debug) System.out.println("******transformed function name: "+name+"******");
 						if (name.equals("colon")) {
 							if (insideArray > 0) {
-								// sb.append("INT(");
+								sb.append("INT(");
 								node.getChild(1).getChild(0).analyze(this);
-								// sb.append(")");
+								sb.append(")");
 								sb.append(":");
 								sb.append("INT(");
 								node.getChild(1).getChild(1).analyze(this);
@@ -476,6 +556,17 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						}
 						else if (name.equals("randn")) {
 							randnFlag = true;
+						}
+						if (name.equals("horzcat") || name.equals("vertcat")) {
+							sb.append("[");
+							for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
+								node.getChild(1).getChild(i).analyze(this);
+								if (i < node.getChild(1).getNumChild() - 1) {
+									sb.append(", ");
+								}
+							}
+							sb.append("]");
+							horzvertcatFlag = true;
 						}
 					}
 					else {
@@ -605,10 +696,40 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				node.getChild(0).analyze(this);
 			}
 			sb.append(", ");
-			node.getChild(2).analyze(this);
+			if (node.getChild(2) instanceof NameExpr 
+					&& !forceToInt.contains(((NameExpr)node.getChild(2)).getName().getID())
+					&& !getMatrixValue(((NameExpr)node.getChild(2)).getName().getID())
+					.getMatlabClass().equals(PrimitiveClassReference.INT32)) {
+				sb.append("INT(");
+				node.getChild(2).analyze(this);
+				sb.append(")");
+			}
+			else if (node.getChild(2) instanceof ParameterizedExpr) {
+				sb.append("INT(");
+				node.getChild(2).analyze(this);
+				sb.append(")");
+			}
+			else {
+				node.getChild(2).analyze(this);
+			}
 			if (node.getChild(1).getNumChild() != 0) {
 				sb.append(", ");
-				node.getChild(1).getChild(0).analyze(this);
+				if (node.getChild(1).getChild(0) instanceof NameExpr 
+						&& !forceToInt.contains(((NameExpr)node.getChild(1).getChild(0)).getName().getID())
+						&& !getMatrixValue(((NameExpr)node.getChild(1).getChild(0)).getName().getID())
+						.getMatlabClass().equals(PrimitiveClassReference.INT32)) {
+					sb.append("INT(");
+					node.getChild(1).getChild(0).analyze(this);
+					sb.append(")");
+				}
+				else if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+					sb.append("INT(");
+					node.getChild(1).getChild(0).analyze(this);
+					sb.append(")");
+				}
+				else {
+					node.getChild(1).getChild(0).analyze(this);
+				}
 			}
 		}
 		else {
@@ -658,10 +779,22 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					node.getChild(i).analyze(this);
 					sb.append(")");
 				}
+				else if (node.getChild(i) instanceof ParameterizedExpr 
+						&& !((NameExpr) node.getChild(i).getChild(0)).getName().getID().equals("colon") 
+						&& insideArray > 0) {
+					if (Debug) System.out.println("I am a variable index!");
+					sb.append("INT(");
+					node.getChild(i).analyze(this);
+					sb.append(")");
+				}
 				else {
 					node.getChild(i).analyze(this);
 				}
 				if (insideArray > 0 && i < node.getNumChild()-1) sb.append(", ");
+			}
+			else {
+				// for comment statements, which are instances of EmpyStmt.
+				node.getChild(i).analyze(this);
 			}
 		}
 	}
@@ -698,6 +831,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		for (ast.Stmt stmt : stmts) {
 			if (!(stmt instanceof TIRCommentStmt))
 				stmt.analyze(this);
+			else {
+				stmt.analyze(this);
+			}
 		}
 	}
 	

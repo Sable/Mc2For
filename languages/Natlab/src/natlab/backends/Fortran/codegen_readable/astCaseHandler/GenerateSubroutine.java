@@ -167,83 +167,159 @@ public class GenerateSubroutine {
 							variableShapeIsKnown = false;
 						}
 					}
-					/*
-					 * if the shape is not exactly known, get into if block.
-					 */
-					if (!variableShapeIsKnown) {
-						StringBuffer tempBuf = new StringBuffer();
-						tempBuf.append("DIMENSION(");
-						for (int i = 0; i < dim.size(); i++) {
-							if (counter) tempBuf.append(",");
-							tempBuf.append(":");
-							counter = true;
-						}
-						tempBuf.append(") , ALLOCATABLE");
-						keyword.setName(tempBuf.toString());
-						keywordList.addKeyword(keyword);
-						/*if (fcg.inArgs.contains(variable) 
-								&& !fcg.inputHasChanged.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(IN)");
-							keywordList.addKeyword(keyword2);
-						}
-						else if (fcg.outRes.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(OUT)");
-							keywordList.addKeyword(keyword2);
-						}*/
-						Variable var = new Variable();
-						var.setName(variable);
-						varList.addVariable(var);
-						/*// need extra temporaries for runtime reallocate variables.
-						Variable var_bk = new Variable();
-						var_bk.setName(variable+"_bk");
-						varList.addVariable(var_bk);*/
-						declStmt.setKeywordList(keywordList);
-						declStmt.setVariableList(varList);
-					}
-					/*
-					 * if the shape is exactly known, get into else block. 
-					 * currently, I put shapeInfo with the keyword dimension 
-					 * together, it's okay now, but keep an eye on this.
-					 */
-					else {
-						StringBuffer tempBuf = new StringBuffer();
-						tempBuf.append("DIMENSION(");
-						for (int i = 0; i < dim.size(); i++) {
-							if (counter) tempBuf.append(",");
-							tempBuf.append(dim.get(i).toString());
-							counter = true;
-						}
-						tempBuf.append(")");
-						keyword.setName(tempBuf.toString());
-						keywordList.addKeyword(keyword);
+					if (fcg.getMatrixValue(variable).getShape().isRowVectro() 
+							|| fcg.getMatrixValue(variable).getShape().isColVector()) {
 						/*
-						 * for subroutines, we should care about whether 
-						 * the input has been modified, but for main 
-						 * programs or functions, we don't need to care.
+						 * if the shape is not exactly known, get into if block.
 						 */
-						/*if (fcg.inArgs.contains(variable) 
-								&& !fcg.inputHasChanged.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(IN)");
-							keywordList.addKeyword(keyword2);
+						if (!variableShapeIsKnown) {
+							StringBuffer tempBuf = new StringBuffer();
+							tempBuf.append("DIMENSION(:) , ALLOCATABLE");
+							keyword.setName(tempBuf.toString());
+							keywordList.addKeyword(keyword);
+							/*if (fcg.inArgs.contains(variable) 
+									&& !fcg.inputHasChanged.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(IN)");
+								keywordList.addKeyword(keyword2);
+							}
+							else if (fcg.outRes.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(OUT)");
+								keywordList.addKeyword(keyword2);
+							}*/
+							Variable var = new Variable();
+							var.setName(variable);
+							varList.addVariable(var);
+							/*// need extra temporaries for runtime reallocate variables.
+							Variable var_bk = new Variable();
+							var_bk.setName(variable+"_bk");
+							varList.addVariable(var_bk);*/
+							declStmt.setKeywordList(keywordList);
+							declStmt.setVariableList(varList);
 						}
-						else if (fcg.outRes.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(OUT)");
-							keywordList.addKeyword(keyword2);
-						}*/
-						Variable var = new Variable();
-						var.setName(variable);
-						varList.addVariable(var);
-						if (fcg.inputHasChanged.contains(variable)) {
-							Variable varBackup = new Variable();
-							varBackup.setName(variable+"_copy");
-							varList.addVariable(varBackup);
+						/*
+						 * if the shape is exactly known, get into else block. 
+						 * currently, I put shapeInfo with the keyword dimension 
+						 * together, it's okay now, but keep an eye on this.
+						 */
+						else {
+							StringBuffer tempBuf = new StringBuffer();
+							tempBuf.append("DIMENSION(");
+							if (fcg.getMatrixValue(variable).getShape().isRowVectro()) {
+								tempBuf.append(dim.get(1));
+							}
+							else tempBuf.append(dim.get(0));
+							tempBuf.append(")");
+							keyword.setName(tempBuf.toString());
+							keywordList.addKeyword(keyword);
+							/*
+							 * for subroutines, we should care about whether 
+							 * the input has been modified, but for main 
+							 * programs or functions, we don't need to care.
+							 */
+							/*if (fcg.inArgs.contains(variable) 
+									&& !fcg.inputHasChanged.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(IN)");
+								keywordList.addKeyword(keyword2);
+							}
+							else if (fcg.outRes.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(OUT)");
+								keywordList.addKeyword(keyword2);
+							}*/
+							Variable var = new Variable();
+							var.setName(variable);
+							varList.addVariable(var);
+							if (fcg.inputHasChanged.contains(variable)) {
+								Variable varBackup = new Variable();
+								varBackup.setName(variable+"_copy");
+								varList.addVariable(varBackup);
+							}
+							declStmt.setKeywordList(keywordList);
+							declStmt.setVariableList(varList);
 						}
-						declStmt.setKeywordList(keywordList);
-						declStmt.setVariableList(varList);
+					}
+					else {
+						/*
+						 * if the shape is not exactly known, get into if block.
+						 */
+						if (!variableShapeIsKnown) {
+							StringBuffer tempBuf = new StringBuffer();
+							tempBuf.append("DIMENSION(");
+							for (int i = 0; i < dim.size(); i++) {
+								if (counter) tempBuf.append(",");
+								tempBuf.append(":");
+								counter = true;
+							}
+							tempBuf.append(") , ALLOCATABLE");
+							keyword.setName(tempBuf.toString());
+							keywordList.addKeyword(keyword);
+							/*if (fcg.inArgs.contains(variable) 
+									&& !fcg.inputHasChanged.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(IN)");
+								keywordList.addKeyword(keyword2);
+							}
+							else if (fcg.outRes.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(OUT)");
+								keywordList.addKeyword(keyword2);
+							}*/
+							Variable var = new Variable();
+							var.setName(variable);
+							varList.addVariable(var);
+							/*// need extra temporaries for runtime reallocate variables.
+							Variable var_bk = new Variable();
+							var_bk.setName(variable+"_bk");
+							varList.addVariable(var_bk);*/
+							declStmt.setKeywordList(keywordList);
+							declStmt.setVariableList(varList);
+						}
+						/*
+						 * if the shape is exactly known, get into else block. 
+						 * currently, I put shapeInfo with the keyword dimension 
+						 * together, it's okay now, but keep an eye on this.
+						 */
+						else {
+							StringBuffer tempBuf = new StringBuffer();
+							tempBuf.append("DIMENSION(");
+							for (int i = 0; i < dim.size(); i++) {
+								if (counter) tempBuf.append(",");
+								tempBuf.append(dim.get(i).toString());
+								counter = true;
+							}
+							tempBuf.append(")");
+							keyword.setName(tempBuf.toString());
+							keywordList.addKeyword(keyword);
+							/*
+							 * for subroutines, we should care about whether 
+							 * the input has been modified, but for main 
+							 * programs or functions, we don't need to care.
+							 */
+							/*if (fcg.inArgs.contains(variable) 
+									&& !fcg.inputHasChanged.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(IN)");
+								keywordList.addKeyword(keyword2);
+							}
+							else if (fcg.outRes.contains(variable)) {
+								Keyword keyword2 = new Keyword();
+								keyword2.setName("INTENT(OUT)");
+								keywordList.addKeyword(keyword2);
+							}*/
+							Variable var = new Variable();
+							var.setName(variable);
+							varList.addVariable(var);
+							if (fcg.inputHasChanged.contains(variable)) {
+								Variable varBackup = new Variable();
+								varBackup.setName(variable+"_copy");
+								varList.addVariable(varBackup);
+							}
+							declStmt.setKeywordList(keywordList);
+							declStmt.setVariableList(varList);
+						}						
 					}
 				}
 				/*
