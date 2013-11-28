@@ -409,17 +409,17 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
 							try {
 								sbForRuntimeInline.append(getSomeIndent(1) + name 
-										+ "_d1max = MAX(" + name + "_d" + (i+1) + ", " 
+										+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", " 
 										+ Integer.parseInt(indexCurrent) + ");\n");
 							} catch (Exception e) {
 								sbForRuntimeInline.append(getSomeIndent(1) + name 
-										+ "_d1max = MAX(" + name + "_d" + (i+1) + ", INT(" 
+										+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", INT(" 
 										+ indexCurrent + "));\n");
 							}
 						}
 						else {
 							sbForRuntimeInline.append(getSomeIndent(1) + name 
-									+ "_d1max = " + name + "_d" + (i+1) + ";\n");
+									+ "_d" + (i+1) + "max = " + name + "_d" + (i+1) + ";\n");
 						}
 					}
 					sbForRuntimeInline.append(getSomeIndent(1) + "ALLOCATE(" + name + "(");
