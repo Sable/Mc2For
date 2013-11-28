@@ -213,10 +213,10 @@ public class GenerateMainEntryPoint {
 							Variable var = new Variable();
 							var.setName(variable);
 							varList.addVariable(var);
-							/*// need extra temporaries for runtime reallocate variables.
+							// need extra temporaries for runtime reallocate variables.
 							Variable var_bk = new Variable();
 							var_bk.setName(variable+"_bk");
-							varList.addVariable(var_bk);*/
+							varList.addVariable(var_bk);
 							declStmt.setKeywordList(keywordList);
 							declStmt.setVariableList(varList);
 						}
@@ -261,10 +261,10 @@ public class GenerateMainEntryPoint {
 							Variable var = new Variable();
 							var.setName(variable);
 							varList.addVariable(var);
-							/*// need extra temporaries for runtime reallocate variables.
+							// need extra temporaries for runtime reallocate variables.
 							Variable var_bk = new Variable();
 							var_bk.setName(variable+"_bk");
-							varList.addVariable(var_bk);*/
+							varList.addVariable(var_bk);
 							declStmt.setKeywordList(keywordList);
 							declStmt.setVariableList(varList);
 						}
