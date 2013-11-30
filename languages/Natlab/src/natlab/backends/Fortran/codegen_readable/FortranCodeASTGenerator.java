@@ -42,7 +42,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public String standardIndent;
 	// ParameterizedExpr can be array index or function call, array index can be nested.
 	public int insideArray;
-	public boolean isArray;
+	// public boolean isArray;
 	public boolean randnFlag;
 	public boolean leftOfAssign;
 	public boolean rightOfAssign;
@@ -89,7 +89,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		indentNum = 0;
 		standardIndent = "   ";
 		insideArray = 0;
-		isArray = false;
+		// isArray = false;
 		randnFlag = false;
 		leftOfAssign = false;
 		rightOfAssign = false;
@@ -296,6 +296,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					RuntimeAllocate rtAllocate = new RuntimeAllocate();
 					rtAllocate.setBlock(rtBuffer.toString());
 					fSubroutines.setRuntimeAllocate(rtAllocate);
+					sb.setLength(0);
 				}
 				subprogram.getStatementSection().addStatement(fSubroutines);
 			}
@@ -454,41 +455,44 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 					insideArray--;
 				}
-				// currently, isArray is only used to tell the name is an array name.
-				isArray = true;
-				node.getChild(0).analyze(this);
-				isArray = false;
-				sb.append("(");
+				/*
+				 * since we already know the name is the array's name, we 
+				 * don't need to call analyze on node.getChild(0), and 
+				 * this also separate the cases of the array have indices 
+				 * and the arrays don't have indices. (the array has a 
+				 * index list won't call caseNameExpr, and in caseNameExpr 
+				 * we can add hacks to convert 2 ranks to 1 rank in Fortran.)
+				 */
+				sb.append(name + "(");
 				insideArray++;
 				/*
 				 * add rigorous array indexing transformation.
 				 */
-				/*if (node.getChild(1) instanceof List 
+				if (node.getChild(1) instanceof List 
 						&& getMatrixValue(name).getShape().getDimensions().size() 
 							!= ((List)node.getChild(1)).getNumChild() 
-							&& getMatrixValue(name).getShape().isColVector()) {
+						&& getMatrixValue(name).getShape().isColVector()) {
 					node.getChild(1).analyze(this);
-					
+					/*
 					 * TODO this is a hack for n-by-1 vector linear indexing,
 					 * won't work for multidimensional matrix linear indexing.
-					 
+					 */ 
 					sb.append(", 1");
 				}
 				else if (node.getChild(1) instanceof List 
 						&& getMatrixValue(name).getShape().getDimensions().size() 
-						!= ((List)node.getChild(1)).getNumChild() 
-						&& getMatrixValue(name).getShape().isRowVectro()) {
-					
+							!= ((List)node.getChild(1)).getNumChild() 
+						&& getMatrixValue(name).getShape().isRowVector()) {
+					/*
 					 * TODO this is a hack for 1-by-n vector linear indexing,
 					 * won't work for multidimensional matrix linear indexing.
-					 
+					 */
 					sb.append("1, ");
 					node.getChild(1).analyze(this);
 				}
 				else {
 					node.getChild(1).analyze(this);
-				}*/
-				node.getChild(1).analyze(this);
+				}
 				insideArray--;
 				sb.append(")");
 			}
@@ -529,7 +533,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				/*
 				 * functions with only one input or operand.
 				 */
-				if (inputNum == 1) {
+				if (inputNum == 0) {
+					// for some constant.
+					if (name.equals("pi")) {
+						sb.append("3.1415926");
+					}
+				}
+				else if (inputNum == 1) {
 					if (fortranMapping.isFortranUnOperator(name)) {
 						sb.append(fortranMapping.getFortranUnOpMapping(name));
 						node.getChild(1).getChild(0).analyze(this);
@@ -675,6 +685,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		if (remainingVars.contains(name)) {
 			if (Debug) System.out.println(name+" is a variable.");
 			
+			if (inArgs.contains(name) && leftOfAssign) {
+				inputHasChanged.add(name);
+			}
+						
 			if (mustBeInt) {
 				forceToInt.add(name);
 			}
@@ -689,10 +703,21 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				sb.append(name);
 			}
 			else {
-				if (!getMatrixValue(name).getShape().isConstant() && leftOfAssign && !isArray) {
+				if (!getMatrixValue(name).getShape().isConstant() && leftOfAssign) {
 					sbForRuntimeInline.append("! seems need runtime allocate before assigning.\n");
 				}
-				sb.append(name);
+				/*
+				 * hack to convert 2 ranks array to 1 rank vector in Fortran.
+				 */
+				if (getMatrixValue(name).getShape().isRowVector()) {
+					sb.append(name + "(1, :)");
+				}
+				else if (getMatrixValue(name).getShape().isColVector()) {
+					sb.append(name + "(:, 1)");
+				}
+				else {
+					sb.append(name);
+				}
 			}
 			
 		}

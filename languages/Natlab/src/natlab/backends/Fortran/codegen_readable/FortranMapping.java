@@ -51,8 +51,11 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("plus", "+");
 		FortranBinOperatorMap.put("minus", "-");
 		FortranBinOperatorMap.put("times", "*");
+		FortranBinOperatorMap.put("mtimes", "*");
 		FortranBinOperatorMap.put("rdivide", "/");
+		FortranBinOperatorMap.put("mrdivide", "/");
 		FortranBinOperatorMap.put("power", "**");
+		FortranBinOperatorMap.put("mpower", "**");
 		// relational operators
 		FortranBinOperatorMap.put("lt", ".LT.");
 		FortranBinOperatorMap.put("le", ".LE.");
