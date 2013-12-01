@@ -57,7 +57,7 @@ public class HandleCaseTIRArraySetStmt {
 			for (int i=0; i<lhsArrayShape.getDimensions().size(); i++) {
 				tempBuf.append(indent+lhsArrayName+"_d"+(i+1)+" = SIZE("+lhsArrayName+", "+(i+1)+");\n");
 				BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
-						(new ShapeFactory()).getScalarShape(), null);
+						(new ShapeFactory()).getScalarShape(), null, null);
 				fcg.fortranTemporaries.put(lhsArrayName+"_d"+(i+1), tmp);
 			}
 			tempBuf.append(indent+"IF (");
@@ -129,7 +129,7 @@ public class HandleCaseTIRArraySetStmt {
 						// TODO deal with the rest cases.
 					}
 					BasicMatrixValue tmp = new BasicMatrixValue(null, PrimitiveClassReference.INT32, 
-							(new ShapeFactory()).getScalarShape(), null);
+							(new ShapeFactory()).getScalarShape(), null, null);
 					fcg.fortranTemporaries.put(lhsArrayName+"_d"+(i+1)+"max", tmp);					
 				}
 			}

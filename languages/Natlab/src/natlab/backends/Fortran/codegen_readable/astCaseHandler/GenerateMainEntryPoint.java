@@ -8,6 +8,7 @@ import ast.Function;
 import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
+import natlab.tame.valueanalysis.components.isComplex.isComplexInfoFactory;
 import natlab.tame.valueanalysis.components.shape.DimValue;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
 import natlab.backends.Fortran.codegen_readable.*;
@@ -71,7 +72,9 @@ public class GenerateMainEntryPoint {
 					null, 
 					PrimitiveClassReference.INT32, 
 					new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-					null));
+					null, 
+					new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+					.newisComplexInfoFromStr("REAL")));
 			ArrayList<Integer> tempShape = new ArrayList<Integer>();
 			tempShape.add(1);
 			tempShape.add(10);
@@ -79,7 +82,9 @@ public class GenerateMainEntryPoint {
 					null, 
 					PrimitiveClassReference.CHAR, 
 					new ShapeFactory<AggrValue<BasicMatrixValue>>().newShapeFromIntegers(tempShape), 
-					null));
+					null, 
+					new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+					.newisComplexInfoFromStr("REAL")));
 		}
 		// here is a hack to add timing TODO find a better way.
 		temp.append("\nCALL CPU_TIME(t1);\n");
@@ -87,12 +92,16 @@ public class GenerateMainEntryPoint {
 				null, 
 				PrimitiveClassReference.DOUBLE, 
 				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-				null));
+				null, 
+				new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+				.newisComplexInfoFromStr("REAL")));
 		fcg.fotranTemporaries.put("t2", new BasicMatrixValue(
 				null, 
 				PrimitiveClassReference.DOUBLE, 
 				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-				null));
+				null, 
+				new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+				.newisComplexInfoFromStr("REAL")));
 		getInput.setBlock(temp.toString());		
 		mainEntry.setGetInput(getInput);
 		

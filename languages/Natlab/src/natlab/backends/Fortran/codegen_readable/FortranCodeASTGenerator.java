@@ -14,6 +14,7 @@ import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.aggrvalue.CellValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
+import natlab.tame.valueanalysis.components.isComplex.isComplexInfoFactory;
 import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
 import natlab.backends.Fortran.codegen_readable.astCaseHandler.*;
 
@@ -446,12 +447,18 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								null, 
 								PrimitiveClassReference.INT32, 
 								new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-								null));
+								null, 
+								new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+								.newisComplexInfoFromStr("REAL")
+								));
 						fotranTemporaries.put(name + "_d" + (i+1) + "max", new BasicMatrixValue(
 								null, 
 								PrimitiveClassReference.INT32, 
 								new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-								null));
+								null, 
+								new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+								.newisComplexInfoFromStr("REAL")
+								));
 					}
 					insideArray--;
 				}
@@ -600,7 +607,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 										null, 
 										PrimitiveClassReference.INT32, 
 										new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-										null));
+										null, 
+										new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+										.newisComplexInfoFromStr("REAL")
+										));
 							}
 						}
 						else if (name.equals("ldivide")) {

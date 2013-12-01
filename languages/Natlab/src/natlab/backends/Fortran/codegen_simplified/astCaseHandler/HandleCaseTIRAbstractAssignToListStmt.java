@@ -629,7 +629,7 @@ public class HandleCaseTIRAbstractAssignToListStmt {
 		LinkedList argumentList2 = new LinkedList();
 		for (String arg2 : arguments) {
 			argumentList2.add(basicMatrixValueFactory
-					.newMatrixValueFromInputShape(arg2, null, "1*1"));
+					.newMatrixValueFromInputShape(arg2, null, "1*1", null));
 		}
 		Args arg2 = Args.newInstance(nargout, argumentList2);
 		List<Shape> result2 = shapePropTool.matchByValues(

@@ -238,7 +238,7 @@ public class FortranCodeASTInliner {
 					// TODO this should be an error, throw an exception?
 				}
 				BasicMatrixValue varI = new BasicMatrixValue(
-						null, PrimitiveClassReference.INT32, new ShapeFactory().getScalarShape(), null);
+						null, PrimitiveClassReference.INT32, new ShapeFactory().getScalarShape(), null, null);
 				fcg.fortranTemporaries.put("I", varI);
 				tempBuf.append("\n"+indent+"! mapping function "+rhsFunName
 						+" is done.");
