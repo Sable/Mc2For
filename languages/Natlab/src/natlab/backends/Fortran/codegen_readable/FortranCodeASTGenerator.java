@@ -52,6 +52,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public boolean mustBeInt;
 	public Set<String> forceToInt;
 	public Set<String> inputsUsed;
+	public Set<String> backupTempArrays;
 	// not support nested cell array.
 	public Map<String, ArrayList<BasicMatrixValue>> forCellArr;
 	public ArrayList<String> declaredCell;
@@ -98,6 +99,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		mustBeInt = false;
 		forceToInt = new HashSet<String>();
 		inputsUsed = new HashSet<String>();
+		backupTempArrays = new HashSet<String>();
 		forCellArr = new HashMap<String, ArrayList<BasicMatrixValue>>();
 		declaredCell = new ArrayList<String>();
 		fNode.analyze(this);
@@ -352,11 +354,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				else if (!getMatrixValue(name).getShape().isConstant() 
 						&& leftOfAssign) {
 					/*
-					 * TODO add runtime abc and reallocation.
+					 * add runtime abc and reallocation, also add a back up 
+					 * variable for the indexed array variable.
 					 */
 					if (Debug) System.out.println("unknown shape array indexing " +
 							"on left hand side, need run-time abc and reallocation.");
 					sbForRuntimeInline.append("! need run-time alloc/abc and realloc.\n");
+					backupTempArrays.add(name);
 					/*
 					 * the name of array is node.getChild(0), 
 					 * the index of array is node.getChild(1).getChild(i).
@@ -543,7 +547,14 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				if (inputNum == 0) {
 					// for some constant.
 					if (name.equals("pi")) {
-						sb.append("3.1415926");
+						sb.append("3.14159265359");
+					}
+					else if (name.equals("i")) {
+						sb.append("COMPLEX(0, 1)");
+					}
+					else {
+						node.getChild(0).analyze(this);
+						sb.append("()");
 					}
 				}
 				else if (inputNum == 1) {
@@ -556,6 +567,16 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append("(");
 						node.getChild(1).getChild(0).analyze(this);
 						sb.append(")");						
+					}
+					else if (fortranMapping.isFortranEasilyTransformed(name)) {
+						if (Debug) System.out.println("******transformed function name: "+name+"******");
+						if (name.equals("mean")) {
+							sb.append("(SUM(");
+							node.getChild(1).analyze(this);
+							sb.append(") / SIZE(");
+							node.getChild(1).analyze(this);
+							sb.append("))");
+						}
 					}
 					else {
 						// no directly-mapping functions, leave the hole.
@@ -762,6 +783,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public void caseRangeExpr(RangeExpr node) {
 		if (node.getNumChild() == 3) {
 			if (Debug) System.out.println("has increment.");
+			/*
+			 * start
+			 */
 			if (node.getChild(0) instanceof NameExpr 
 					&& !forceToInt.contains(((NameExpr)node.getChild(0)).getName().getID())
 					&& !getMatrixValue(((NameExpr)node.getChild(0)).getName().getID())
@@ -779,6 +803,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				node.getChild(0).analyze(this);
 			}
 			sb.append(", ");
+			/*
+			 * end
+			 */
 			if (node.getChild(2) instanceof NameExpr 
 					&& !forceToInt.contains(((NameExpr)node.getChild(2)).getName().getID())
 					&& !getMatrixValue(((NameExpr)node.getChild(2)).getName().getID())
@@ -795,6 +822,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			else {
 				node.getChild(2).analyze(this);
 			}
+			/*
+			 * step
+			 */
 			if (node.getChild(1).getNumChild() != 0) {
 				sb.append(", ");
 				if (node.getChild(1).getChild(0) instanceof NameExpr 

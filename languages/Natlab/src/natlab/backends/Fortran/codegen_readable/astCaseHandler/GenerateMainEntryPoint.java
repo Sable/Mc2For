@@ -87,15 +87,15 @@ public class GenerateMainEntryPoint {
 					.newisComplexInfoFromStr("REAL")));
 		}
 		// here is a hack to add timing TODO find a better way.
-		temp.append("\nCALL CPU_TIME(t1);\n");
-		fcg.fotranTemporaries.put("t1", new BasicMatrixValue(
+		temp.append("\nCALL CPU_TIME(ftime1);\n");
+		fcg.fotranTemporaries.put("ftime1", new BasicMatrixValue(
 				null, 
 				PrimitiveClassReference.DOUBLE, 
 				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
 				null, 
 				new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
 				.newisComplexInfoFromStr("REAL")));
-		fcg.fotranTemporaries.put("t2", new BasicMatrixValue(
+		fcg.fotranTemporaries.put("ftime2", new BasicMatrixValue(
 				null, 
 				PrimitiveClassReference.DOUBLE, 
 				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
@@ -181,7 +181,12 @@ public class GenerateMainEntryPoint {
 				/*
 				 * declare types, especially character string.
 				 */
-				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+				if (fcg.getMatrixValue(variable).hasisComplexInfo() 
+						&& fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("COMPLEX")) {
+					// do all the variables have iscomplex information?
+					declStmt.setType("COMPLEX");
+				}
+				else if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
 					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
 							+"("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1)+")");
@@ -189,9 +194,10 @@ public class GenerateMainEntryPoint {
 				else if (fcg.forceToInt.contains(variable)) {
 					declStmt.setType("INTEGER(KIND=4)");
 				}
-				else 
+				else {
 					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
+				}
 				/*
 				 * declare arrays, but not character string.
 				 */
@@ -227,9 +233,11 @@ public class GenerateMainEntryPoint {
 						var.setName(variable);
 						varList.addVariable(var);
 						// need extra temporaries for runtime reallocate variables.
-						Variable var_bk = new Variable();
-						var_bk.setName(variable+"_bk");
-						varList.addVariable(var_bk);
+						if (fcg.backupTempArrays.contains(variable)) {
+							Variable var_bk = new Variable();
+							var_bk.setName(variable+"_bk");
+							varList.addVariable(var_bk);
+						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}
@@ -337,8 +345,8 @@ public class GenerateMainEntryPoint {
 		mainEntry.setDeclarationSection(declSection);
 		// here a hack to add timing TODO find a better way.
 		StringBuffer timeEnd = new StringBuffer();
-		timeEnd.append("\nCALL CPU_TIME(t2);\n");
-		timeEnd.append("PRINT '(\"Time = \", f6.3, \" seconds.\")', t2-t1;\n\n");
+		timeEnd.append("\nCALL CPU_TIME(ftime2);\n");
+		timeEnd.append("PRINT '(\"Time = \", f6.3, \" seconds.\")', ftime2-ftime1;\n\n");
 		mainEntry.setProgramEnd(timeEnd + "END PROGRAM");
 		return fcg;
 	}

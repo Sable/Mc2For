@@ -156,6 +156,7 @@ public class FortranMapping {
 		FortranEasilyTransformedSet.add("randn");
 		FortranEasilyTransformedSet.add("horzcat");
 		FortranEasilyTransformedSet.add("vertcat");
+		FortranEasilyTransformedSet.add("mean");
 	}
 	
 	public boolean isFortranEasilyTransformed(String builtinName) {

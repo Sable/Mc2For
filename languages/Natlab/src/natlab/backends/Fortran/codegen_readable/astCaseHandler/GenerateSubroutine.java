@@ -143,7 +143,11 @@ public class GenerateSubroutine {
 				/*
 				 * declare types, especially character string.
 				 */
-				if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+				if (fcg.getMatrixValue(variable).hasisComplexInfo() 
+						&& (fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("COMPLEX"))) {
+					declStmt.setType("COMPLEX");
+				}
+				else if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
 					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
 							+"("+fcg.getMatrixValue(variable).getShape().getDimensions().get(1)+")");
@@ -151,8 +155,10 @@ public class GenerateSubroutine {
 				else if (fcg.forceToInt.contains(variable)) {
 					declStmt.setType("INTEGER(KIND=4)");
 				}
-				else declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
+				else {
+					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 						fcg.getMatrixValue(variable).getMatlabClass().toString()));
+				}
 				/*
 				 * declare arrays, but not character string.
 				 */
@@ -199,9 +205,11 @@ public class GenerateSubroutine {
 						var.setName(variable);
 						varList.addVariable(var);
 						// need extra temporaries for runtime reallocate variables.
-						Variable var_bk = new Variable();
-						var_bk.setName(variable+"_bk");
-						varList.addVariable(var_bk);
+						if (fcg.backupTempArrays.contains(variable)) {
+							Variable var_bk = new Variable();
+							var_bk.setName(variable+"_bk");
+							varList.addVariable(var_bk);
+						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
 					}
@@ -284,9 +292,9 @@ public class GenerateSubroutine {
 				boolean redundant = false;
 				for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
 					if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
-						System.out.println(declStmt.getVariableList().getNumChild());
+						if (Debug) System.out.println(declStmt.getVariableList().getNumChild());
 						for (int j = 0; j < declStmt.getVariableList().getNumVariable(); j++) {
-							System.out.println(declStmt.getVariableList().getVariable(j).getName());
+							if (Debug) System.out.println(declStmt.getVariableList().getVariable(j).getName());
 							declSection.getDeclStmt(i).getVariableList().addVariable(
 									declStmt.getVariableList().getVariable(j));
 						}

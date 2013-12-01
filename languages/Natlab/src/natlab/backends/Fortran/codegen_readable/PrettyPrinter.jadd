@@ -114,6 +114,7 @@ aspect PrettyPrinter {
         for (int i=0;i<size;i++) {
         	getVariable(i).pp(sb);
         	if (i<size-1) sb.append(", ");
+        	if (i!=0 && i%8==0) sb.append("&\n&");
         }
     }
     
