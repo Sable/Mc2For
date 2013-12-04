@@ -14,6 +14,8 @@ public class FortranMapping {
 			new HashMap<String, String>();
 	private static Set<String> FortranEasilyTransformedSet = 
 			new HashSet<String>();
+	private static Set<String> FortranOverloadingInlineSet = 
+			new HashSet<String>();
 	
 	public FortranMapping() {
 		makeFortranTypeMap();
@@ -21,6 +23,7 @@ public class FortranMapping {
 		makeFortranUnaryOperatorMap();
 		makeFortranDirectBuiltinMap();
 		makeFortranEasilyTransformedSet();
+		makeFortranOverloadingInlineSet();
 	}
 	
 	private void makeFortranTypeMap() {
@@ -51,11 +54,8 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("plus", "+");
 		FortranBinOperatorMap.put("minus", "-");
 		FortranBinOperatorMap.put("times", "*");
-		FortranBinOperatorMap.put("mtimes", "*");
 		FortranBinOperatorMap.put("rdivide", "/");
-		FortranBinOperatorMap.put("mrdivide", "/");
 		FortranBinOperatorMap.put("power", "**");
-		FortranBinOperatorMap.put("mpower", "**");
 		// relational operators
 		FortranBinOperatorMap.put("lt", ".LT.");
 		FortranBinOperatorMap.put("le", ".LE.");
@@ -164,5 +164,14 @@ public class FortranMapping {
 		else return false;
 	}
 	
-	// TODO add no-directly-mapping built-in functions.
+	public void makeFortranOverloadingInlineSet() {
+		FortranOverloadingInlineSet.add("mtimes");
+		FortranOverloadingInlineSet.add("mrdivide");
+		FortranOverloadingInlineSet.add("mpower");
+	}
+	
+	public boolean isFortranOverloadingInlineSet(String builtinName) {
+		if (FortranOverloadingInlineSet.contains(builtinName)) return true;
+		else return false;
+	}
 }

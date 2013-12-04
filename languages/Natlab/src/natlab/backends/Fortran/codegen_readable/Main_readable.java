@@ -94,6 +94,7 @@ public class Main_readable {
 		        		remainingVars, 
 		        		entryPointFile, 
 		        		userDefinedFunctions, 
+		        		analysisEngine, 
 		        		true); // nocheck
 		        StringBuffer sb = new StringBuffer();
 		        String currentFunction = subprogram.getProgramTitle().getProgramName();
@@ -202,6 +203,7 @@ public class Main_readable {
 		        		remainingVars, 
 		        		fileEnvironment.getMainFile().getName().replace(".m", ""), 
 		        		userDefinedFunctions, 
+		        		analysisEngine, 
 		        		options.nocheck());
 		        StringBuffer sb = new StringBuffer();
 		        String currentFunction = subprogram.getProgramTitle().getProgramName();
