@@ -47,6 +47,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	public boolean randnFlag;
 	public boolean leftOfAssign;
 	public boolean rightOfAssign;
+	public boolean storageAlloc;
 	// temporary variables generated in Fortran code generation.
 	public Map<String, BasicMatrixValue> fotranTemporaries;
 	public boolean mustBeInt;
@@ -95,6 +96,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		randnFlag = false;
 		leftOfAssign = false;
 		rightOfAssign = false;
+		storageAlloc = false;
 		fotranTemporaries = new HashMap<String,BasicMatrixValue>();
 		mustBeInt = false;
 		forceToInt = new HashSet<String>();
@@ -205,24 +207,45 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			leftOfAssign = true;
 			node.getLHS().analyze(this);
 			leftOfAssign = false;
+			String lhsName = sb.toString();
 			if (randnFlag) {
 				FSubroutines fSubroutines = new FSubroutines();
 				fSubroutines.setIndent(indent);
-				fSubroutines.setFunctionCall("RANDOM_NUMBER("+sb.toString()+")");
+				fSubroutines.setFunctionCall("RANDOM_NUMBER("+lhsName+")");
 				randnFlag = false;
 				sb.setLength(0);
 				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
 			}
 			else {
 				// if there is runtime abc or allocate, add here.
-				if (sbForRuntimeInline.length() != 0) {
+				if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
 					RuntimeAllocate runtimeInline = new RuntimeAllocate();
 					runtimeInline.setBlock(sbForRuntimeInline.toString());
 					fAssignStmt.setRuntimeAllocate(runtimeInline);
 					sbForRuntimeInline.setLength(0);
 				}
-				fAssignStmt.setFLHS(sb.toString());
+				else if (lhsName.indexOf("(") == -1 
+						&& !getMatrixValue(lhsName).getShape().isConstant() 
+						&& storageAlloc) {
+					sbForRuntimeInline.setLength(0);
+					RuntimeAllocate runtimeInline = new RuntimeAllocate();
+					sbForRuntimeInline.append("IF (.NOT. ALLOCATED(" 
+							+ lhsName
+							+ ")) THEN\n" + getSomeIndent(1));
+					runtimeInline.setBlock(sbForRuntimeInline.toString());
+					fAssignStmt.setRuntimeAllocate(runtimeInline);
+					sbForRuntimeInline.setLength(0);
+				}
+				fAssignStmt.setFLHS(lhsName);
 				sb.setLength(0);
+				if (lhsName.indexOf("(") == -1 
+						&& !getMatrixValue(lhsName).getShape().isConstant() 
+						&& storageAlloc) {
+					ExtraInlined extraInlined = new ExtraInlined();
+					extraInlined.setBlock("END IF");
+					fAssignStmt.setExtraInlined(extraInlined);
+					storageAlloc = false;
+				}
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
 			}
 		}
@@ -280,21 +303,22 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			leftOfAssign = true;
 			node.getLHS().analyze(this);
 			leftOfAssign = false;
+			String lhsName = sb.toString();
 			if (randnFlag) {
 				FSubroutines fSubroutines = new FSubroutines();
 				fSubroutines.setIndent(indent);
-				String name = sb.toString();
-				fSubroutines.setFunctionCall("RANDOM_NUMBER("+name+")");
+				fSubroutines.setFunctionCall("RANDOM_NUMBER("+lhsName+")");
 				randnFlag = false;
 				sb.setLength(0);
-				if (!getMatrixValue(name).getShape().isConstant()) {
+				if (lhsName.indexOf("(") == -1 
+						&& !getMatrixValue(lhsName).getShape().isConstant()) {
 					// need to inline run-time allocate.
 					insideArray++; // this is a hack.
 					node.getRHS().getChild(1).analyze(this);
 					insideArray--;
 					StringBuffer rtBuffer = new StringBuffer();
-					rtBuffer.append(indent + "IF ((.NOT. ALLOCATED(" + name + "))) THEN\n");
-					rtBuffer.append(indent + standardIndent + "ALLOCATE(" + name + "(" + sb.toString() + "))\n");
+					rtBuffer.append(indent + "IF ((.NOT. ALLOCATED(" + lhsName + "))) THEN\n");
+					rtBuffer.append(indent + standardIndent + "ALLOCATE(" + lhsName + "(" + sb.toString() + "))\n");
 					rtBuffer.append(indent + "END IF\n");
 					RuntimeAllocate rtAllocate = new RuntimeAllocate();
 					rtAllocate.setBlock(rtBuffer.toString());
@@ -305,14 +329,34 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			}
 			else {
 				// if there is runtime abc or allocate, add here.
-				if (sbForRuntimeInline.length() != 0) {
+				if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
 					RuntimeAllocate runtimeInline = new RuntimeAllocate();
 					runtimeInline.setBlock(sbForRuntimeInline.toString());
 					fAssignStmt.setRuntimeAllocate(runtimeInline);
 					sbForRuntimeInline.setLength(0);
 				}
-				fAssignStmt.setFLHS(sb.toString());
+				else if (lhsName.indexOf("(") == -1 
+						&& !getMatrixValue(lhsName).getShape().isConstant() 
+						&& storageAlloc) {
+					sbForRuntimeInline.setLength(0);
+					RuntimeAllocate runtimeInline = new RuntimeAllocate();
+					sbForRuntimeInline.append("IF (.NOT. ALLOCATED(" 
+							+ lhsName
+							+ ")) THEN\n" + getSomeIndent(1));
+					runtimeInline.setBlock(sbForRuntimeInline.toString());
+					fAssignStmt.setRuntimeAllocate(runtimeInline);
+					sbForRuntimeInline.setLength(0);
+				}
+				fAssignStmt.setFLHS(lhsName);
 				sb.setLength(0);
+				if (lhsName.indexOf("(") == -1 
+						&& !getMatrixValue(lhsName).getShape().isConstant() 
+						&& storageAlloc) {
+					ExtraInlined extraInlined = new ExtraInlined();
+					extraInlined.setBlock("END IF");
+					fAssignStmt.setExtraInlined(extraInlined);
+					storageAlloc = false;
+				}
 				subprogram.getStatementSection().addStatement(fAssignStmt);
 			}	
 		}
@@ -542,6 +586,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				if (Debug) System.out.println("this is a function call");
 				int inputNum = node.getChild(1).getNumChild();
 				/*
+				 * deal with storage allocation builtin, zeros and ones.
+				 * TODO does rand and randn count?
+				 */
+				if (name.equals("zeros")) {
+					storageAlloc = true;
+				}
+				/*
 				 * functions with only one input or operand.
 				 */
 				if (inputNum == 0) {
@@ -553,6 +604,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append("COMPLEX(0, 1)");
 					}
 					else {
+						// no directly-mapping functions, leave the hole.
 						node.getChild(0).analyze(this);
 						sb.append("()");
 					}
@@ -738,12 +790,18 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					sbForRuntimeInline.append("! seems need runtime allocate before assigning.\n");
 				}
 				/*
-				 * hack to convert 2 ranks array to 1 rank vector in Fortran.
+				 * hack to convert 2 ranks array to 1 rank vector in Fortran, 
+				 * only add these trailings when both sides of the assignment
+				 * are arrays.
 				 */
-				if (getMatrixValue(name).getShape().isRowVector()) {
+				if (getMatrixValue(name).getShape().isRowVector() 
+						&& rightOfAssign 
+						&& insideArray == 0) {
 					sb.append(name + "(1, :)");
 				}
-				else if (getMatrixValue(name).getShape().isColVector()) {
+				else if (getMatrixValue(name).getShape().isColVector() 
+						&& rightOfAssign 
+						&& insideArray == 0) {
 					sb.append(name + "(:, 1)");
 				}
 				else {
@@ -795,9 +853,25 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				sb.append(")");
 			}
 			else if (node.getChild(0) instanceof ParameterizedExpr) {
-				sb.append("INT(");
-				node.getChild(0).analyze(this);
-				sb.append(")");
+				/*
+				 * back up the StringBuffer, test whether the step is integer.
+				 */
+				StringBuffer sb_bk = new StringBuffer();
+				sb_bk.append(sb);
+				sb.setLength(0);
+				try {
+					node.getChild(0).analyze(this);
+					int step = Integer.parseInt(sb.toString());
+					sb.setLength(0);
+					sb.append(sb_bk);
+					sb.append(step);
+				} catch (Exception e) {
+					sb.setLength(0);
+					sb.append(sb_bk);
+					sb.append("INT(");
+					node.getChild(0).analyze(this);
+					sb.append(")");
+				}
 			}
 			else {
 				node.getChild(0).analyze(this);
@@ -815,9 +889,25 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				sb.append(")");
 			}
 			else if (node.getChild(2) instanceof ParameterizedExpr) {
-				sb.append("INT(");
-				node.getChild(2).analyze(this);
-				sb.append(")");
+				/*
+				 * back up the StringBuffer, test whether the step is integer.
+				 */
+				StringBuffer sb_bk = new StringBuffer();
+				sb_bk.append(sb);
+				sb.setLength(0);
+				try {
+					node.getChild(2).analyze(this);
+					int step = Integer.parseInt(sb.toString());
+					sb.setLength(0);
+					sb.append(sb_bk);
+					sb.append(step);
+				} catch (Exception e) {
+					sb.setLength(0);
+					sb.append(sb_bk);
+					sb.append("INT(");
+					node.getChild(2).analyze(this);
+					sb.append(")");
+				}
 			}
 			else {
 				node.getChild(2).analyze(this);
@@ -836,9 +926,25 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					sb.append(")");
 				}
 				else if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
-					sb.append("INT(");
-					node.getChild(1).getChild(0).analyze(this);
-					sb.append(")");
+					/*
+					 * back up the StringBuffer, test whether the step is integer.
+					 */
+					StringBuffer sb_bk = new StringBuffer();
+					sb_bk.append(sb);
+					sb.setLength(0);
+					try {
+						node.getChild(1).getChild(0).analyze(this);
+						int step = Integer.parseInt(sb.toString());
+						sb.setLength(0);
+						sb.append(sb_bk);
+						sb.append(step);
+					} catch (Exception e) {
+						sb.setLength(0);
+						sb.append(sb_bk);
+						sb.append("INT(");
+						node.getChild(1).getChild(0).analyze(this);
+						sb.append(")");
+					}
 				}
 				else {
 					node.getChild(1).getChild(0).analyze(this);

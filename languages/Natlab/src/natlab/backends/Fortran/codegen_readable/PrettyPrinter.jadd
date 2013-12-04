@@ -114,7 +114,8 @@ aspect PrettyPrinter {
         for (int i=0;i<size;i++) {
         	getVariable(i).pp(sb);
         	if (i<size-1) sb.append(", ");
-        	if (i!=0 && i%8==0) sb.append("&\n&");
+        	if (i!=0 && i%8==0 && i!=size-1) 
+        		sb.append("&\n&");
         }
     }
     
@@ -153,9 +154,17 @@ aspect PrettyPrinter {
     		sb.append(" = ");
     	}
     	sb.append(getFRHS()+";");
+    	if (hasExtraInlined()) {
+    		sb.append("\n"+getIndent());
+    		getExtraInlined().pp(sb);
+    	}
     }
     
     public void RuntimeAllocate.pp(StringBuffer sb) {
+    	sb.append(getBlock());
+    }
+    
+    public void ExtraInlined.pp(StringBuffer sb) {
     	sb.append(getBlock());
     }
     

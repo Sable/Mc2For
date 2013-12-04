@@ -23,8 +23,9 @@ abstract Statement;
 
 FCommentStmt: Statement ::= <Indent> <FComment>;
 
-FAssignStmt: Statement ::= <Indent> [RuntimeAllocate] <FLHS> <FRHS>;
+FAssignStmt: Statement ::= <Indent> [RuntimeAllocate] <FLHS> <FRHS> [ExtraInlined];
 RuntimeAllocate ::= <Block: String>;
+ExtraInlined ::= <Block: String>;
 
 FSubroutines: FAssignStmt ::= <Indent> [RuntimeAllocate] <FunctionCall>;
 
