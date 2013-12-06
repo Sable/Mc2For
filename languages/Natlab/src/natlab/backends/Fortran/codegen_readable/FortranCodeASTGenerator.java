@@ -414,6 +414,14 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			if (remainingVars.contains(name)) {
 				if (Debug) System.out.println("this is an array index.");
 				/*
+				 * first, backup the input, since in matlab, the input arguments 
+				 * are passed by value, while in Fortran, the input arguments 
+				 * are passed by reference.
+				 */
+				if (inArgs.contains(name) && leftOfAssign) {
+					inputHasChanged.add(name);
+				}
+				/*
 				 * TODO note that, need to find a way to distinguish the array 
 				 * indexing is on which side. the array indexing on left hand 
 				 * side must be inlined with runtime abc and reallocation, while 
@@ -860,10 +868,27 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						node.getChild(1).getChild(0).analyze(this);
 					}
 					else if (fortranMapping.isFortranDirectBuiltin(name)) {
-						sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
-						sb.append("(");
-						node.getChild(1).getChild(0).analyze(this);
-						sb.append(")");						
+						if (name.equals("transpose")) {
+							if (node.getChild(1).getChild(0) instanceof NameExpr) {
+								String input = ((NameExpr)node.getChild(1).getChild(0)).getName().getID();
+								if (getMatrixValue(input).getShape().isRowVector() 
+										|| getMatrixValue(input).getShape().isColVector()) {
+									node.getChild(1).getChild(0).analyze(this);
+								}
+							}
+							else if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+								// TODO 
+							}
+							else {
+								// any other expressions?
+							}
+						}
+						else {
+							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
+							sb.append("(");
+							node.getChild(1).getChild(0).analyze(this);
+							sb.append(")");
+						}				
 					}
 					else if (fortranMapping.isFortranEasilyTransformed(name)) {
 						if (Debug) System.out.println("******transformed function name: "+name+"******");

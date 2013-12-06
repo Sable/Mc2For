@@ -250,7 +250,7 @@ public class GenerateSubroutine {
 						varList.addVariable(var);
 						if (fcg.inputHasChanged.contains(variable)) {
 							Variable varBackup = new Variable();
-							varBackup.setName(variable+"_copy");
+							varBackup.setName(variable+"_cp");
 							varList.addVariable(varBackup);
 						}
 						declStmt.setKeywordList(keywordList);
