@@ -349,6 +349,39 @@ public class GenerateSubroutine {
 			}
 			if (!redundant) declSection.addDeclStmt(declStmt);
 		}
+		
+		for (String preallocVar : fcg.horzVertPrealloc) {
+			DeclStmt declStmt = new DeclStmt();
+			// type is already a token, don't forget.
+			ShapeInfo shapeInfo = new ShapeInfo();
+			VariableList varList = new VariableList();
+			declStmt.setType("DOUBLE PRECISION");
+			KeywordList keywordList = new KeywordList();
+			Keyword keyword = new Keyword();
+			keyword.setName("DIMENSION(:), ALLOCATABLE");
+			keywordList.addKeyword(keyword);
+			declStmt.setKeywordList(keywordList);
+			Variable var = new Variable();
+			var.setName(preallocVar);
+			varList.addVariable(var);
+			declStmt.setVariableList(varList);
+			/* 
+			 * if several variables have the same type declaration, 
+			 * we should declare them in one line (for readability).
+			 * we need a method to compare declStmt.
+			 */
+			boolean redundant = false;
+			for (int i = 0; i < declSection.getDeclStmtList().getNumChild(); i++) {
+				if (GenerateMainEntryPoint.compareDecl(declSection.getDeclStmt(i), declStmt)) {
+					for (int j = 0; j < declStmt.getVariableList().getNumChild(); j++) {
+						declSection.getDeclStmt(i).getVariableList().addVariable(
+								declStmt.getVariableList().getVariable(j));
+					}
+					redundant = true;
+				}
+			}
+			if (!redundant) declSection.addDeclStmt(declStmt);
+		}
 		subroutine.setDeclarationSection(declSection);
 		subroutine.setProgramEnd("END SUBROUTINE");
 		/* 
