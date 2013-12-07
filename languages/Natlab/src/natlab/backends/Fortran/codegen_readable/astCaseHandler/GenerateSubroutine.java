@@ -115,7 +115,7 @@ public class GenerateSubroutine {
 										.getShape().getDimensions().get(1)+")");
 							}
 							else {
-								sb.append(" , DIMENSION("+fcg.forCellArr.get(variable)
+								sb.append(", DIMENSION("+fcg.forCellArr.get(variable)
 										.get(i).getShape().getDimensions().toString()
 										.replace("[", "").replace("]", "")+")");
 							}
@@ -187,7 +187,7 @@ public class GenerateSubroutine {
 							tempBuf.append(":");
 							counter = true;
 						}
-						tempBuf.append(") , ALLOCATABLE");
+						tempBuf.append("), ALLOCATABLE");
 						keyword.setName(tempBuf.toString());
 						keywordList.addKeyword(keyword);
 						/*if (fcg.inArgs.contains(variable) 
@@ -204,11 +204,16 @@ public class GenerateSubroutine {
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
+						if (fcg.inputHasChanged.contains(variable)) {
+							Variable varCopy = new Variable();
+							varCopy.setName(variable+"_cp");
+							varList.addVariable(varCopy);
+						}
 						// need extra temporaries for runtime reallocate variables.
 						if (fcg.backupTempArrays.contains(variable)) {
-							Variable var_bk = new Variable();
-							var_bk.setName(variable+"_bk");
-							varList.addVariable(var_bk);
+							Variable varBackup = new Variable();
+							varBackup.setName(variable+"_bk");
+							varList.addVariable(varBackup);
 						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
@@ -249,9 +254,9 @@ public class GenerateSubroutine {
 						var.setName(variable);
 						varList.addVariable(var);
 						if (fcg.inputHasChanged.contains(variable)) {
-							Variable varBackup = new Variable();
-							varBackup.setName(variable+"_cp");
-							varList.addVariable(varBackup);
+							Variable varCopy = new Variable();
+							varCopy.setName(variable+"_cp");
+							varList.addVariable(varCopy);
 						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);

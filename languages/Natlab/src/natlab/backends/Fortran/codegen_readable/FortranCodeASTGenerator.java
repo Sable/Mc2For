@@ -160,239 +160,146 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	
 	@Override
 	public void caseAssignStmt(AssignStmt node)	{
-		if (ifWhileForBlockNest != 0) {
-			FAssignStmt fAssignStmt = new FAssignStmt();
-			String indent = "";
-			for (int i = 0; i < indentNum; i++) {
-				indent = indent + standardIndent;
-			}
-			fAssignStmt.setIndent(indent);
-			/*
-			 * translate matlab function with more than 
-			 * one returns to subroutines in fortran.
-			 */
-			if (node.getLHS() instanceof MatrixExpr) {
-				MatrixExpr lhsMatrix = (MatrixExpr)node.getLHS();
-				if (lhsMatrix.getChild(0) instanceof List) {
-					List lhsList = (List)lhsMatrix.getChild(0);
-					if (lhsList.getChild(0) instanceof Row) {
-						Row lhsRow = (Row)lhsList.getChild(0);
-						if (lhsRow.getChild(0).getNumChild() > 1 || userDefinedFunctions.contains(
-								(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0)).getName().getID()))) {
-							FSubroutines fSubroutines = new FSubroutines();
-							fSubroutines.setIndent(indent);
-							node.getRHS().analyze(this);
-							sb.replace(sb.length()-1, sb.length(), "");
-							sb.append(", ");
-							for (int i = 0; i < lhsRow.getChild(0).getNumChild(); i++) {
-								if (outRes.contains(lhsRow.getChild(0).getChild(i).getNodeString())) {
-									sb.append(functionName);
-								}
-								else {
-									sb.append(lhsRow.getChild(0).getChild(i).getNodeString());
-								}
-								if (i < lhsRow.getChild(0).getNumChild() - 1) {
-									sb.append(", ");
-								}
+		FAssignStmt fAssignStmt = new FAssignStmt();
+		String indent = "";
+		for (int i = 0; i < indentNum; i++) {
+			indent = indent + standardIndent;
+		}
+		fAssignStmt.setIndent(indent);
+		/*
+		 * translate matlab function with more than 
+		 * one returns to subroutines in fortran.
+		 */
+		if (node.getLHS() instanceof MatrixExpr) {
+			MatrixExpr lhsMatrix = (MatrixExpr)node.getLHS();
+			if (lhsMatrix.getChild(0) instanceof List) {
+				List lhsList = (List)lhsMatrix.getChild(0);
+				if (lhsList.getChild(0) instanceof Row) {
+					Row lhsRow = (Row)lhsList.getChild(0);
+					if (lhsRow.getChild(0).getNumChild() > 1 || userDefinedFunctions.contains(
+							(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0)).getName().getID()))) {
+						FSubroutines fSubroutines = new FSubroutines();
+						fSubroutines.setIndent(indent);
+						node.getRHS().analyze(this);
+						sb.replace(sb.length()-1, sb.length(), "");
+						sb.append(", ");
+						for (int i = 0; i < lhsRow.getChild(0).getNumChild(); i++) {
+							sb.append(lhsRow.getChild(0).getChild(i).getNodeString());
+							if (i < lhsRow.getChild(0).getNumChild() - 1) {
+								sb.append(", ");
 							}
-							sb.append(")");
-							if (Debug) System.out.println(sb);
-							fSubroutines.setFunctionCall(sb.toString());
-							sb.setLength(0);
-							stmtSecForIfWhileForBlock.addStatement(fSubroutines);
-							return;
 						}
+						sb.append(")");
+						if (Debug) System.out.println(sb);
+						fSubroutines.setFunctionCall(sb.toString());
+						sb.setLength(0);
+						if (ifWhileForBlockNest != 0) {
+							stmtSecForIfWhileForBlock.addStatement(fSubroutines);
+						}
+						else {
+							subprogram.getStatementSection().addStatement(fSubroutines);
+						}
+						return;
 					}
 				}
 			}
-			rightOfAssign = true;
-			node.getRHS().analyze(this);
-			fAssignStmt.setFRHS(sb.toString());
-			sb.setLength(0);
-			rightOfAssign = false;
-			
-			if (node.getRHS() instanceof ParameterizedExpr 
-					&& analysisEngine.getTemporaryVariablesRemovalAnalysis()
-						.getExprToTempVarTable().get(node.getRHS()) == null) {
-				// this means the rhs is either array indexing or function call
-				if (remainingVars.contains(
-						((NameExpr)node.getRHS().getChild(0)).getName().getID())) {
-					// rhs is array index
-					String name = ((NameExpr)node.getRHS().getChild(0)).getName().getID();
-					rhsArrayAssign = true;
-				}
+		}
+		rightOfAssign = true;
+		node.getRHS().analyze(this);
+		for (int i = 0; sb.length() > 70 && i < sb.length() / 70 ; i++) {
+			sb.insert((i + 1) * 69, "&\n" + getMoreIndent(0) + "&");
+		}
+		fAssignStmt.setFRHS(sb.toString());
+		sb.setLength(0);
+		rightOfAssign = false;
+		
+		if (node.getRHS() instanceof ParameterizedExpr 
+				&& analysisEngine.getTemporaryVariablesRemovalAnalysis()
+					.getExprToTempVarTable().get(node.getRHS()) == null) {
+			// this means the rhs is either array indexing or function call
+			if (remainingVars.contains(
+					((NameExpr)node.getRHS().getChild(0)).getName().getID())) {
+				// rhs is array index
+				String name = ((NameExpr)node.getRHS().getChild(0)).getName().getID();
+				rhsArrayAssign = true;
 			}
-			
-			leftOfAssign = true;
-			node.getLHS().analyze(this);
-			leftOfAssign = false;
-			rhsArrayAssign = false;
-			String lhsName = sb.toString();
-			if (randnFlag) {
-				FSubroutines fSubroutines = new FSubroutines();
-				fSubroutines.setIndent(indent);
-				fSubroutines.setFunctionCall("RANDOM_NUMBER("+lhsName+")");
-				randnFlag = false;
+		}
+		
+		leftOfAssign = true;
+		node.getLHS().analyze(this);
+		leftOfAssign = false;
+		rhsArrayAssign = false;
+		String lhsName = sb.toString();
+		
+		if (lhsName.isEmpty()) {
+			// TODO for the case where there is no return value, i.e. the builtin function disp.
+			return;
+		}
+		
+		if (randnFlag) {
+			FSubroutines fSubroutines = new FSubroutines();
+			fSubroutines.setIndent(indent);
+			fSubroutines.setFunctionCall("RANDOM_NUMBER("+lhsName+")");
+			randnFlag = false;
+			sb.setLength(0);
+			if (lhsName.indexOf("(") == -1 
+					&& !getMatrixValue(lhsName).getShape().isConstant()) {
+				// need to inline run-time allocate.
+				insideArray++; // this is a hack.
+				node.getRHS().getChild(1).analyze(this);
+				insideArray--;
+				StringBuffer rtBuffer = new StringBuffer();
+				rtBuffer.append(indent + "IF ((.NOT. ALLOCATED(" + lhsName + "))) THEN\n");
+				rtBuffer.append(indent + standardIndent + "ALLOCATE(" + lhsName + "(" + sb.toString() + "))\n");
+				rtBuffer.append(indent + "END IF\n");
+				RuntimeAllocate rtAllocate = new RuntimeAllocate();
+				rtAllocate.setBlock(rtBuffer.toString());
+				fSubroutines.setRuntimeAllocate(rtAllocate);
 				sb.setLength(0);
+			}
+			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
 			}
 			else {
-				// if there is runtime abc or allocate, add here.
-				if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
-					RuntimeAllocate runtimeInline = new RuntimeAllocate();
-					runtimeInline.setBlock(sbForRuntimeInline.toString());
-					fAssignStmt.setRuntimeAllocate(runtimeInline);
-					sbForRuntimeInline.setLength(0);
-				}
-				else if (lhsName.indexOf("(") == -1 
-						&& !getMatrixValue(lhsName).getShape().isConstant() 
-						&& storageAlloc) {
-					sbForRuntimeInline.setLength(0);
-					RuntimeAllocate runtimeInline = new RuntimeAllocate();
-					sbForRuntimeInline.append("IF (.NOT. ALLOCATED(" 
-							+ lhsName
-							+ ")) THEN\n" + getMoreIndent(1));
-					runtimeInline.setBlock(sbForRuntimeInline.toString());
-					fAssignStmt.setRuntimeAllocate(runtimeInline);
-					sbForRuntimeInline.setLength(0);
-				}
-				fAssignStmt.setFLHS(lhsName);
-				sb.setLength(0);
-				if (lhsName.indexOf("(") == -1 
-						&& !getMatrixValue(lhsName).getShape().isConstant() 
-						&& storageAlloc) {
-					ExtraInlined extraInlined = new ExtraInlined();
-					extraInlined.setBlock("END IF");
-					fAssignStmt.setExtraInlined(extraInlined);
-					storageAlloc = false;
-				}
-				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
+				subprogram.getStatementSection().addStatement(fSubroutines);
 			}
 		}
 		else {
-			FAssignStmt fAssignStmt = new FAssignStmt();
-			String indent = "";
-			for (int i = 0; i < indentNum; i++) {
-				indent = indent + standardIndent;
+			// if there is runtime abc or allocate, add here.
+			if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
+				RuntimeAllocate runtimeInline = new RuntimeAllocate();
+				runtimeInline.setBlock(sbForRuntimeInline.toString());
+				fAssignStmt.setRuntimeAllocate(runtimeInline);
+				sbForRuntimeInline.setLength(0);
 			}
-			fAssignStmt.setIndent(indent);
-			/*
-			 * translate matlab function with more than 
-			 * one returns to subroutines in fortran.
-			 */
-			if (node.getLHS() instanceof MatrixExpr) {
-				MatrixExpr lhsMatrix = (MatrixExpr)node.getLHS();
-				if (lhsMatrix.getChild(0) instanceof List) {
-					List lhsList = (List)lhsMatrix.getChild(0);
-					if (lhsList.getChild(0) instanceof Row) {
-						Row lhsRow = (Row)lhsList.getChild(0);
-						if (lhsRow.getChild(0).getNumChild() > 1 || userDefinedFunctions.contains(
-								(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0)).getName().getID()))) {
-							FSubroutines fSubroutines = new FSubroutines();
-							fSubroutines.setIndent(indent);
-							node.getRHS().analyze(this);
-							sb.replace(sb.length()-1, sb.length(), "");
-							sb.append(", ");
-							for (int i = 0; i < lhsRow.getChild(0).getNumChild(); i++) {
-								if (outRes.contains(lhsRow.getChild(0).getChild(i).getNodeString())) {
-									sb.append(functionName);
-								}
-								else {
-									sb.append(lhsRow.getChild(0).getChild(i).getNodeString());
-								}
-								if (i < lhsRow.getChild(0).getNumChild() - 1) {
-									sb.append(", ");
-								}
-							}
-							sb.append(")");
-							if (Debug) System.out.println(sb);
-							
-							fSubroutines.setFunctionCall(sb.toString());
-							sb.setLength(0);
-							subprogram.getStatementSection().addStatement(fSubroutines);
-							return;
-						}
-					}
-				}
+			else if (lhsName.indexOf("(") == -1 
+					&& !getMatrixValue(lhsName).getShape().isConstant() 
+					&& storageAlloc) {
+				sbForRuntimeInline.setLength(0);
+				RuntimeAllocate runtimeInline = new RuntimeAllocate();
+				sbForRuntimeInline.append("IF (.NOT. ALLOCATED(" 
+						+ lhsName
+						+ ")) THEN\n" + getMoreIndent(1));
+				runtimeInline.setBlock(sbForRuntimeInline.toString());
+				fAssignStmt.setRuntimeAllocate(runtimeInline);
+				sbForRuntimeInline.setLength(0);
 			}
-			rightOfAssign = true;
-			node.getRHS().analyze(this);
-			fAssignStmt.setFRHS(sb.toString());
+			fAssignStmt.setFLHS(lhsName);
 			sb.setLength(0);
-			rightOfAssign = false;
-			
-			if (node.getRHS() instanceof ParameterizedExpr 
-					&& analysisEngine.getTemporaryVariablesRemovalAnalysis()
-						.getExprToTempVarTable().get(node.getRHS()) == null) {
-				// this means the rhs is either array indexing or function call
-				if (remainingVars.contains(
-						((NameExpr)node.getRHS().getChild(0)).getName().getID())) {
-					// rhs is array index
-					String name = ((NameExpr)node.getRHS().getChild(0)).getName().getID();
-					rhsArrayAssign = true;
-				}
+			if (lhsName.indexOf("(") == -1 
+					&& !getMatrixValue(lhsName).getShape().isConstant() 
+					&& storageAlloc) {
+				ExtraInlined extraInlined = new ExtraInlined();
+				extraInlined.setBlock("END IF");
+				fAssignStmt.setExtraInlined(extraInlined);
+				storageAlloc = false;
 			}
-			
-			leftOfAssign = true;
-			node.getLHS().analyze(this);
-			leftOfAssign = false;
-			rhsArrayAssign = false;
-			String lhsName = sb.toString();
-			if (randnFlag) {
-				FSubroutines fSubroutines = new FSubroutines();
-				fSubroutines.setIndent(indent);
-				fSubroutines.setFunctionCall("RANDOM_NUMBER("+lhsName+")");
-				randnFlag = false;
-				sb.setLength(0);
-				if (lhsName.indexOf("(") == -1 
-						&& !getMatrixValue(lhsName).getShape().isConstant()) {
-					// need to inline run-time allocate.
-					insideArray++; // this is a hack.
-					node.getRHS().getChild(1).analyze(this);
-					insideArray--;
-					StringBuffer rtBuffer = new StringBuffer();
-					rtBuffer.append(indent + "IF ((.NOT. ALLOCATED(" + lhsName + "))) THEN\n");
-					rtBuffer.append(indent + standardIndent + "ALLOCATE(" + lhsName + "(" + sb.toString() + "))\n");
-					rtBuffer.append(indent + "END IF\n");
-					RuntimeAllocate rtAllocate = new RuntimeAllocate();
-					rtAllocate.setBlock(rtBuffer.toString());
-					fSubroutines.setRuntimeAllocate(rtAllocate);
-					sb.setLength(0);
-				}
-				subprogram.getStatementSection().addStatement(fSubroutines);
+			if (ifWhileForBlockNest != 0) {
+				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
 			}
 			else {
-				// if there is runtime abc or allocate, add here.
-				if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
-					RuntimeAllocate runtimeInline = new RuntimeAllocate();
-					runtimeInline.setBlock(sbForRuntimeInline.toString());
-					fAssignStmt.setRuntimeAllocate(runtimeInline);
-					sbForRuntimeInline.setLength(0);
-				}
-				else if (lhsName.indexOf("(") == -1 
-						&& !getMatrixValue(lhsName).getShape().isConstant() 
-						&& storageAlloc) {
-					sbForRuntimeInline.setLength(0);
-					RuntimeAllocate runtimeInline = new RuntimeAllocate();
-					sbForRuntimeInline.append("IF (.NOT. ALLOCATED(" 
-							+ lhsName
-							+ ")) THEN\n" + getMoreIndent(1));
-					runtimeInline.setBlock(sbForRuntimeInline.toString());
-					fAssignStmt.setRuntimeAllocate(runtimeInline);
-					sbForRuntimeInline.setLength(0);
-				}
-				fAssignStmt.setFLHS(lhsName);
-				sb.setLength(0);
-				if (lhsName.indexOf("(") == -1 
-						&& !getMatrixValue(lhsName).getShape().isConstant() 
-						&& storageAlloc) {
-					ExtraInlined extraInlined = new ExtraInlined();
-					extraInlined.setBlock("END IF");
-					fAssignStmt.setExtraInlined(extraInlined);
-					storageAlloc = false;
-				}
 				subprogram.getStatementSection().addStatement(fAssignStmt);
-			}	
+			}
 		}
 	}
 	
@@ -1479,9 +1386,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		for (ast.Stmt stmt : stmts) {
 			if (!(stmt instanceof TIRCommentStmt))
 				stmt.analyze(this);
-			else {
+			else 
 				stmt.analyze(this);
-			}
 		}
 	}
 	
@@ -1490,7 +1396,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	}
 	
 	public BasicMatrixValue getMatrixValue(String variable) {
-		if (variable.indexOf("_copy")!=-1) {
+		if (variable.indexOf("_copy") != -1) {
 			int index = variable.indexOf("_copy");
 			String originalVar = variable.substring(0, index);
 			return (BasicMatrixValue) currentOutSet.get(originalVar).getSingleton();
@@ -1499,15 +1405,17 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	}
 	
 	public boolean isCell(String variable) {
-		if (currentOutSet.get(variable).getSingleton() instanceof CellValue) {
+		if (currentOutSet.get(variable).getSingleton() instanceof CellValue) 
 			return true;
-		}
-		else return false;
+		else 
+			return false;
 	}
 	
 	public boolean hasSingleton(String variable) {
-		if (currentOutSet.get(variable).getSingleton()==null) return false;
-		return true;
+		if (currentOutSet.get(variable).getSingleton() == null) 
+			return false;
+		else 
+			return true;
 	}
 	
 	public String getMoreIndent(int n) {

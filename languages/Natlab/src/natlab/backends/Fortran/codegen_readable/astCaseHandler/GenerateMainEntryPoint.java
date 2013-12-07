@@ -61,7 +61,7 @@ public class GenerateMainEntryPoint {
 		if (fcg.inArgs.size() == 1 && fcg.inputsUsed.contains(fcg.inArgs.get(0))) {
 			temp.append("\nint_tmpvar = 0\n");
 			temp.append("arg_buffer = '0000000000'\n");
-			temp.append("DO int_tmpvar = 1 , IARGC()\n");
+			temp.append("DO int_tmpvar = 1, IARGC()\n");
 			temp.append(fcg.standardIndent + "CALL GETARG(int_tmpvar, arg_buffer)\n");
 			temp.append(fcg.standardIndent + "IF ((int_tmpvar == 1)) THEN\n");
 			temp.append(fcg.standardIndent + fcg.standardIndent + "READ(arg_buffer, *) "+ fcg.inArgs.get(0)  +"\n");
@@ -153,7 +153,7 @@ public class GenerateMainEntryPoint {
 										.getShape().getDimensions().get(1)+")");
 							}
 							else {
-								sb.append(" , DIMENSION("+fcg.forCellArr.get(variable)
+								sb.append(", DIMENSION("+fcg.forCellArr.get(variable)
 										.get(i).getShape().getDimensions().toString()
 										.replace("[", "").replace("]", "")+")");
 							}
@@ -226,7 +226,7 @@ public class GenerateMainEntryPoint {
 							tempBuf.append(":");
 							counter = true;
 						}
-						tempBuf.append(") , ALLOCATABLE");
+						tempBuf.append("), ALLOCATABLE");
 						keyword.setName(tempBuf.toString());
 						keywordList.addKeyword(keyword);
 						Variable var = new Variable();
