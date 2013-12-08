@@ -54,8 +54,11 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("plus", "+");
 		FortranBinOperatorMap.put("minus", "-");
 		FortranBinOperatorMap.put("times", "*");
+		FortranBinOperatorMap.put("mtimes", "*");
 		FortranBinOperatorMap.put("rdivide", "/");
+		FortranBinOperatorMap.put("mrdivide", "/");
 		FortranBinOperatorMap.put("power", "**");
+		FortranBinOperatorMap.put("mpower", "**");
 		// relational operators
 		FortranBinOperatorMap.put("lt", ".LT.");
 		FortranBinOperatorMap.put("le", ".LE.");
@@ -95,16 +98,8 @@ public class FortranMapping {
 	}
 	
 	private void makeFortranDirectBuiltinMap() {
-		// arithmetic operators
-		/* 
-		 * FortranDirectBuiltinMap.put("mtimes", "MATMUL");
-		 * comment off the builtin function mtimes, 
-		 * since mtimes is highly overloaded in 
-		 * benchmarks, and the easiest way I think 
-		 * is to use a fortran interface to map it.
-		 */
-		FortranDirectBuiltinMap.put("transpose", "TRANSPOSE");
 		// commonly used mathematical built-ins
+		FortranDirectBuiltinMap.put("transpose", "TRANSPOSE");
 		FortranDirectBuiltinMap.put("sum", "SUM");
 		FortranDirectBuiltinMap.put("ceil", "CEILING");
 		FortranDirectBuiltinMap.put("floor", "FLOOR");
@@ -165,9 +160,17 @@ public class FortranMapping {
 	}
 	
 	public void makeFortranOverloadingInlineSet() {
+		// overloaded arithmetic operators
 		FortranOverloadingInlineSet.add("mtimes");
 		FortranOverloadingInlineSet.add("mrdivide");
 		FortranOverloadingInlineSet.add("mpower");
+		// overloaded relational operators
+		FortranOverloadingInlineSet.add("lt");
+		FortranOverloadingInlineSet.add("le");
+		FortranOverloadingInlineSet.add("gt");
+		FortranOverloadingInlineSet.add("ge");
+		FortranOverloadingInlineSet.add("eq");
+		FortranOverloadingInlineSet.add("ne");
 	}
 	
 	public boolean isFortranOverloadingInlineSet(String builtinName) {
