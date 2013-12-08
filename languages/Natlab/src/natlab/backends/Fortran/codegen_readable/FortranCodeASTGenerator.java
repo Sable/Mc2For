@@ -365,7 +365,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 * are passed by value, while in Fortran, the input arguments 
 				 * are passed by reference.
 				 */
-				if (inArgs.contains(name) && leftOfAssign) {
+				if (inArgs.contains(name) && leftOfAssign && insideArray == 0) {
 					inputHasChanged.add(name);
 				}
 				/*
@@ -1166,7 +1166,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		if (remainingVars.contains(name)) {
 			if (Debug) System.out.println(name+" is a variable.");
 			
-			if (inArgs.contains(name) && leftOfAssign) {
+			if (inArgs.contains(name) && leftOfAssign && insideArray == 0) {
 				inputHasChanged.add(name);
 			}
 						
