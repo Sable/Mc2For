@@ -924,7 +924,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						 */
 						Shape<AggrValue<BasicMatrixValue>> shapeOp1;
 						Shape<AggrValue<BasicMatrixValue>> shapeOp2;
-						if (node.getChild(1).getChild(0) instanceof IntLiteralExpr 
+						if (node.getChild(1).getChild(0) instanceof LiteralExpr 
 								&& node.getChild(1).getChild(1) instanceof ParameterizedExpr) {
 							shapeOp1 = new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape();
 							shapeOp2 = getMatrixValue(((Name)analysisEngine
@@ -933,19 +933,19 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 									.get(node.getChild(1).getChild(1))).getID())
 									.getShape();
 						}
-						else if (node.getChild(1).getChild(0) instanceof IntLiteralExpr 
+						else if (node.getChild(1).getChild(0) instanceof LiteralExpr 
 								&& node.getChild(1).getChild(1) instanceof NameExpr) {
 							shapeOp1 = new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape();
 							shapeOp2 = getMatrixValue(((NameExpr)node.getChild(1)
 									.getChild(1)).getName().getID()).getShape();
 						}
-						else if (node.getChild(1).getChild(0) instanceof IntLiteralExpr 
-								&& node.getChild(1).getChild(1) instanceof IntLiteralExpr) {
+						else if (node.getChild(1).getChild(0) instanceof LiteralExpr 
+								&& node.getChild(1).getChild(1) instanceof LiteralExpr) {
 							shapeOp1 = new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape();
 							shapeOp2 = new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape();
 						}
 						else if (node.getChild(1).getChild(0) instanceof ParameterizedExpr 
-								&& node.getChild(1).getChild(1) instanceof IntLiteralExpr) {
+								&& node.getChild(1).getChild(1) instanceof LiteralExpr) {
 							shapeOp1 = getMatrixValue(((Name)analysisEngine
 									.getTemporaryVariablesRemovalAnalysis()
 									.getExprToTempVarTable()
@@ -954,7 +954,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							shapeOp2 = new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape();
 						}
 						else if (node.getChild(1).getChild(0) instanceof NameExpr 
-								&& node.getChild(1).getChild(1) instanceof IntLiteralExpr) {
+								&& node.getChild(1).getChild(1) instanceof LiteralExpr) {
 							shapeOp1 = getMatrixValue(((NameExpr)node.getChild(1)
 									.getChild(0)).getName().getID()).getShape();
 							shapeOp2 = new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape();
@@ -1321,12 +1321,6 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	@Override
 	public void caseLiteralExpr(LiteralExpr node) {
 		if (Debug) System.out.println("liter: "+node.getPrettyPrinted());
-		sb.append(node.getPrettyPrinted());
-	}
-	
-	@Override
-	public void caseIntLiteralExpr(IntLiteralExpr node) {
-		if (Debug) System.out.print("intLiter: "+node.getPrettyPrinted());
 		sb.append(node.getPrettyPrinted());
 	}
 	

@@ -144,7 +144,7 @@ public class GenerateSubroutine {
 				 * declare types, especially character string.
 				 */
 				if (fcg.getMatrixValue(variable).hasisComplexInfo() 
-						&& (fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("COMPLEX"))) {
+						&& (fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("ANY"))) {
 					declStmt.setType("COMPLEX");
 				}
 				else if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 

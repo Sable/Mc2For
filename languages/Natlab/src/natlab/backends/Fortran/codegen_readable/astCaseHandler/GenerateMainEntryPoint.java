@@ -182,7 +182,7 @@ public class GenerateMainEntryPoint {
 				 * declare types, especially character string.
 				 */
 				if (fcg.getMatrixValue(variable).hasisComplexInfo() 
-						&& fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("COMPLEX")) {
+						&& fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("ANY")) {
 					// do all the variables have iscomplex information?
 					declStmt.setType("COMPLEX");
 				}
