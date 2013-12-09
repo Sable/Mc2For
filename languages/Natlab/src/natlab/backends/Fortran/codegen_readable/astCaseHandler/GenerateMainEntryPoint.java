@@ -182,9 +182,16 @@ public class GenerateMainEntryPoint {
 				 * declare types, especially character string.
 				 */
 				if (fcg.getMatrixValue(variable).hasisComplexInfo() 
-						&& fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("ANY")) {
+						&& (fcg.getMatrixValue(variable)
+								.getisComplexInfo().geticType().equals("ANY") 
+								|| fcg.getMatrixValue(variable)
+								.getisComplexInfo().geticType().equals("COMPLEX"))) {
 					// do all the variables have iscomplex information?
-					declStmt.setType("COMPLEX");
+					if (fcg.getMatrixValue(variable).getMatlabClass()
+							.equals(PrimitiveClassReference.DOUBLE)) 
+						declStmt.setType("COMPLEX(KIND=8)");
+					else 
+						declStmt.setType("COMPLEX");
 				}
 				else if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {

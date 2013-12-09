@@ -144,8 +144,15 @@ public class GenerateSubroutine {
 				 * declare types, especially character string.
 				 */
 				if (fcg.getMatrixValue(variable).hasisComplexInfo() 
-						&& (fcg.getMatrixValue(variable).getisComplexInfo().geticType().equals("ANY"))) {
-					declStmt.setType("COMPLEX");
+						&& (fcg.getMatrixValue(variable)
+								.getisComplexInfo().geticType().equals("ANY") 
+								|| fcg.getMatrixValue(variable)
+								.getisComplexInfo().geticType().equals("COMPLEX"))) {
+					if (fcg.getMatrixValue(variable).getMatlabClass()
+							.equals(PrimitiveClassReference.DOUBLE)) 
+						declStmt.setType("COMPLEX(KIND=8)");
+					else 
+						declStmt.setType("COMPLEX");
 				}
 				else if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {

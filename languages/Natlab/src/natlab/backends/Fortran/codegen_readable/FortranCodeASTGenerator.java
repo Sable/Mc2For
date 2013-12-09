@@ -188,8 +188,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				List lhsList = (List)lhsMatrix.getChild(0);
 				if (lhsList.getChild(0) instanceof Row) {
 					Row lhsRow = (Row)lhsList.getChild(0);
-					if (lhsRow.getChild(0).getNumChild() > 1 || userDefinedFunctions.contains(
-							(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0)).getName().getID()))) {
+					if (lhsRow.getChild(0).getNumChild() > 1 
+							|| userDefinedFunctions.contains(
+							(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0))
+									.getName().getID()))) {
 						FSubroutines fSubroutines = new FSubroutines();
 						fSubroutines.setIndent(indent);
 						node.getRHS().analyze(this);
@@ -215,6 +217,17 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 				}
 			}
+		}
+		/*
+		 * for the case where there is user defined function on the rhs of assignment, 
+		 * and the lhs of assignment has only one value.  
+		 */
+		boolean convertUserFuncToSubroutine = false;
+		if (node.getRHS() instanceof ParameterizedExpr 
+				&& userDefinedFunctions.contains(
+						node.getRHS().getChild(0).getPrettyPrinted())) {
+			if (Debug) System.out.println(node.getRHS().getChild(0).getPrettyPrinted());
+			convertUserFuncToSubroutine = true;
 		}
 		rightOfAssign = true;
 		node.getRHS().analyze(this);
@@ -252,8 +265,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			// TODO for the case where there is no return value, i.e. the builtin function disp.
 			return;
 		}
-		
-		if (randnFlag) {
+		else if (randnFlag) {
 			FSubroutines fSubroutines = new FSubroutines();
 			fSubroutines.setIndent(indent);
 			fSubroutines.setFunctionCall("RANDOM_NUMBER("+lhsName+")");
@@ -274,6 +286,25 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				fSubroutines.setRuntimeAllocate(rtAllocate);
 				sb.setLength(0);
 			}
+			if (ifWhileForBlockNest != 0) {
+				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
+			}
+			else {
+				subprogram.getStatementSection().addStatement(fSubroutines);
+			}
+		}
+		else if (convertUserFuncToSubroutine) {
+			sb.setLength(0);
+			FSubroutines fSubroutines = new FSubroutines();
+			fSubroutines.setIndent(indent);
+			fSubroutines.setFunctionCall(rhsString.substring(0, rhsString.length()-1) + ", " + lhsName + ")");
+			if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
+				RuntimeAllocate runtimeInline = new RuntimeAllocate();
+				runtimeInline.setBlock(sbForRuntimeInline.toString());
+				fSubroutines.setRuntimeAllocate(runtimeInline);
+				sbForRuntimeInline.setLength(0);
+			}
+			convertUserFuncToSubroutine = false;
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
 			}
@@ -350,7 +381,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			ExtraInlined extraInlined = new ExtraInlined();
 			extraInlined.setBlock(sbExtra.toString());
 			fAssignStmt.setExtraInlined(extraInlined);
-			this.horzVertPrealloc.add(lhsName + "_prealloc");
+			horzVertPrealloc.add(lhsName + "_prealloc");
 			horzVertcat = false;
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
