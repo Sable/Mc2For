@@ -42,6 +42,7 @@ public class GenerateSubroutine {
 		StatementSection preStmtSection = new StatementSection();
 		preSubroutine.setStatementSection(preStmtSection);
 		fcg.iterateStatements(node.getStmts());
+		fcg.passCounter++;
 		/* 
 		 * second pass of all the statements, using information collected from the first pass.
 		 */
@@ -330,8 +331,17 @@ public class GenerateSubroutine {
 			if (!fcg.fotranTemporaries.get(tmpVariable).getShape().isScalar()) {
 				KeywordList keywordList = new KeywordList();
 				Keyword keyword = new Keyword();
-				keyword.setName("DIMENSION("+fcg.fotranTemporaries.get(tmpVariable).getShape()
-						.toString().replace(" ", "").replace("[", "").replace("]", "")+")");
+				List<DimValue> dim = fcg.fotranTemporaries.get(tmpVariable).getShape().getDimensions();
+				boolean counter = false;
+				StringBuffer tempBuf = new StringBuffer();
+				tempBuf.append("DIMENSION(");
+				for (int i = 0; i < dim.size(); i++) {
+					if (counter) tempBuf.append(",");
+					tempBuf.append(":");
+					counter = true;
+				}
+				tempBuf.append("), ALLOCATABLE");
+				keyword.setName(tempBuf.toString());
 				keywordList.addKeyword(keyword);
 				declStmt.setKeywordList(keywordList);
 			}

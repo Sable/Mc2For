@@ -26,6 +26,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	 * TODO split this huge class... 
 	 */
 	static boolean Debug = false;
+	static int tempCounter = 0;
+	public int passCounter;
 	// this currentOutSet is the out set at the end point of the program.
 	private ValueFlowMap<AggrValue<BasicMatrixValue>> currentOutSet;
 	public Set<String> remainingVars;
@@ -84,6 +86,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			AnalysisEngine analysisEngine, 
 			boolean nocheck) 
 	{
+		passCounter = 0;
 		this.currentOutSet = currentOutSet;
 		this.remainingVars = remainingVars;
 		this.entryPointFile = entryPointFile;
@@ -259,7 +262,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				node.getRHS().getChild(1).analyze(this);
 				insideArray--;
 				StringBuffer rtBuffer = new StringBuffer();
-				rtBuffer.append(getMoreIndent(0) + "IF ((.NOT. ALLOCATED(" + lhsName + "))) THEN\n");
+				rtBuffer.append(getMoreIndent(0) + "IF ((.NOT.ALLOCATED(" + lhsName + "))) THEN\n");
 				rtBuffer.append(getMoreIndent(0) + standardIndent + "ALLOCATE(" + lhsName + "(" + sb.toString() + "))\n");
 				rtBuffer.append(getMoreIndent(0) + "END IF\n");
 				RuntimeAllocate rtAllocate = new RuntimeAllocate();
@@ -384,7 +387,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					&& storageAlloc) {
 				sbForRuntimeInline.setLength(0);
 				RuntimeAllocate runtimeInline = new RuntimeAllocate();
-				sbForRuntimeInline.append("IF (.NOT. ALLOCATED(" 
+				sbForRuntimeInline.append("IF (.NOT.ALLOCATED(" 
 						+ lhsName
 						+ ")) THEN\n" + getMoreIndent(1));
 				runtimeInline.setBlock(sbForRuntimeInline.toString());
@@ -836,7 +839,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 * a new matlab built-in function. the only thing we 
 				 * need to do is making a user-defined function by 
 				 * ourselves or "find" one, and then update the Mc2For 
-				 * lib. TODO shipped with Mc2For, we should at least 
+				 * lib. shipped with Mc2For, we should at least 
 				 * provide a significant number of user-defined fortran 
 				 * functions to "fill" the "hole" of those commonly 
 				 * used matlab built-in functions, like ones, zeros...
@@ -849,10 +852,59 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 * replaced by swapping operands and then use right 
 				 * division, and : (colon operator), which can be 
 				 * replaced by using implied DO loop in an array
-				 * constructor. TODO this tmr.
+				 * constructor.
 				 */
 				if (Debug) System.out.println("this is a function call");
 				int inputNum = node.getChild(1).getNumChild();
+				if (userDefinedFunctions.contains(name) 
+						&& !(node.getParent() instanceof AssignStmt)) {
+					/*
+					 * convert user defined one-return-value function to 
+					 * subroutine call in fortran, and replace the original 
+					 * function with one temporary variable, i.e. check 
+					 * out the benchmark diff.
+					 * 
+					 * add a subroutine call to the statement list, and 
+					 * replace the whole parameterizedExpr with the 
+					 * temporary variable.
+					 */
+					System.out.println(name);
+					StringBuffer sb_bk = new StringBuffer();
+					sb_bk.append(sb);
+					sb.setLength(0);
+					FSubroutines tempSubroutine = new FSubroutines();
+					String tempName = name + "_tmp" + tempCounter;
+					if (passCounter > 0) {
+						tempCounter++;
+					}
+					// add temp variable to the variable list.
+					BasicMatrixValue exprValue = getMatrixValue(((Name)analysisEngine
+							.getTemporaryVariablesRemovalAnalysis()
+							.getExprToTempVarTable()
+							.get(node)).getID());
+					// TODO add class, range, isComplex.
+					if (passCounter > 0) {
+						fotranTemporaries.put(tempName, new BasicMatrixValue(
+								exprValue.getSymbolic(), 
+								exprValue.getMatlabClass(), 
+								exprValue.getShape(), 
+								exprValue.getRangeValue(), 
+								exprValue.getisComplexInfo()
+								));
+					}
+					sb.append(getMoreIndent(0) + name + "(");
+					for (int i = 0; i < inputNum; i++) {
+						node.getChild(1).getChild(i).analyze(this);
+						sb.append(", ");
+					}
+					sb.append(tempName + ")");
+					tempSubroutine.setFunctionCall(sb.toString());
+					sb.setLength(0);
+					sb.append(sb_bk + tempName);
+					allSubprograms.add(name);
+					subprogram.getStatementSection().addStatement(tempSubroutine);
+					return;
+				}
 				/*
 				 * deal with storage allocation builtin, zeros and ones.
 				 * TODO does rand and randn count?
@@ -919,7 +971,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append(name + "(");
 						node.getChild(1).analyze(this);
 						sb.append(")");
-						allSubprograms.add(node.getChild(0).getNodeString());
+						allSubprograms.add(name);
 					}
 				}
 				/*
@@ -1196,7 +1248,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append(", ");
 						node.getChild(1).getChild(1).analyze(this);
 						sb.append(")");
-						allSubprograms.add(node.getChild(0).getNodeString());
+						allSubprograms.add(name);
 					}
 				}
 				/*
@@ -1240,7 +1292,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							sb_bk.setLength(0);
 						}
 						sb.append(")");
-						allSubprograms.add(node.getChild(0).getNodeString());						
+						allSubprograms.add(name);						
 					}
 				}
 			}
