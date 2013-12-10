@@ -140,31 +140,16 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	 * for comment statements.
 	 */
 	public void caseEmptyStmt(EmptyStmt node) {
-		if (ifWhileForBlockNest != 0) {
-			if (!node.getPrettyPrinted().equals("")) {
-				String comment = node.getPrettyPrinted();
-				if (Debug) System.out.println(comment);
-				FCommentStmt fComment = new FCommentStmt();
-				String indent = "";
-				for (int i = 0; i < indentNum; i++) {
-					indent = indent + standardIndent;
-				}
-				fComment.setIndent(indent);
-				fComment.setFComment(comment.subSequence(1, comment.length()).toString());
+		if (!node.getPrettyPrinted().equals("")) {
+			String comment = node.getPrettyPrinted();
+			if (Debug) System.out.println(comment);
+			FCommentStmt fComment = new FCommentStmt();
+			fComment.setIndent(getMoreIndent(0));
+			fComment.setFComment(comment.subSequence(1, comment.length()).toString());
+			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fComment);
 			}
-		}
-		else {
-			if (!node.getPrettyPrinted().equals("")) {
-				String comment = node.getPrettyPrinted();
-				if (Debug) System.out.println(comment);
-				FCommentStmt fComment = new FCommentStmt();
-				String indent = "";
-				for (int i = 0; i < indentNum; i++) {
-					indent = indent + standardIndent;
-				}
-				fComment.setIndent(indent);
-				fComment.setFComment(comment.subSequence(1, comment.length()).toString());
+			else {
 				subprogram.getStatementSection().addStatement(fComment);
 			}
 		}
@@ -173,11 +158,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	@Override
 	public void caseAssignStmt(AssignStmt node)	{
 		FAssignStmt fAssignStmt = new FAssignStmt();
-		String indent = "";
-		for (int i = 0; i < indentNum; i++) {
-			indent = indent + standardIndent;
-		}
-		fAssignStmt.setIndent(indent);
+		fAssignStmt.setIndent(getMoreIndent(0));
 		/*
 		 * translate matlab function with more than 
 		 * one returns to subroutines in fortran.
@@ -193,7 +174,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							(((NameExpr)((ParameterizedExpr)node.getRHS()).getChild(0))
 									.getName().getID()))) {
 						FSubroutines fSubroutines = new FSubroutines();
-						fSubroutines.setIndent(indent);
+						fSubroutines.setIndent(getMoreIndent(0));
 						node.getRHS().analyze(this);
 						sb.replace(sb.length()-1, sb.length(), "");
 						sb.append(", ");
@@ -267,7 +248,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		}
 		else if (randnFlag) {
 			FSubroutines fSubroutines = new FSubroutines();
-			fSubroutines.setIndent(indent);
+			fSubroutines.setIndent(getMoreIndent(0));
 			fSubroutines.setFunctionCall("RANDOM_NUMBER("+lhsName+")");
 			randnFlag = false;
 			sb.setLength(0);
@@ -278,9 +259,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				node.getRHS().getChild(1).analyze(this);
 				insideArray--;
 				StringBuffer rtBuffer = new StringBuffer();
-				rtBuffer.append(indent + "IF ((.NOT. ALLOCATED(" + lhsName + "))) THEN\n");
-				rtBuffer.append(indent + standardIndent + "ALLOCATE(" + lhsName + "(" + sb.toString() + "))\n");
-				rtBuffer.append(indent + "END IF\n");
+				rtBuffer.append(getMoreIndent(0) + "IF ((.NOT. ALLOCATED(" + lhsName + "))) THEN\n");
+				rtBuffer.append(getMoreIndent(0) + standardIndent + "ALLOCATE(" + lhsName + "(" + sb.toString() + "))\n");
+				rtBuffer.append(getMoreIndent(0) + "END IF\n");
 				RuntimeAllocate rtAllocate = new RuntimeAllocate();
 				rtAllocate.setBlock(rtBuffer.toString());
 				fSubroutines.setRuntimeAllocate(rtAllocate);
@@ -296,7 +277,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		else if (convertUserFuncToSubroutine) {
 			sb.setLength(0);
 			FSubroutines fSubroutines = new FSubroutines();
-			fSubroutines.setIndent(indent);
+			fSubroutines.setIndent(getMoreIndent(0));
 			fSubroutines.setFunctionCall(rhsString.substring(0, rhsString.length()-1) + ", " + lhsName + ")");
 			if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
 				RuntimeAllocate runtimeInline = new RuntimeAllocate();
@@ -1505,6 +1486,15 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	@Override
 	public void caseBreakStmt(BreakStmt node) {
 		// TODO add an exit statment.
+		FBreakStmt breakStmt = new FBreakStmt();
+		breakStmt.setIndent(getMoreIndent(0));
+		breakStmt.setFBreak("EXIT;");
+		if (ifWhileForBlockNest != 0) {
+			stmtSecForIfWhileForBlock.addStatement(breakStmt);
+		}
+		else {
+			subprogram.getStatementSection().addStatement(breakStmt);
+		}
 	}
 	
 	@Override

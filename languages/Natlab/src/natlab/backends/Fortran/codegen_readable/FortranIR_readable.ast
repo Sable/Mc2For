@@ -29,6 +29,8 @@ ExtraInlined ::= <Block: String>;
 
 FSubroutines: FAssignStmt ::= <Indent> [RuntimeAllocate] <FunctionCall>;
 
+FBreakStmt: Statement ::= <Indent> <FBreak>;
+
 FIfStmt: Statement ::= <Indent> <FIfCondition> FIfBlock: StatementSection [FElseBlock: StatementSection];
 
 FWhileStmt: Statement ::= <Indent> <FWhileCondition> FWhileBlock: StatementSection;
