@@ -17,11 +17,7 @@ public class HandleCaseWhileStmt {
 	{
 		if (Debug) System.out.println("in while statement.");		
 		FWhileStmt stmt = new FWhileStmt();
-		String indent = new String();
-		for (int i = 0; i < fcg.indentNum; i++) {
-			indent = indent + fcg.standardIndent;
-		}
-		stmt.setIndent(indent);
+		stmt.setIndent(fcg.getMoreIndent(0));
 		node.getChild(0).analyze(fcg);
 		stmt.setFWhileCondition(fcg.sb.toString());
 		fcg.sb.setLength(0);

@@ -18,11 +18,7 @@ public class HandleCaseIfStmt {
 	{
 		if (Debug) System.out.println("in if statement.");
 		FIfStmt stmt = new FIfStmt();
-		String indent = new String();
-		for (int i = 0; i < fcg.indentNum; i++) {
-			indent = indent + fcg.standardIndent;
-		}
-		stmt.setIndent(indent);
+		stmt.setIndent(fcg.getMoreIndent(0));
 		node.getIfBlock(0).getCondition().analyze(fcg);
 		stmt.setFIfCondition(fcg.sb.toString());
 		fcg.sb.setLength(0);

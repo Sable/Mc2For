@@ -61,6 +61,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	private boolean rhsArrayAssign;
 	private String overloadedRelational;
 	private String overloadedRelationalFlag; // l means lhs is array, r means rhs is array.
+	public boolean forLoopTransform;
 	// temporary variables generated in Fortran code generation.
 	public Map<String, BasicMatrixValue> fotranTemporaries;
 	public boolean mustBeInt;
@@ -118,6 +119,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		rhsArrayAssign = false;
 		overloadedRelational = "";
 		overloadedRelationalFlag = "";
+		forLoopTransform = false;
 		fotranTemporaries = new HashMap<String,BasicMatrixValue>();
 		mustBeInt = false;
 		forceToInt = new HashSet<String>();
@@ -868,7 +870,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					 * replace the whole parameterizedExpr with the 
 					 * temporary variable.
 					 */
-					System.out.println(name);
+					if (Debug) System.out.println("user defined one-return-value function:" + name);
 					StringBuffer sb_bk = new StringBuffer();
 					sb_bk.append(sb);
 					sb.setLength(0);
@@ -894,8 +896,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 					sb.append(getMoreIndent(0) + name + "(");
 					for (int i = 0; i < inputNum; i++) {
+						// TODO fix this double conversion.
+						sb.append("DBLE(");
 						node.getChild(1).getChild(i).analyze(this);
-						sb.append(", ");
+						sb.append("), ");
 					}
 					sb.append(tempName + ")");
 					tempSubroutine.setFunctionCall(sb.toString());
@@ -948,6 +952,12 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							else {
 								// any other expressions?
 							}
+						}
+						else if (name.equals("sqrt")) {
+							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
+							sb.append("(DBLE(");
+							node.getChild(1).getChild(0).analyze(this);
+							sb.append("))");
 						}
 						else {
 							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
@@ -1404,7 +1414,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			/*
 			 * start
 			 */
-			if (node.getChild(0) instanceof NameExpr 
+			if (!forLoopTransform 
+					&& node.getChild(0) instanceof NameExpr 
 					&& !forceToInt.contains(((NameExpr)node.getChild(0)).getName().getID())
 					&& !getMatrixValue(((NameExpr)node.getChild(0)).getName().getID())
 					.getMatlabClass().equals(PrimitiveClassReference.INT32)) {
@@ -1412,7 +1423,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				node.getChild(0).analyze(this);
 				sb.append(")");
 			}
-			else if (node.getChild(0) instanceof ParameterizedExpr) {
+			else if (!forLoopTransform 
+						&& node.getChild(0) instanceof ParameterizedExpr) {
 				/*
 				 * back up the StringBuffer, test whether the step is integer.
 				 */
@@ -1440,7 +1452,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			/*
 			 * end
 			 */
-			if (node.getChild(2) instanceof NameExpr 
+			if (!forLoopTransform 
+					&& node.getChild(2) instanceof NameExpr 
 					&& !forceToInt.contains(((NameExpr)node.getChild(2)).getName().getID())
 					&& !getMatrixValue(((NameExpr)node.getChild(2)).getName().getID())
 					.getMatlabClass().equals(PrimitiveClassReference.INT32)) {
@@ -1448,7 +1461,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				node.getChild(2).analyze(this);
 				sb.append(")");
 			}
-			else if (node.getChild(2) instanceof ParameterizedExpr) {
+			else if (!forLoopTransform 
+						&& node.getChild(2) instanceof ParameterizedExpr) {
 				/*
 				 * back up the StringBuffer, test whether the step is integer.
 				 */
@@ -1477,7 +1491,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			 */
 			if (node.getChild(1).getNumChild() != 0) {
 				sb.append(", ");
-				if (node.getChild(1).getChild(0) instanceof NameExpr 
+				if (!forLoopTransform 
+						&& node.getChild(1).getChild(0) instanceof NameExpr 
 						&& !forceToInt.contains(((NameExpr)node.getChild(1).getChild(0)).getName().getID())
 						&& !getMatrixValue(((NameExpr)node.getChild(1).getChild(0)).getName().getID())
 						.getMatlabClass().equals(PrimitiveClassReference.INT32)) {
@@ -1485,7 +1500,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					node.getChild(1).getChild(0).analyze(this);
 					sb.append(")");
 				}
-				else if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+				else if (!forLoopTransform 
+							&& node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
 					/*
 					 * back up the StringBuffer, test whether the step is integer.
 					 */
