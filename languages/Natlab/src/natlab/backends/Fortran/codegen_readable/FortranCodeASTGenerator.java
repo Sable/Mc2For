@@ -56,7 +56,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	private boolean leftOfAssign;
 	private boolean rightOfAssign;
 	private boolean storageAlloc;
-	private boolean horzVertcat;
+	private boolean horzcat;
+	private boolean vertcat;
 	public Set<String> horzVertPrealloc;
 	private boolean rhsArrayAssign;
 	private String overloadedRelational;
@@ -114,7 +115,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		leftOfAssign = false;
 		rightOfAssign = false;
 		storageAlloc = false;
-		horzVertcat = false;
+		horzcat = false;
+		vertcat = false;
 		horzVertPrealloc = new HashSet<String>();
 		rhsArrayAssign = false;
 		overloadedRelational = "";
@@ -340,7 +342,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				subprogram.getStatementSection().addStatement(fAssignStmt);
 			}
 		}
-		else if (horzVertcat 
+		else if (horzcat 
 				&& lhsName.indexOf("(") == -1 
 				&& (getMatrixValue(lhsName).getShape().isRowVector() 
 						|| getMatrixValue(lhsName).getShape().isColVector()) 
@@ -368,7 +370,138 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			extraInlined.setBlock(sbExtra.toString());
 			fAssignStmt.setExtraInlined(extraInlined);
 			horzVertPrealloc.add(lhsName + "_prealloc");
-			horzVertcat = false;
+			horzcat = false;
+			if (ifWhileForBlockNest != 0) {
+				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
+			}
+			else {
+				subprogram.getStatementSection().addStatement(fAssignStmt);
+			}
+		}
+		else if (vertcat && lhsName.indexOf("(") == -1) {
+			if (Debug) System.out.println(lhsName + " = " + rhsString);
+			String[] rhsArgsArray = rhsString.replace("[", "").replace("]", "").split("; ");
+			ArrayList<String> rhsArgsList = new ArrayList<String>();
+			for (int i = 0; i < rhsArgsArray.length; i++) {
+				rhsArgsList.add(rhsArgsArray[i]);
+			}
+			// if lhs array also appears in the rhs, need to back up the array.
+			if (rhsArgsList.contains(lhsName)) {
+				sbForRuntimeInline.append(getMoreIndent(0) + "IF (ALLOCATED(" + lhsName + "_bk)) THEN\n" 
+						+ getMoreIndent(1) + "DEALLOCATE(" + lhsName + "_bk);\n" 
+						+ getMoreIndent(0) + "END IF\n" 
+						+ getMoreIndent(0) + lhsName + "_bk = " + lhsName + ";\n");
+				backupTempArrays.add(lhsName);
+			}
+			for (int i = 0; i < rhsArgsList.size(); i++) {
+				Shape<AggrValue<BasicMatrixValue>> tempShape;
+				if(node.getRHS().getChild(1).getChild(i) instanceof NameExpr) {
+					tempShape = getMatrixValue(((NameExpr)node.getRHS()
+							.getChild(1).getChild(i)).getName().getID()).getShape();
+				}
+				else {
+					// TODO for parameterized expression.
+					tempShape = getMatrixValue(((Name)analysisEngine
+							.getTemporaryVariablesRemovalAnalysis()
+							.getExprToTempVarTable()
+							.get(node.getRHS().getChild(1).getChild(i))).getID())
+							.getShape();
+				}
+				if (tempShape != null && tempShape.maybeVector()) {
+					// do nothing
+				}
+				else {
+					sbForRuntimeInline.append(getMoreIndent(0) + lhsName + "_1" + (i+1) 
+							+ " = SIZE(" + rhsArgsList.get(i) + ", 1);\n");
+					fotranTemporaries.put(lhsName + "_1" + (i+1), new BasicMatrixValue(
+							null, 
+							PrimitiveClassReference.INT32, 
+							new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+							null, 
+							new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+							.newisComplexInfoFromStr("REAL")
+							));
+				}
+			}
+			sbForRuntimeInline.append(getMoreIndent(0) + "DEALLOCATE(" + lhsName + ");\n" 
+					+ getMoreIndent(0) + "ALLOCATE(" + lhsName + "(");
+			for (int i = 0; i < rhsArgsList.size(); i++) {
+				Shape<AggrValue<BasicMatrixValue>> tempShape;
+				if(node.getRHS().getChild(1).getChild(i) instanceof NameExpr) {
+					tempShape = getMatrixValue(((NameExpr)node.getRHS()
+							.getChild(1).getChild(i)).getName().getID()).getShape();
+				}
+				else {
+					// TODO for parameterized expression.
+					tempShape = getMatrixValue(((Name)analysisEngine
+							.getTemporaryVariablesRemovalAnalysis()
+							.getExprToTempVarTable()
+							.get(node.getRHS().getChild(1).getChild(i))).getID())
+							.getShape();
+				}
+				if (tempShape != null && tempShape.maybeVector()) {
+					sbForRuntimeInline.append("1");
+				}
+				else {
+					sbForRuntimeInline.append(lhsName + "_1" + (i+1));
+				}
+				if (i + 1 < rhsArgsList.size()) {
+					sbForRuntimeInline.append(" + ");
+				}
+			}
+			// TODO this line is tricky, need to be updated.
+			sbForRuntimeInline.append(", " + getMatrixValue(lhsName)
+					.getShape().getDimensions().get(1) + "));\n");
+			for (int i = 0; i < rhsArgsList.size(); i++) {
+				Shape<AggrValue<BasicMatrixValue>> tempShape;
+				if(node.getRHS().getChild(1).getChild(i) instanceof NameExpr) {
+					tempShape = getMatrixValue(((NameExpr)node.getRHS()
+							.getChild(1).getChild(i)).getName().getID()).getShape();
+				}
+				else {
+					// TODO for parameterized expression.
+					tempShape = getMatrixValue(((Name)analysisEngine
+							.getTemporaryVariablesRemovalAnalysis()
+							.getExprToTempVarTable()
+							.get(node.getRHS().getChild(1).getChild(i))).getID())
+							.getShape();
+				}
+				sbForRuntimeInline.append(getMoreIndent(0) + lhsName + "(");
+				if (i == 0) {
+					if (tempShape != null && tempShape.maybeVector()) {
+						// if right hand side is a vector;
+						sbForRuntimeInline.append("1, :");
+					}
+					else {
+						sbForRuntimeInline.append("1 : " + lhsName + "_1" + (i+1) + ", :");
+					}
+				}
+				else {
+					if (tempShape != null && tempShape.maybeVector()) {
+						// if right hand side is a vector;
+						sbForRuntimeInline.append(lhsName + "_1" + i + " + 1, :");
+					}
+					else {
+						sbForRuntimeInline.append(lhsName + "_1" + i + " + 1 : " + lhsName 
+								+ "_1" + i + " + " + lhsName + "_1" + (i+1) + ", :");
+					}
+				}
+				sbForRuntimeInline.append(") = ");
+				if (rhsArgsList.get(i).equals(lhsName)) {
+					sbForRuntimeInline.append(lhsName + "_bk;\n");
+				}
+				else {
+					sbForRuntimeInline.append(rhsArgsList.get(i) + ";\n");
+				}
+			}
+			fAssignStmt.setFLHS("! replace " + lhsName);
+			fAssignStmt.setFRHS(rhsString + " with above statements.");
+			RuntimeAllocate runtimeInline = new RuntimeAllocate();
+			runtimeInline.setBlock(sbForRuntimeInline.toString());
+			fAssignStmt.setRuntimeAllocate(runtimeInline);
+			sbForRuntimeInline.setLength(0);
+			sb.setLength(0);
+			vertcat = false;
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
 			}
@@ -1238,14 +1371,26 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						else if (name.equals("randn")) {
 							randnFlag = true;
 						}
-						if (name.equals("horzcat") || name.equals("vertcat")) {
+						else if (name.equals("horzcat")) {
 							rhsArrayAssign = true;
-							horzVertcat = true;
+							horzcat = true;
 							sb.append("[");
 							for (int i = 0; i < inputNum; i++) {
 								node.getChild(1).getChild(i).analyze(this);
 								if (i < inputNum - 1) {
 									sb.append(", ");
+								}
+							}
+							sb.append("]");
+						}
+						else if (name.equals("vertcat")) {
+							rhsArrayAssign = true;
+							vertcat = true;
+							sb.append("[");
+							for (int i = 0; i < inputNum; i++) {
+								node.getChild(1).getChild(i).analyze(this);
+								if (i < inputNum - 1) {
+									sb.append("; ");
 								}
 							}
 							sb.append("]");
@@ -1266,14 +1411,26 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 */
 				else {
 					if (fortranMapping.isFortranEasilyTransformed(name)) {
-						if (name.equals("horzcat") || name.equals("vertcat")) {
+						if (name.equals("horzcat")) {
 							rhsArrayAssign = true;
-							horzVertcat = true;
+							horzcat = true;
 							sb.append("[");
 							for (int i = 0; i < inputNum; i++) {
 								node.getChild(1).getChild(i).analyze(this);
 								if (i < inputNum - 1) {
 									sb.append(", ");
+								}
+							}
+							sb.append("]");
+						}
+						else if (name.equals("vertcat")) {
+							rhsArrayAssign = true;
+							vertcat = true;
+							sb.append("[");
+							for (int i = 0; i < inputNum; i++) {
+								node.getChild(1).getChild(i).analyze(this);
+								if (i < inputNum - 1) {
+									sb.append("; ");
 								}
 							}
 							sb.append("]");
