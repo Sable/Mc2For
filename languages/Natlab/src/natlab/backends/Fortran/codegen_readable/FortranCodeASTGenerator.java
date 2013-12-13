@@ -1086,16 +1086,12 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								// any other expressions?
 							}
 						}
-						else if (name.equals("sqrt")) {
-							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
-							sb.append("(DBLE(");
-							node.getChild(1).getChild(0).analyze(this);
-							sb.append("))");
-						}
 						else {
 							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
 							sb.append("(");
+							if (name.equals("sqrt")) sb.append("DBLE(");
 							node.getChild(1).getChild(0).analyze(this);
+							if (name.equals("sqrt")) sb.append(")");
 							sb.append(")");
 						}				
 					}
@@ -1297,9 +1293,14 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					else if (fortranMapping.isFortranDirectBuiltin(name)) {
 						sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
 						sb.append("(");
+						// TODO the best fix should be checking the mclass of the operands.
+						if (name.equals("mod")) sb.append("DBLE(");
 						node.getChild(1).getChild(0).analyze(this);
+						if (name.equals("mod")) sb.append(")");
 						sb.append(", ");
+						if (name.equals("mod")) sb.append("DBLE(");
 						node.getChild(1).getChild(1).analyze(this);
+						if (name.equals("mod")) sb.append(")");
 						sb.append(")");
 					}
 					else if (fortranMapping.isFortranEasilyTransformed(name)) {

@@ -3,8 +3,7 @@ package natlab.backends.Fortran.codegen_readable;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import ast.ASTNode;
 import ast.*;
@@ -23,7 +22,7 @@ import natlab.toolkits.path.FileEnvironment;
 import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
 
 public class Main_readable {
-
+	static boolean Debug =false;
 	/**
 	 * This main method is just for testing, doesn't follow the convention when passing a 
 	 * file to a program, please replace "fileDir and entry" below with your real testing 
@@ -31,8 +30,8 @@ public class Main_readable {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "/home/aaron/Dropbox/benchmarks/adpt/";
-	    String entryPointFile = "drv_adpt";
+		String fileDir = "/home/aaron/Dropbox/benchmarks/nb1d/";
+	    String entryPointFile = "drv_nb1d";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		
@@ -83,7 +82,7 @@ public class Main_readable {
 		        		.getTemporaryVariablesRemovalAnalysis().getRemainingVariablesNames();
 		        System.err.println("\ntamer plus analysis result: \n" 
 		        		+ fTree.getPrettyPrinted() + "\n");
-		        // System.err.println("remaining variables: \n"+remainingVars);
+		        if (Debug) System.err.println("remaining variables: \n"+remainingVars);
 		        
 		        /*
 		         * Fortran code generation.
@@ -106,14 +105,52 @@ public class Main_readable {
 		        else {
 		        	subprogram.pp(sb);
 		        }
-		        System.err.println("pretty print the generated Fortran code:");
-		        System.out.println(sb);
+
+		        String output = sb.toString();
+				/*
+				 * since variable name in matlab is case-sensitive, while in fortran
+				 * it's case-insensitive, so we have to rename the variable whose 
+				 * name is case-insensitively equivalent to another variable.
+				 */
+		        Map<String, ArrayList<String>> eqNameVars = new HashMap<String, ArrayList<String>>();
+				for (String name : remainingVars) {
+					for (String iterateVar : remainingVars) {
+						if (!name.equals(iterateVar) 
+								&& name.toLowerCase().equals(iterateVar.toLowerCase())) {
+							if (eqNameVars.containsKey(name.toLowerCase())) {
+								ArrayList<String> valueList = eqNameVars.get(name);
+								if (!valueList.contains(name)) {
+									valueList.add(name);
+								}
+							}
+							else {
+								ArrayList<String> valueList = new ArrayList<String>();
+								valueList.add(name);
+								eqNameVars.put(name.toLowerCase(), valueList);
+							}
+						}
+					}
+				}
+				if (Debug) System.out.println("variables are " +
+						"case-insensitively equivalent:" + eqNameVars);
+		        for (String key : eqNameVars.keySet()) {
+		        	for (int j = 0; j < eqNameVars.get(key).size(); j++) {
+		        		String tempVar = eqNameVars.get(key).get(j);
+		        		if (j != 0) {
+		        			output = output.replaceAll("\\b" + tempVar + "\\b", tempVar + "_rn" + j);
+		        		}
+		        	}
+		        }
 				
+				
+		        System.err.println("pretty print the generated Fortran code:");
+		        System.out.println(output);
+		        
 				// write the generated fortran code to files.
 				try {
 					BufferedWriter out = new BufferedWriter(
 							new FileWriter(fileDir + currentFunction + ".f95"));  
-			        out.write(sb.toString());  
+			        out.write(output);  
 			        out.flush();  
 			        out.close(); 
 				} catch(IOException e) {
@@ -184,19 +221,11 @@ public class Main_readable {
 		        		.getTemporaryVariablesRemovalAnalysis().getRemainingVariablesNames();
 		        System.err.println("\ntamer plus analysis result: \n" 
 		        		+ fTree.getPrettyPrinted() + "\n");
-		        // System.err.println("remaining variables: \n"+remainingVars);
+		        if (Debug) System.err.println("remaining variables: \n"+remainingVars);
 		        
 		        /*
 		         * Fortran code generation.
 		         */
-		        
-		        if (options.nocheck()) {
-		        	System.out.println("without run-time ABC code.");
-		        }
-		        else {
-		        	System.out.println("with run-time ABC code.");
-		        }
-		        
 		        Subprogram subprogram = FortranCodeASTGenerator.generateFortran(
 		        		(Function)fTree, 
 		        		currentOutSet, 
@@ -215,8 +244,51 @@ public class Main_readable {
 		        else {
 		        	subprogram.pp(sb);
 		        }
+		        
+		        String output = sb.toString();
+				/*
+				 * since variable name in matlab is case-sensitive, while in fortran
+				 * it's case-insensitive, so we have to rename the variable whose 
+				 * name is case-insensitively equivalent to another variable.
+				 */
+		        Map<String, ArrayList<String>> eqNameVars = new HashMap<String, ArrayList<String>>();
+				for (String name : remainingVars) {
+					for (String iterateVar : remainingVars) {
+						if (!name.equals(iterateVar) 
+								&& name.toLowerCase().equals(iterateVar.toLowerCase())) {
+							if (eqNameVars.containsKey(name.toLowerCase())) {
+								ArrayList<String> valueList = eqNameVars.get(name);
+								if (!valueList.contains(name)) {
+									valueList.add(name);
+								}
+							}
+							else {
+								ArrayList<String> valueList = new ArrayList<String>();
+								valueList.add(name);
+								eqNameVars.put(name.toLowerCase(), valueList);
+							}
+						}
+					}
+				}
+				if (Debug) System.out.println("variables are " +
+						"case-insensitively equivalent:" + eqNameVars);
+		        for (String key : eqNameVars.keySet()) {
+		        	for (int j = 0; j < eqNameVars.get(key).size(); j++) {
+		        		String tempVar = eqNameVars.get(key).get(j);
+		        		if (j != 0) {
+		        			output = output.replaceAll("\\b" + tempVar + "\\b", tempVar + "_rn" + j);
+		        		}
+		        	}
+		        }
+
+		        if (options.nocheck()) {
+		        	System.err.println("***without run-time ABC code***");
+		        }
+		        else {
+		        	System.err.println("***with run-time ABC code***");
+		        }
 		        System.err.println("pretty print the generated Fortran code:");
-		        System.out.println(sb);
+		        System.out.println(output);
 				
 		        // write the transformed result to files.
 		        try {
@@ -224,7 +296,7 @@ public class Main_readable {
 		        			fileEnvironment.getPwd().getPath()
 		        			+ "/"
 		        			+ function.getName() + ".f95"));
-		        	out.write(sb.toString());
+		        	out.write(output);
 		        	out.flush();
 		        	out.close();
 		        } catch (IOException e) {

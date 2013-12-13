@@ -21,37 +21,6 @@ public class HandleCaseFunction {
 			FortranCodeASTGenerator fcg, 
 			Function node) 
 	{
-		/*
-		 * since variable name in matlab is case-sensitive, while in fortran
-		 * it's case_insensitive, so we have to rename the variable whose 
-		 * name is insensitive equivalent to previous variable.
-		 * 
-		 * variable names appear in four places:
-		 * 1. function parameters, both input and output;
-		 * 2. variable declaration section;
-		 * 3. parameterized expression;
-		 * 4. name expression.
-		 */
-		/*for (String name : fcg.remainingVars) {
-			for (String iterateVar : fcg.remainingVars) {
-				if (!name.equals(iterateVar) 
-						&& name.toLowerCase().equals(iterateVar.toLowerCase())) {
-					if (fcg.sameNameVars.containsKey(name.toLowerCase())) {
-						ArrayList<String> valueList = fcg.sameNameVars.get(name);
-						if (!valueList.contains(name)) {
-							valueList.add(name);
-						}
-					}
-					else {
-						ArrayList<String> valueList = new ArrayList<String>();
-						valueList.add(name);
-						fcg.sameNameVars.put(name.toLowerCase(), valueList);
-					}
-				}
-			}
-		}
-		if (Debug) System.out.println("variables are " +
-				"case-insensitively-equivalent:" + fcg.sameNameVars);*/
 		fcg.functionName = node.getName();
 		for (Name param : node.getInputParams()) {
 			fcg.inArgs.add(param.getVarName());
