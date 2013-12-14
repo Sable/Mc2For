@@ -30,8 +30,8 @@ public class Main_readable {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "/home/aaron/Dropbox/benchmarks/nb1d/";
-	    String entryPointFile = "drv_nb1d";
+		String fileDir = "/home/aaron/Dropbox/benchmarks/fdtd/";
+	    String entryPointFile = "drv_fdtd";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		

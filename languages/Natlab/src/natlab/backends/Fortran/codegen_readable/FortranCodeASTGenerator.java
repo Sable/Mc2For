@@ -509,6 +509,18 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				subprogram.getStatementSection().addStatement(fAssignStmt);
 			}
 		}
+		else if (lhsName.indexOf("(") == -1 
+				&& getMatrixValue(lhsName).getShape().isConstant() 
+				&& storageAlloc) {
+			fAssignStmt.setFLHS(lhsName);
+			fAssignStmt.setFRHS("0");
+			if (ifWhileForBlockNest != 0) {
+				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
+			}
+			else {
+				subprogram.getStatementSection().addStatement(fAssignStmt);
+			}
+		}
 		else {
 			// if there is runtime abc or allocate, add here.
 			if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
