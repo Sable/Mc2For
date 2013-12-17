@@ -65,6 +65,7 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("gt", ".GT.");
 		FortranBinOperatorMap.put("ge", ".GE.");
 		FortranBinOperatorMap.put("eq", ".EQ.");
+		FortranBinOperatorMap.put("isequal", ".EQ.");
 		FortranBinOperatorMap.put("ne", ".NE.");
 		// logical operators
 		FortranBinOperatorMap.put("and", ".AND.");
