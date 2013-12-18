@@ -594,7 +594,17 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 */
 				int indexNum = node.getChild(1).getNumChild();
 				int dimensionNum = getMatrixValue(name).getShape().getDimensions().size();
-				if (indexNum != dimensionNum) {
+				if (getMatrixValue(name).getMatlabClass().equals(PrimitiveClassReference.CHAR)) {
+					// indexing a char string is handled differently from other arrays.
+					sb.append(name + "(");
+					node.getChild(1).analyze(this);
+					sb.append(" : ");
+					node.getChild(1).analyze(this);
+					// TODO other index situations? like char(1,i) or char(1:i)?
+					sb.append(")");
+					return;
+				}
+				else if (indexNum != dimensionNum) {
 					/*
 					 * TODO need linear indexing transformation.
 					 */
@@ -1113,6 +1123,29 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								// any other expressions?
 							}
 						}
+						else if (name.equals("min") || name.equals("max")) {
+							if (name.equals("min")) sb.append("MIN(");
+							else sb.append("MAX(");
+							// in matlab, min or max can take in vector as input.
+							if (node.getChild(1) instanceof List 
+									&& node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+								int num = node.getChild(1).getChild(0).getChild(1).getNumChild();
+								for (int i = 0; i < num; i++) {
+									if (num > 2 && i + 2 < num) {
+										if (name.equals("min")) sb.append("MIN(");
+										else sb.append("MAX(");
+									}
+									node.getChild(1).getChild(0).getChild(1).getChild(i).analyze(this);
+									if (num > 2 && (i+1)%2 == 0) {
+										sb.append(")");
+									}
+									if (i + 1 < num) {
+										sb.append(", ");
+									}
+								}
+							}
+							sb.append(")");
+						}
 						else {
 							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
 							sb.append("(");
@@ -1335,17 +1368,43 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append(")");
 					}
 					else if (fortranMapping.isFortranDirectBuiltin(name)) {
-						sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
-						sb.append("(");
-						// TODO the best fix should be checking the mclass of the operands.
-						if (name.equals("mod")) sb.append("DBLE(");
-						node.getChild(1).getChild(0).analyze(this);
-						if (name.equals("mod")) sb.append(")");
-						sb.append(", ");
-						if (name.equals("mod")) sb.append("DBLE(");
-						node.getChild(1).getChild(1).analyze(this);
-						if (name.equals("mod")) sb.append(")");
-						sb.append(")");
+						if (name.equals("mod")) {
+							// TODO the best fix should be checking the mclass of the operands.
+							sb.append("MODULO");
+							sb.append("(DBLE(");
+							node.getChild(1).getChild(0).analyze(this);
+							sb.append("), DBLE(");
+							node.getChild(1).getChild(1).analyze(this);
+							sb.append("))");
+						}
+						else if (name.equals("size")) {
+							// check whether the input is char string.
+							if (node.getChild(1).getChild(0) instanceof NameExpr 
+									&& getMatrixValue(((NameExpr)node.getChild(1)
+											.getChild(0)).getName().getID()).getMatlabClass()
+											.equals(PrimitiveClassReference.CHAR)) {
+									// map it to LEN
+								sb.append("LEN(");
+								node.getChild(1).getChild(0).analyze(this);
+								sb.append(")");
+							}
+							else {
+								sb.append("SHAPE");
+								sb.append("(");
+								node.getChild(1).getChild(0).analyze(this);
+								sb.append(", ");
+								node.getChild(1).getChild(1).analyze(this);
+								sb.append(")");
+							}
+						}
+						else {
+							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
+							sb.append("(");
+							node.getChild(1).getChild(0).analyze(this);
+							sb.append(", ");
+							node.getChild(1).getChild(1).analyze(this);
+							sb.append(")");
+						}
 					}
 					else if (fortranMapping.isFortranEasilyTransformed(name)) {
 						if (Debug) System.out.println("******transformed function name: "+name+"******");

@@ -126,7 +126,7 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("min", "MIN");
 		FortranDirectBuiltinMap.put("max", "MAX");
 		FortranDirectBuiltinMap.put("numel", "SIZE");
-		FortranDirectBuiltinMap.put("size", "SHAPE");
+		FortranDirectBuiltinMap.put("size", "SHAPE"); // for char string, map to LEN.
 		FortranDirectBuiltinMap.put("length", "SIZE");
 		// logical operators
 		FortranDirectBuiltinMap.put("any", "ANY");
