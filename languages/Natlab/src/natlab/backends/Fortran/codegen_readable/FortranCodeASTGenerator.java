@@ -62,6 +62,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	private boolean rhsArrayAssign;
 	private String overloadedRelational;
 	private String overloadedRelationalFlag; // l means lhs is array, r means rhs is array.
+	private boolean needLinearTransform;
 	public boolean forLoopTransform;
 	// temporary variables generated in Fortran code generation.
 	public Map<String, BasicMatrixValue> fotranTemporaries;
@@ -121,6 +122,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		rhsArrayAssign = false;
 		overloadedRelational = "";
 		overloadedRelationalFlag = "";
+		needLinearTransform = false;
 		forLoopTransform = false;
 		fotranTemporaries = new HashMap<String,BasicMatrixValue>();
 		mustBeInt = false;
@@ -249,7 +251,86 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		rhsArrayAssign = false;
 		String lhsName = sb.toString();
 		
-		if (lhsName.isEmpty()) {
+		if (needLinearTransform) {
+			/*
+			 * using a subroutine to perform the array set.
+			 */
+			FSubroutines fSubroutines = new FSubroutines();
+			fSubroutines.setIndent(getMoreIndent(0));
+			StringBuffer temp = new StringBuffer();
+			temp.append("ARRAY_SET");
+			int dim_lhs = getMatrixValue(lhsName).getShape().getDimensions().size();
+			temp.append(dim_lhs);
+			// go through the indice list of lhs
+			for (int i = 0; i < node.getLHS().getChild(1).getNumChild(); i++) {
+				if (node.getLHS().getChild(1).getChild(i) instanceof ColonExpr) {
+					temp.append("C");
+				}
+				else if (node.getLHS().getChild(1).getChild(i) instanceof NameExpr) {
+					Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
+							((NameExpr)node.getLHS().getChild(1).getChild(i))
+							.getName().getID()).getShape();
+					if (tempShape.maybeVector()) {
+						temp.append("V");
+					}
+					else if (tempShape.isScalar()) {
+						temp.append("S");
+					}
+					else {
+						// the index is a matrx!
+						int dim_index = tempShape.getDimensions().size();
+						temp.append(dim_index);
+					}
+				}
+				// TODO other cases.
+			}
+			if (node.getRHS() instanceof ParameterizedExpr) {
+				Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
+						((Name)analysisEngine.getTemporaryVariablesRemovalAnalysis()
+								.getExprToTempVarTable().get(node.getRHS())).getID())
+								.getShape();
+				if (tempShape.maybeVector()) {
+					temp.append("V");
+				}
+				else if (tempShape.isScalar()) {
+					temp.append("S");
+				}
+				else {
+					// the rhs is a matrix!
+					int dim_rhs = tempShape.getDimensions().size();
+					temp.append(dim_rhs);
+				}
+			}
+			else if (node.getRHS() instanceof LiteralExpr) {
+				temp.append("S");
+			}
+			// TODO other cases.
+			allSubprograms.add(temp.toString());
+			temp.append("(" + lhsName);
+			// go through the indice list of lhs again
+			for (int i = 0; i < node.getLHS().getChild(1).getNumChild(); i++) {
+				if (node.getLHS().getChild(1).getChild(i) instanceof ColonExpr) {
+					// do nothing.
+				}
+				else if (node.getLHS().getChild(1).getChild(i) instanceof NameExpr) {
+					temp.append(", INT(" 
+							+ ((NameExpr)node.getLHS().getChild(1).getChild(i)).getName().getID() 
+							+ ")");
+				}
+				// TODO other cases.
+			}
+			temp.append(", DBLE(" + rhsString + "))");
+			fSubroutines.setFunctionCall(temp.toString());
+			needLinearTransform = false;
+			sb.setLength(0);
+			if (ifWhileForBlockNest != 0) {
+				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
+			}
+			else {
+				subprogram.getStatementSection().addStatement(fSubroutines);
+			}			
+		}
+		else if (lhsName.isEmpty()) {
 			// TODO for the case where there is no return value, i.e. the builtin function disp.
 			return;
 		}
@@ -606,9 +687,96 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				}
 				else if (indexNum != dimensionNum) {
 					/*
-					 * TODO need linear indexing transformation.
+					 * TODO need linear indexing transformation, 
+					 * should follow the same naming convention, and 
+					 * add subroutines/functions to the libmc2for.
 					 */
-					
+					if (Debug) System.err.println("There are/is " + indexNum 
+							+ " indices for " + dimensionNum + "dims");
+					if (rightOfAssign) {
+						// TODO linear indexing appears on the rhs.
+					}
+					else if (leftOfAssign) {
+						sb.append(name); // note that no indices list.
+						needLinearTransform = true;
+					}
+					return;
+				}
+				else if (isMatrixAsIndex(node)) {
+					/*
+					 * TODO for the case, using matrix as index. 
+					 * even the indexNum equals dimensionNum, 
+					 * we have to use a user-defined subprogram 
+					 * to perform the indexing, since in fortran, 
+					 * it doesn't allow indexing with a matrix.
+					 */
+					if (Debug) System.err.println("using matrix as index.");
+					if (rightOfAssign) {
+						StringBuffer temp = new StringBuffer();
+						temp.append("ARRAY_GET");
+						Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
+								name).getShape();
+						if (tempShape.maybeVector()) {
+							temp.append("V");
+						}
+						else if (tempShape.isScalar()) {
+							// TODO scalar can be indexed by 1...
+						}
+						else {
+							int dim_array = tempShape.getDimensions().size();
+							temp.append(dim_array);
+						}
+						// go through the indices list.
+						for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
+							if (node.getChild(1).getChild(i) instanceof ColonExpr) {
+								temp.append("C");
+							}
+							else if (node.getChild(1).getChild(i) instanceof NameExpr) {
+								tempShape = getMatrixValue(
+										((NameExpr)node.getChild(1).getChild(i)).getName().getID())
+										.getShape();
+								if (tempShape.maybeVector()) {
+									temp.append("V");
+								}
+								else if (tempShape.isScalar()) {
+									temp.append("S");
+								}
+								else {
+									// the index is a matrx!
+									int dim_index = tempShape.getDimensions().size();
+									temp.append(dim_index);
+								}
+							}
+							else if (node.getChild(1).getChild(i) instanceof ParameterizedExpr) {
+								// TODO
+							}
+							else if (node.getChild(1).getChild(i) instanceof LiteralExpr) {
+								temp.append("S");
+							}
+						}
+						allSubprograms.add(temp.toString());
+						sb.append(temp);
+						sb.append("(" + name);
+						// go through the indices list again.
+						for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
+							if (i + 1 < node.getChild(1).getNumChild() 
+									&& !(node.getChild(1).getChild(i) instanceof ColonExpr)) {
+								sb.append(", ");
+							}
+							if (node.getChild(1).getChild(i) instanceof ColonExpr) {
+								// do nothing.
+							}
+							else {
+								node.getChild(1).getChild(i).analyze(this);
+							}
+						}
+						sb.append(")");
+					}
+					else if (leftOfAssign) {
+						sb.append(name); // note that no indices list.
+						needLinearTransform = true;						
+					}
+					return;
 				}
 				else if (!getMatrixValue(name).getShape().isConstant() 
 						&& rightOfAssign && !nocheck) {
@@ -1999,5 +2167,20 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			n--;
 		}
 		return res;
+	}
+	
+	public boolean isMatrixAsIndex(ParameterizedExpr node) {
+		// no need to check whether the node is array indexing again.
+		for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
+			if (node.getChild(1).getChild(i) instanceof NameExpr) {
+				Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
+						((NameExpr)node.getChild(1).getChild(i))
+						.getName().getID()).getShape();
+				if (!tempShape.maybeVector() && !tempShape.isScalar()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
