@@ -244,14 +244,23 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				rhsArrayAssign = true;
 			}
 		}
-		
+		needLinearTransform = false; // reset
 		leftOfAssign = true;
 		node.getLHS().analyze(this);
 		leftOfAssign = false;
 		rhsArrayAssign = false;
 		String lhsName = sb.toString();
+		boolean specialCase = false;
+		if (needLinearTransform && node.getRHS() instanceof ParameterizedExpr) {
+			if (getMatrixValue(lhsName).getShape().equals(getMatrixValue(
+					((Name)analysisEngine.getTemporaryVariablesRemovalAnalysis()
+							.getExprToTempVarTable().get(node.getRHS()))
+							.getID()).getShape().eliminateLeadingOnes())) {
+				specialCase = true;
+			}
+		}
 		
-		if (needLinearTransform) {
+		if (needLinearTransform && !specialCase) {
 			/*
 			 * using a subroutine to perform the array set.
 			 */
@@ -696,12 +705,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							+ " indices for " + dimensionNum + "dims");
 					if (rightOfAssign) {
 						// TODO linear indexing appears on the rhs.
+						return;
 					}
 					else if (leftOfAssign) {
 						sb.append(name); // note that no indices list.
 						needLinearTransform = true;
+						return;
 					}
-					return;
 				}
 				else if (isMatrixAsIndex(node)) {
 					/*
@@ -1389,11 +1399,23 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							}
 						}
 						else if (name.equals("mean")) {
-							sb.append("(SUM(");
-							node.getChild(1).analyze(this);
-							sb.append(") / SIZE(");
-							node.getChild(1).analyze(this);
-							sb.append("))");
+							if (node.getChild(1).getChild(0) instanceof NameExpr 
+									&& getMatrixValue(((NameExpr)node.getChild(1).getChild(0))
+											.getName().getID()).getShape().getDimensions().size() > 2) {
+								sb.append("(SUM(");
+								node.getChild(1).analyze(this);
+								sb.append(", 1) / SIZE(");
+								node.getChild(1).analyze(this);
+								sb.append(", 1))");
+							}
+							// TODO other cases, like ParameterizedExpr?
+							else {
+								sb.append("(SUM(");
+								node.getChild(1).analyze(this);
+								sb.append(") / SIZE(");
+								node.getChild(1).analyze(this);
+								sb.append("))");
+							}
 						}
 					}
 					else {
