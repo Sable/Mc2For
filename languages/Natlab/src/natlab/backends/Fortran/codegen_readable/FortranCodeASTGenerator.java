@@ -685,7 +685,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					sb.append(")");
 					return;
 				}
-				else if (indexNum != dimensionNum) {
+				else if (indexNum != dimensionNum 
+						&& !getMatrixValue(name).getShape().maybeVector()) {
 					/*
 					 * TODO need linear indexing transformation, 
 					 * should follow the same naming convention, and 
@@ -790,328 +791,373 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				else if (!getMatrixValue(name).getShape().isConstant() 
 						&& leftOfAssign) {
 					/*
-					 * add runtime abc and reallocation, also add a back up 
-					 * variable for the indexed array variable.
+					 * for some cases, although the shape of the accessed array is non-constant, 
+					 * we still can avoid inlining unnecessary array bounding checking, i.e., 
+					 * if the shape of arr is [?, 3], the indexing arr(:, 3) is for sure in the 
+					 * bounds of the array arr.
 					 */
-					if (Debug) System.out.println("unknown shape array indexing " +
-							"on left hand side, need run-time abc and reallocation.");
-					sbForRuntimeInline.append("! need run-time alloc/abc and realloc.\n");
-					backupTempArrays.add(name);
-					/*
-					 * the name of array is node.getChild(0), 
-					 * the index of array is node.getChild(1).getChild(i).
-					 * 
-					 * currently, for the linear indexing, only support the case 
-					 * one index and two dimensional array.
-					 */
-					insideArray++;
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							// do nothing.
+					boolean safe = true;
+					for (int i = 0; i < indexNum; i++) {
+						if (node.getChild(1).getChild(i) instanceof NameExpr) {
+							safe = false;
 						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							// do nothing.
+						else if (node.getChild(1).getChild(i) instanceof ParameterizedExpr) {
+							safe = false;
 						}
-						else {
-							sbForRuntimeInline.append(getMoreIndent(0) + name + "_d" + (i+1) 
-									+ " = SIZE(" + name + ", " + (i+1) + ");\n");
+						else if (node.getChild(1).getChild(i) instanceof ColonExpr) {
+							safe = true;
 						}
-					}
-					sbForRuntimeInline.append(getMoreIndent(0) + "IF (");
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							// do nothing.
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							node.getChild(1).getChild(0).analyze(this);
-							String indexCurrent = sb.toString();
-							sb.setLength(0);
-							if (!indexCurrent.equals(":")) {
-								indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
-								try {
-									sbForRuntimeInline.append(Integer.parseInt(indexCurrent) + " > " 
-											+ name + "_d" + (i+1));
-								} catch (Exception e) {
-									sbForRuntimeInline.append("INT(" + indexCurrent + ") > " 
-											+ name + "_d" + (i+1));
+						else if (node.getChild(1).getChild(i) instanceof IntLiteralExpr) {
+							int idx = ((IntLiteralExpr)node.getChild(1).getChild(i))
+									.getValue().getValue().intValue();
+							if (getMatrixValue(name).getShape().getDimensions()
+									.get(i).hasIntValue()) {
+								int currentDim = getMatrixValue(name).getShape()
+										.getDimensions().get(i).getIntValue();
+								if (idx >= 1 && idx <= currentDim) {
+									safe = true;
 								}
-							}
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							// do nothing.
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							node.getChild(1).getChild(0).analyze(this);
-							String indexCurrent = sb.toString();
-							sb.setLength(0);
-							if (!indexCurrent.equals(":")) {
-								indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
-								try {
-									sbForRuntimeInline.append(Integer.parseInt(indexCurrent) + " > " 
-											+ name + "_d" + (i+1));
-								} catch (Exception e) {
-									sbForRuntimeInline.append("INT(" + indexCurrent + ") > " 
-											+ name + "_d" + (i+1));
-								}
-							}
-						}
-						else {
-							node.getChild(1).getChild(i).analyze(this);
-							String indexCurrent = sb.toString();
-							sb.setLength(0);
-							if (!indexCurrent.equals(":")) {
-								indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
-								try {
-									sbForRuntimeInline.append(Integer.parseInt(indexCurrent) + " > " 
-											+ name + "_d" + (i+1));
-								} catch (Exception e) {
-									sbForRuntimeInline.append("INT(" + indexCurrent + ") > " 
-											+ name + "_d" + (i+1));
-								}
-							}
-							if (i + 1 < dimensionNum 
-									&& !indexCurrent.equals(":") 
-									&& !node.getChild(1).getChild(i+1).getPrettyPrinted().equals(":")) {
-								sbForRuntimeInline.append(" .OR. ");
-							}
-						}
-					}
-					sbForRuntimeInline.append(") THEN\n");
-					sbForRuntimeInline.append(getMoreIndent(1) + "IF (ALLOCATED(" 
-							+ name + "_bk)) THEN\n");
-					sbForRuntimeInline.append(getMoreIndent(2) + "DEALLOCATE(" + name 
-							+ "_bk" + ");\n");
-					sbForRuntimeInline.append(getMoreIndent(1) + "END IF\n");
-					sbForRuntimeInline.append(getMoreIndent(1) + "ALLOCATE(" + name + "_bk(");
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							sbForRuntimeInline.append("1");
-							
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							sbForRuntimeInline.append("1");
-						}
-						else {
-							sbForRuntimeInline.append(name + "_d" + (i+1));
-						}
-						if (i + 1 < dimensionNum) {
-							sbForRuntimeInline.append(", ");
-						}
-					}
-					sbForRuntimeInline.append("));\n");
-					sbForRuntimeInline.append(getMoreIndent(1) + name + "_bk = " + name + ";\n");
-					sbForRuntimeInline.append(getMoreIndent(1) + "DEALLOCATE(" + name + ");\n");
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							// do nothing.
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							node.getChild(1).getChild(0).analyze(this);
-							String indexCurrent = sb.toString();
-							sb.setLength(0);
-							if (!indexCurrent.equals(":")) {
-								indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
-								try {
-									sbForRuntimeInline.append(getMoreIndent(1) + name 
-											+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", " 
-											+ Integer.parseInt(indexCurrent) + ");\n");
-								} catch (Exception e) {
-									sbForRuntimeInline.append(getMoreIndent(1) + name 
-											+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", INT(" 
-											+ indexCurrent + "));\n");
+								else {
+									safe = false;
 								}
 							}
 							else {
-								sbForRuntimeInline.append(getMoreIndent(1) + name 
-										+ "_d" + (i+1) + "max = " + name + "_d" + (i+1) + ";\n");
+								safe = false;
 							}
 						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							// do nothing.
+						else {
+							safe = false;
 						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							node.getChild(1).getChild(0).analyze(this);
-							String indexCurrent = sb.toString();
-							sb.setLength(0);
-							if (!indexCurrent.equals(":")) {
-								indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
-								try {
-									sbForRuntimeInline.append(getMoreIndent(1) + name 
-											+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", " 
-											+ Integer.parseInt(indexCurrent) + ");\n");
-								} catch (Exception e) {
-									sbForRuntimeInline.append(getMoreIndent(1) + name 
-											+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", INT(" 
-											+ indexCurrent + "));\n");
+						/* if there is one dimension indexing is unsafe, 
+						 * we need inlining abc.
+						 */
+						if (!safe) break;
+					}
+					if (!safe) {
+						/*
+						 * add runtime abc and reallocation, also add a back up 
+						 * variable for the indexed array variable.
+						 */
+						if (Debug) System.out.println("unknown shape array indexing " +
+								"on left hand side, need run-time abc and reallocation.");
+						sbForRuntimeInline.append("! need run-time alloc/abc and realloc.\n");
+						backupTempArrays.add(name);
+						/*
+						 * the name of array is node.getChild(0), 
+						 * the index of array is node.getChild(1).getChild(i).
+						 * 
+						 * currently, for the linear indexing, only support the case 
+						 * one index and two dimensional array.
+						 */
+						insideArray++;
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								// do nothing.
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								// do nothing.
+							}
+							else {
+								sbForRuntimeInline.append(getMoreIndent(0) + name + "_d" + (i+1) 
+										+ " = SIZE(" + name + ", " + (i+1) + ");\n");
+							}
+						}
+						sbForRuntimeInline.append(getMoreIndent(0) + "IF (");
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								// do nothing.
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								node.getChild(1).getChild(0).analyze(this);
+								String indexCurrent = sb.toString();
+								sb.setLength(0);
+								if (!indexCurrent.equals(":")) {
+									indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
+									try {
+										sbForRuntimeInline.append(Integer.parseInt(indexCurrent) + " > " 
+												+ name + "_d" + (i+1));
+									} catch (Exception e) {
+										sbForRuntimeInline.append("INT(" + indexCurrent + ") > " 
+												+ name + "_d" + (i+1));
+									}
+								}
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								// do nothing.
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								node.getChild(1).getChild(0).analyze(this);
+								String indexCurrent = sb.toString();
+								sb.setLength(0);
+								if (!indexCurrent.equals(":")) {
+									indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
+									try {
+										sbForRuntimeInline.append(Integer.parseInt(indexCurrent) + " > " 
+												+ name + "_d" + (i+1));
+									} catch (Exception e) {
+										sbForRuntimeInline.append("INT(" + indexCurrent + ") > " 
+												+ name + "_d" + (i+1));
+									}
 								}
 							}
 							else {
-								sbForRuntimeInline.append(getMoreIndent(1) + name 
-										+ "_d" + (i+1) + "max = " + name + "_d" + (i+1) + ";\n");
+								node.getChild(1).getChild(i).analyze(this);
+								String indexCurrent = sb.toString();
+								sb.setLength(0);
+								if (!indexCurrent.equals(":")) {
+									indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
+									try {
+										sbForRuntimeInline.append(Integer.parseInt(indexCurrent) + " > " 
+												+ name + "_d" + (i+1));
+									} catch (Exception e) {
+										sbForRuntimeInline.append("INT(" + indexCurrent + ") > " 
+												+ name + "_d" + (i+1));
+									}
+								}
+								if (i + 1 < dimensionNum 
+										&& !indexCurrent.equals(":") 
+										&& !node.getChild(1).getChild(i+1).getPrettyPrinted().equals(":")) {
+									sbForRuntimeInline.append(" .OR. ");
+								}
 							}
 						}
-						else {
-							node.getChild(1).getChild(i).analyze(this);
-							String indexCurrent = sb.toString();
-							sb.setLength(0);
-							if (!indexCurrent.equals(":")) {
-								indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
-								try {
+						sbForRuntimeInline.append(") THEN\n");
+						sbForRuntimeInline.append(getMoreIndent(1) + "IF (ALLOCATED(" 
+								+ name + "_bk)) THEN\n");
+						sbForRuntimeInline.append(getMoreIndent(2) + "DEALLOCATE(" + name 
+								+ "_bk" + ");\n");
+						sbForRuntimeInline.append(getMoreIndent(1) + "END IF\n");
+						sbForRuntimeInline.append(getMoreIndent(1) + "ALLOCATE(" + name + "_bk(");
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								sbForRuntimeInline.append("1");
+								
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								sbForRuntimeInline.append("1");
+							}
+							else {
+								sbForRuntimeInline.append(name + "_d" + (i+1));
+							}
+							if (i + 1 < dimensionNum) {
+								sbForRuntimeInline.append(", ");
+							}
+						}
+						sbForRuntimeInline.append("));\n");
+						sbForRuntimeInline.append(getMoreIndent(1) + name + "_bk = " + name + ";\n");
+						sbForRuntimeInline.append(getMoreIndent(1) + "DEALLOCATE(" + name + ");\n");
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								// do nothing.
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								node.getChild(1).getChild(0).analyze(this);
+								String indexCurrent = sb.toString();
+								sb.setLength(0);
+								if (!indexCurrent.equals(":")) {
+									indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
+									try {
+										sbForRuntimeInline.append(getMoreIndent(1) + name 
+												+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", " 
+												+ Integer.parseInt(indexCurrent) + ");\n");
+									} catch (Exception e) {
+										sbForRuntimeInline.append(getMoreIndent(1) + name 
+												+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", INT(" 
+												+ indexCurrent + "));\n");
+									}
+								}
+								else {
 									sbForRuntimeInline.append(getMoreIndent(1) + name 
-											+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", " 
-											+ Integer.parseInt(indexCurrent) + ");\n");
-								} catch (Exception e) {
+											+ "_d" + (i+1) + "max = " + name + "_d" + (i+1) + ";\n");
+								}
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								// do nothing.
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								node.getChild(1).getChild(0).analyze(this);
+								String indexCurrent = sb.toString();
+								sb.setLength(0);
+								if (!indexCurrent.equals(":")) {
+									indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
+									try {
+										sbForRuntimeInline.append(getMoreIndent(1) + name 
+												+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", " 
+												+ Integer.parseInt(indexCurrent) + ");\n");
+									} catch (Exception e) {
+										sbForRuntimeInline.append(getMoreIndent(1) + name 
+												+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", INT(" 
+												+ indexCurrent + "));\n");
+									}
+								}
+								else {
 									sbForRuntimeInline.append(getMoreIndent(1) + name 
-											+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", INT(" 
-											+ indexCurrent + "));\n");
+											+ "_d" + (i+1) + "max = " + name + "_d" + (i+1) + ";\n");
 								}
 							}
 							else {
-								sbForRuntimeInline.append(getMoreIndent(1) + name 
-										+ "_d" + (i+1) + "max = " + name + "_d" + (i+1) + ";\n");
+								node.getChild(1).getChild(i).analyze(this);
+								String indexCurrent = sb.toString();
+								sb.setLength(0);
+								if (!indexCurrent.equals(":")) {
+									indexCurrent = indexCurrent.substring(indexCurrent.indexOf(":") + 1);
+									try {
+										sbForRuntimeInline.append(getMoreIndent(1) + name 
+												+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", " 
+												+ Integer.parseInt(indexCurrent) + ");\n");
+									} catch (Exception e) {
+										sbForRuntimeInline.append(getMoreIndent(1) + name 
+												+ "_d" + (i+1) + "max = MAX(" + name + "_d" + (i+1) + ", INT(" 
+												+ indexCurrent + "));\n");
+									}
+								}
+								else {
+									sbForRuntimeInline.append(getMoreIndent(1) + name 
+											+ "_d" + (i+1) + "max = " + name + "_d" + (i+1) + ";\n");
+								}
 							}
 						}
+						sbForRuntimeInline.append(getMoreIndent(1) + "ALLOCATE(" + name + "(");
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								sbForRuntimeInline.append("1");
+								
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								sbForRuntimeInline.append("1");
+							}
+							else {
+								sbForRuntimeInline.append(name + "_d" + (i+1) + "max");
+							}
+							if (i + 1 < dimensionNum) {
+								sbForRuntimeInline.append(", ");
+							}
+						}
+						sbForRuntimeInline.append("));\n");
+						sbForRuntimeInline.append(getMoreIndent(1) + name + "(");
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								sbForRuntimeInline.append("1");
+								
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								sbForRuntimeInline.append("1");
+							}
+							else {
+								sbForRuntimeInline.append("1:" + name + "_d" + (i+1));
+							}
+							if (i + 1 < dimensionNum) {
+								sbForRuntimeInline.append(", ");
+							}
+						}
+						sbForRuntimeInline.append(") = " + name + "_bk(");
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								sbForRuntimeInline.append("1");
+								
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								sbForRuntimeInline.append("1");
+							}
+							else {
+								sbForRuntimeInline.append("1:" + name + "_d" + (i+1));
+							}
+							if (i + 1 < dimensionNum) {
+								sbForRuntimeInline.append(", ");
+							}
+						}
+						sbForRuntimeInline.append(");\n");
+						sbForRuntimeInline.append(getMoreIndent(0) + "END IF\n");
+						sbForRuntimeInline.append(getMoreIndent(0) + "!\n");
+						for (int i = 0; i < dimensionNum; i++) {
+							if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 0 
+									&& getMatrixValue(name).getShape().isRowVector()) {
+								// do nothing.
+								
+							}
+							else if (indexNum == 1 
+									&& dimensionNum == 2 
+									&& i == 1 
+									&& getMatrixValue(name).getShape().isColVector()) {
+								// do nothing.
+							}
+							else {
+								fotranTemporaries.put(name + "_d" + (i+1), new BasicMatrixValue(
+										null, 
+										PrimitiveClassReference.INT32, 
+										new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+										null, 
+										new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+										.newisComplexInfoFromStr("REAL")
+										));
+								fotranTemporaries.put(name + "_d" + (i+1) + "max", new BasicMatrixValue(
+										null, 
+										PrimitiveClassReference.INT32, 
+										new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+										null, 
+										new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+										.newisComplexInfoFromStr("REAL")
+										));
+							}
+						}
+						insideArray--;
 					}
-					sbForRuntimeInline.append(getMoreIndent(1) + "ALLOCATE(" + name + "(");
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							sbForRuntimeInline.append("1");
-							
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							sbForRuntimeInline.append("1");
-						}
-						else {
-							sbForRuntimeInline.append(name + "_d" + (i+1) + "max");
-						}
-						if (i + 1 < dimensionNum) {
-							sbForRuntimeInline.append(", ");
-						}
-					}
-					sbForRuntimeInline.append("));\n");
-					sbForRuntimeInline.append(getMoreIndent(1) + name + "(");
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							sbForRuntimeInline.append("1");
-							
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							sbForRuntimeInline.append("1");
-						}
-						else {
-							sbForRuntimeInline.append("1:" + name + "_d" + (i+1));
-						}
-						if (i + 1 < dimensionNum) {
-							sbForRuntimeInline.append(", ");
-						}
-					}
-					sbForRuntimeInline.append(") = " + name + "_bk(");
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							sbForRuntimeInline.append("1");
-							
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							sbForRuntimeInline.append("1");
-						}
-						else {
-							sbForRuntimeInline.append("1:" + name + "_d" + (i+1));
-						}
-						if (i + 1 < dimensionNum) {
-							sbForRuntimeInline.append(", ");
-						}
-					}
-					sbForRuntimeInline.append(");\n");
-					sbForRuntimeInline.append(getMoreIndent(0) + "END IF\n");
-					sbForRuntimeInline.append(getMoreIndent(0) + "!\n");
-					for (int i = 0; i < dimensionNum; i++) {
-						if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 0 
-								&& getMatrixValue(name).getShape().isRowVector()) {
-							// do nothing.
-							
-						}
-						else if (indexNum == 1 
-								&& dimensionNum == 2 
-								&& i == 1 
-								&& getMatrixValue(name).getShape().isColVector()) {
-							// do nothing.
-						}
-						else {
-							fotranTemporaries.put(name + "_d" + (i+1), new BasicMatrixValue(
-									null, 
-									PrimitiveClassReference.INT32, 
-									new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-									null, 
-									new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
-									.newisComplexInfoFromStr("REAL")
-									));
-							fotranTemporaries.put(name + "_d" + (i+1) + "max", new BasicMatrixValue(
-									null, 
-									PrimitiveClassReference.INT32, 
-									new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-									null, 
-									new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
-									.newisComplexInfoFromStr("REAL")
-									));
-						}
-					}
-					insideArray--;
 				}
 				/*
 				 * since we already know the name is the array's name, we 
