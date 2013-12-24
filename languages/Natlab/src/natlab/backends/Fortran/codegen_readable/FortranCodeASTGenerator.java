@@ -55,7 +55,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	private boolean randnFlag;
 	private boolean leftOfAssign;
 	private boolean rightOfAssign;
-	private boolean storageAlloc;
+	private boolean zerosAlloc;
+	private boolean colonAlloc;
 	private boolean horzcat;
 	private boolean vertcat;
 	public Set<String> horzVertPrealloc;
@@ -115,7 +116,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		randnFlag = false;
 		leftOfAssign = false;
 		rightOfAssign = false;
-		storageAlloc = false;
+		zerosAlloc = false;
+		colonAlloc = false;
 		horzcat = false;
 		vertcat = false;
 		horzVertPrealloc = new HashSet<String>();
@@ -279,10 +281,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
 							((NameExpr)node.getLHS().getChild(1).getChild(i))
 							.getName().getID()).getShape();
-					if (tempShape.maybeVector()) {
-						temp.append("V");
-					}
-					else if (tempShape.isScalar()) {
+					if (tempShape.isScalar()) {
 						temp.append("S");
 					}
 					else {
@@ -298,10 +297,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						((Name)analysisEngine.getTemporaryVariablesRemovalAnalysis()
 								.getExprToTempVarTable().get(node.getRHS())).getID())
 								.getShape();
-				if (tempShape.maybeVector()) {
-					temp.append("V");
-				}
-				else if (tempShape.isScalar()) {
+				if (tempShape.isScalar()) {
 					temp.append("S");
 				}
 				else {
@@ -376,7 +372,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			FSubroutines fSubroutines = new FSubroutines();
 			fSubroutines.setIndent(getMoreIndent(0));
 			fSubroutines.setFunctionCall(rhsString.substring(0, rhsString.length()-1) + ", " + lhsName + ")");
-			if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
+			if (sbForRuntimeInline.length() != 0 && !zerosAlloc) {
 				RuntimeAllocate runtimeInline = new RuntimeAllocate();
 				runtimeInline.setBlock(sbForRuntimeInline.toString());
 				fSubroutines.setRuntimeAllocate(runtimeInline);
@@ -601,7 +597,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		}
 		else if (lhsName.indexOf("(") == -1 
 				&& getMatrixValue(lhsName).getShape().isConstant() 
-				&& storageAlloc) {
+				&& zerosAlloc) {
 			fAssignStmt.setFLHS(lhsName);
 			fAssignStmt.setFRHS("0");
 			if (ifWhileForBlockNest != 0) {
@@ -613,7 +609,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		}
 		else {
 			// if there is runtime abc or allocate, add here.
-			if (sbForRuntimeInline.length() != 0 && !storageAlloc) {
+			if (sbForRuntimeInline.length() != 0 && !zerosAlloc) {
 				RuntimeAllocate runtimeInline = new RuntimeAllocate();
 				runtimeInline.setBlock(sbForRuntimeInline.toString());
 				fAssignStmt.setRuntimeAllocate(runtimeInline);
@@ -621,7 +617,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			}
 			else if (lhsName.indexOf("(") == -1 
 					&& !getMatrixValue(lhsName).getShape().isConstant() 
-					&& storageAlloc) {
+					&& zerosAlloc) {
 				sbForRuntimeInline.setLength(0);
 				RuntimeAllocate runtimeInline = new RuntimeAllocate();
 				sbForRuntimeInline.append("IF (.NOT.ALLOCATED(" 
@@ -635,11 +631,11 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			sb.setLength(0);
 			if (lhsName.indexOf("(") == -1 
 					&& !getMatrixValue(lhsName).getShape().isConstant() 
-					&& storageAlloc) {
+					&& zerosAlloc) {
 				ExtraInlined extraInlined = new ExtraInlined();
 				extraInlined.setBlock("END IF");
 				fAssignStmt.setExtraInlined(extraInlined);
-				storageAlloc = false;
+				zerosAlloc = false;
 			}
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
@@ -725,12 +721,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					if (rightOfAssign) {
 						StringBuffer temp = new StringBuffer();
 						temp.append("ARRAY_GET");
-						Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
-								name).getShape();
-						if (tempShape.maybeVector()) {
-							temp.append("V");
-						}
-						else if (tempShape.isScalar()) {
+						Shape<AggrValue<BasicMatrixValue>> tempShape = 
+								getMatrixValue(name).getShape();
+						if (tempShape.isScalar()) {
 							// TODO scalar can be indexed by 1...
 						}
 						else {
@@ -743,13 +736,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								temp.append("C");
 							}
 							else if (node.getChild(1).getChild(i) instanceof NameExpr) {
-								tempShape = getMatrixValue(
-										((NameExpr)node.getChild(1).getChild(i)).getName().getID())
-										.getShape();
-								if (tempShape.maybeVector()) {
-									temp.append("V");
-								}
-								else if (tempShape.isScalar()) {
+								tempShape = getMatrixValue(((NameExpr)node.getChild(1)
+										.getChild(i)).getName().getID()).getShape();
+								if (tempShape.isScalar()) {
 									temp.append("S");
 								}
 								else {
@@ -760,6 +749,17 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							}
 							else if (node.getChild(1).getChild(i) instanceof ParameterizedExpr) {
 								// TODO
+								tempShape = getMatrixValue(((Name)analysisEngine
+										.getTemporaryVariablesRemovalAnalysis().getExprToTempVarTable()
+										.get(node.getChild(1).getChild(i))).getID()).getShape();
+								if (tempShape.isScalar()) {
+									temp.append("S");
+								}
+								else {
+									// the index is a matrx!
+									int dim_index = tempShape.getDimensions().size();
+									temp.append(dim_index);
+								}
 							}
 							else if (node.getChild(1).getChild(i) instanceof LiteralExpr) {
 								temp.append("S");
@@ -770,8 +770,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append("(" + name);
 						// go through the indices list again.
 						for (int i = 0; i < node.getChild(1).getNumChild(); i++) {
-							if (i + 1 < node.getChild(1).getNumChild() 
-									&& !(node.getChild(1).getChild(i) instanceof ColonExpr)) {
+							if (i + 1 < node.getChild(1).getNumChild()) {
 								sb.append(", ");
 							}
 							if (node.getChild(1).getChild(i) instanceof ColonExpr) {
@@ -1300,7 +1299,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 * TODO does rand and randn count?
 				 */
 				if (name.equals("zeros")) {
-					storageAlloc = true;
+					zerosAlloc = true;
 				}
 				/*
 				 * functions with only one input or operand.
@@ -1324,7 +1323,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						node.getChild(1).getChild(0).analyze(this);
 					}
 					else if (fortranMapping.isFortranDirectBuiltin(name)) {
-						if (name.equals("transpose")) {
+						/*if (name.equals("transpose")) {
 							if (node.getChild(1).getChild(0) instanceof NameExpr) {
 								String input = ((NameExpr)node.getChild(1).getChild(0)).getName().getID();
 								if (getMatrixValue(input).getShape().maybeVector()) {
@@ -1346,8 +1345,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							else {
 								// any other expressions?
 							}
-						}
-						else if (name.equals("min") || name.equals("max")) {
+						}*/
+						if (name.equals("min") || name.equals("max")) {
 							if (name.equals("min")) sb.append("MIN(");
 							else sb.append("MAX(");
 							// in matlab, min or max can take in vector as input.
@@ -1699,6 +1698,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 										new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
 										.newisComplexInfoFromStr("REAL")
 										));
+								if (rightOfAssign) {
+									colonAlloc = true;
+								}
 							}
 						}
 						else if (name.equals("ldivide")) {
@@ -1786,6 +1788,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 										new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
 										.newisComplexInfoFromStr("REAL")
 										));
+								if (rightOfAssign) {
+									colonAlloc = true;
+								}
 							}							
 						}
 						else if (name.equals("horzcat")) {
@@ -1874,7 +1879,6 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		if (Debug) System.out.println("nameExpr:" + name);
 		if (remainingVars.contains(name)) {
 			if (Debug) System.out.println(name+" is a variable.");
-			
 			if (inArgs.contains(name) && leftOfAssign && insideArray == 0) {
 				inputHasChanged.add(name);
 			}
@@ -1891,8 +1895,38 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				sb.append(name);
 			}
 			else {
-				if (!getMatrixValue(name).getShape().isConstant() && leftOfAssign) {
+				if (!getMatrixValue(name).getShape().isConstant() 
+						&& leftOfAssign 
+						&& !zerosAlloc) {
+					/*
+					 * well, this is one option to add runtime allocate, we can also 
+					 * add runtime allocate in assignment statement.
+					 */
 					sbForRuntimeInline.append("! seems need runtime allocate before assigning.\n");
+					AssignStmt reference = (AssignStmt)node.getParent().getParent()
+							.getParent().getParent().getParent();
+					StringBuffer backBuffer = new StringBuffer(sb);
+					sb.setLength(0);
+					leftOfAssign = false;
+					rightOfAssign = true;
+					reference.getRHS().analyze(this);
+					rightOfAssign = false;
+					leftOfAssign = true;
+					String rhsString = sb.toString();
+					sb.setLength(0);
+					sb.append(backBuffer);
+					if (getMatrixValue(name).getShape().isRowVector()) {
+						sbForRuntimeInline.append(getMoreIndent(0) 
+								+ "IF (.NOT.ALLOCATED(" + name + ")) THEN\n" 
+								+ getMoreIndent(1) + "ALLOCATE(" + name + "(1, SIZE(" + rhsString + ")));\n" 
+								+ getMoreIndent(0) + "END IF\n");
+					}
+					else if (getMatrixValue(name).getShape().isColVector()) {
+						sbForRuntimeInline.append(getMoreIndent(0) 
+								+ "IF (.NOT.ALLOCATED(" + name + ")) THEN\n" 
+								+ getMoreIndent(1) + "ALLOCATE(" + name + "(SIZE(" + rhsString + "), 1));\n" 
+								+ getMoreIndent(0) + "END IF\n");
+					}
 				}
 				/*
 				 * hack to convert 2 ranks array to 1 rank vector in Fortran, 
@@ -1916,6 +1950,22 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						&& rhsArrayAssign) {
 					sb.append(name + "(:, 1)");
 				}
+				else if (!getMatrixValue(name).getMatlabClass().equals(PrimitiveClassReference.CHAR)
+						&& getMatrixValue(name).getShape().isRowVector() 
+						&& leftOfAssign 
+						&& insideArray == 0 
+						&& colonAlloc) {
+					sb.append(name + "(1, :)");
+					colonAlloc = false;
+				}
+				else if (!getMatrixValue(name).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+						&& getMatrixValue(name).getShape().isColVector() 
+						&& leftOfAssign 
+						&& insideArray == 0 
+						&& colonAlloc) {
+					sb.append(name + "(:, 1)");
+					colonAlloc = false;
+				}
 				// for rhs.
 				else if (!getMatrixValue(name).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& getMatrixValue(name).getShape().isRowVector() 
@@ -1930,6 +1980,32 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						&& getMatrixValue(name).getShape().isConstant() 
 						&& rightOfAssign 
 						&& insideArray == 0) {
+					sb.append(name + "(:, 1)");
+					rhsArrayAssign = true;
+				}
+				else if (!getMatrixValue(name).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+						&& getMatrixValue(name).getShape().isRowVector() 
+						// && getMatrixValue(name).getShape().isConstant() 
+						&& rightOfAssign 
+						&& insideArray == 0 
+						&& node.getParent().getParent() instanceof ParameterizedExpr 
+						&& !((NameExpr)((ParameterizedExpr)(node.getParent()
+								.getParent())).getChild(0)).getName().getID().equals("transpose") 
+						&& !((NameExpr)((ParameterizedExpr)(node.getParent()
+								.getParent())).getChild(0)).getName().getID().equals("mtimes")) {
+					sb.append(name + "(1, :)");
+					rhsArrayAssign = true;
+				}
+				else if (!getMatrixValue(name).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
+						&& getMatrixValue(name).getShape().isColVector() 
+						// && getMatrixValue(name).getShape().isConstant() 
+						&& rightOfAssign 
+						&& insideArray == 0 
+						&& node.getParent().getParent() instanceof ParameterizedExpr 
+						&& !((NameExpr)((ParameterizedExpr)(node.getParent()
+								.getParent())).getChild(0)).getName().getID().equals("transpose") 
+						&& !((NameExpr)((ParameterizedExpr)(node.getParent()
+								.getParent())).getChild(0)).getName().getID().equals("mtimes")) {
 					sb.append(name + "(:, 1)");
 					rhsArrayAssign = true;
 				}
@@ -2244,10 +2320,20 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
 						((NameExpr)node.getChild(1).getChild(i))
 						.getName().getID()).getShape();
-				if (!tempShape.maybeVector() && !tempShape.isScalar()) {
+				if (!tempShape.isScalar() && !tempShape.maybeVector()) {
 					return true;
 				}
 			}
+			else if (node.getChild(1).getChild(i) instanceof ParameterizedExpr) {
+				Shape<AggrValue<BasicMatrixValue>> tempShape = getMatrixValue(
+						((Name)analysisEngine.getTemporaryVariablesRemovalAnalysis()
+								.getExprToTempVarTable().get(node.getChild(1)
+										.getChild(i))).getID()).getShape();
+				if (!tempShape.isScalar() && !tempShape.maybeVector()) {
+					return true;
+				}
+			}
+			// TODO other cases.
 		}
 		return false;
 	}
