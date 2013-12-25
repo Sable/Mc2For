@@ -34,9 +34,16 @@ public class HandleCaseForStmt {
 			/*
 			 * add for loop transformation.
 			 */
-			stmt.setFForCondition(varName + "_rangeVar = " + rangeVars[0] 
-					+ ", INT((" + rangeVars[1] + " - " + rangeVars[0] 
-							+ ") / " + rangeVars[2] + " + 1)");
+			try {
+				int start = Integer.parseInt(rangeVars[0]);
+				stmt.setFForCondition(varName + "_rangeVar = " + start 
+						+ ", INT((" + rangeVars[1] + " - " + rangeVars[0] 
+								+ ") / " + rangeVars[2] + " + 1)");
+			} catch (Exception e) {
+				stmt.setFForCondition(varName + "_rangeVar = INT(" + rangeVars[0] 
+						+ "), INT((" + rangeVars[1] + " - " + rangeVars[0] 
+								+ ") / " + rangeVars[2] + " + 1)");
+			}
 			fcg.fotranTemporaries.put(varName + "_rangeVar", new BasicMatrixValue(
 					null, 
 					PrimitiveClassReference.INT32, 

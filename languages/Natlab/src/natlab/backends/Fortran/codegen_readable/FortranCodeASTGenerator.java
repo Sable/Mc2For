@@ -232,15 +232,6 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		}
 		String rhsString = sb.toString();
 		/*
-		 * if lhs is parameterizedExpr, it's a array set statement, 
-		 * if not, there should be no (:, 1) or (1, :) on the rhs. 
-		 * if there is, the ranks of the rhs and lhs won't match, 
-		 * because we never declare variables as vectors.
-		 */
-		if (!(node.getLHS() instanceof ParameterizedExpr)) {
-			rhsString = rhsString.replace("(:, 1)", "").replace("(1, :)", "");
-		}
-		/*
 		 * quick fix for transpose at rhs and array indexing at lhs, 
 		 * TODO make it better?
 		 */
@@ -274,6 +265,16 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		leftOfAssign = false;
 		rhsArrayAssign = false;
 		String lhsName = sb.toString();
+		/*
+		 * if lhs is parameterizedExpr, it's a array set statement, 
+		 * if not, there should be no (:, 1) or (1, :) on the rhs. 
+		 * if there is, the ranks of the rhs and lhs won't match, 
+		 * because we never declare variables as vectors.
+		 */
+		if (lhsName.indexOf("(") == -1) {
+			rhsString = rhsString.replace("(:, 1)", "").replace("(1, :)", "");
+			fAssignStmt.setFRHS(rhsString);
+		}
 		boolean specialCase = false;
 		if (needLinearTransform && node.getRHS() instanceof ParameterizedExpr) {
 			if (getMatrixValue(lhsName).getShape().equals(getMatrixValue(
@@ -560,10 +561,16 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				}
 				sbForRuntimeInline.append(") = ");
 				if (rhsArgsList.get(i).equals(lhsName)) {
+					if (tempShape.isRowVector()) lhsName = lhsName + "(1, :)";
 					sbForRuntimeInline.append(lhsName + "_bk;\n");
 				}
 				else {
-					sbForRuntimeInline.append(rhsArgsList.get(i) + ";\n");
+					if (tempShape.isRowVector()) {
+						sbForRuntimeInline.append(rhsArgsList.get(i) + "(1, :)" + ";\n");
+					}
+					else {
+						sbForRuntimeInline.append(rhsArgsList.get(i) + ";\n");
+					}
 				}
 			}
 			fAssignStmt.setFLHS("! replace " + lhsName);
@@ -1372,12 +1379,26 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								node.getChild(1).analyze(this);
 								sb.append(", 1))");
 							}
-							// TODO other cases, like ParameterizedExpr?
-							else {
+							else if (node.getChild(1).getChild(0) instanceof NameExpr) {
 								sb.append("(SUM(");
 								sb.append(((NameExpr)node.getChild(1).getChild(0)).getName().getID());
 								sb.append(") / SIZE(");
 								sb.append(((NameExpr)node.getChild(1).getChild(0)).getName().getID());
+								sb.append("))");
+							}
+							else if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+								sb.append("(SUM(");
+								node.getChild(1).getChild(0).analyze(this);
+								sb.append(") / SIZE(");
+								node.getChild(1).getChild(0).analyze(this);
+								sb.append("))");
+							}
+							// TODO other cases, like LiteralExpr?
+							else {
+								sb.append("(SUM(");
+								node.getChild(1).getChild(0).analyze(this);
+								sb.append(") / SIZE(");
+								node.getChild(1).getChild(0).analyze(this);
 								sb.append("))");
 							}
 						}
