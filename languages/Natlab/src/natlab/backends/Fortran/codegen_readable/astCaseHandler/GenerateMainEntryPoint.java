@@ -47,6 +47,7 @@ public class GenerateMainEntryPoint {
 		// the inputs of the main program in Fortran don't have to be INTEGER.
 		fcg.iterateStatements(node.getStmts());
 		fcg.passCounter++;
+		fcg.allocatedArrays.clear();
 		/* 
 		 * second pass of all the statements, using 
 		 * information collected from the first pass.
