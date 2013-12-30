@@ -44,6 +44,8 @@ public class GenerateSubroutine {
 		fcg.iterateStatements(node.getStmts());
 		fcg.passCounter++;
 		fcg.allocatedArrays.clear();
+		fcg.sbForRuntimeInline.setLength(0);
+		fcg.zerosAlloc = false;
 		/* 
 		 * second pass of all the statements, using information collected from the first pass.
 		 */
