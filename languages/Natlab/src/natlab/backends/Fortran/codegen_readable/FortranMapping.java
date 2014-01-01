@@ -164,6 +164,7 @@ public class FortranMapping {
 		// overloaded arithmetic operators
 		FortranOverloadingInlineSet.add("mtimes");
 		FortranOverloadingInlineSet.add("mrdivide");
+		FortranOverloadingInlineSet.add("mldivide");
 		FortranOverloadingInlineSet.add("mpower");
 		// overloaded relational operators
 		FortranOverloadingInlineSet.add("lt");

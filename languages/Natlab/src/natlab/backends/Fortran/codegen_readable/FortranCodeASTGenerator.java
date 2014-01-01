@@ -233,8 +233,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		String rhsString = sb.toString();
 		/*
 		 * quick fix for transpose at rhs and array indexing at lhs, 
-		 * TODO fix this.
-		 */
+		 *
 		if (rhsString.indexOf("TRANSPOSE") == 0 
 				&& node.getLHS() instanceof ParameterizedExpr) {
 			String tempStr = rhsString.substring(
@@ -244,7 +243,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		}
 		else {
 			fAssignStmt.setFRHS(rhsString);
-		}
+		}*/
+		fAssignStmt.setFRHS(rhsString);
 		sb.setLength(0);
 		rightOfAssign = false;
 		
@@ -271,7 +271,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		 * if there is, the ranks of the rhs and lhs won't match, 
 		 * because we never declare variables as vectors.
 		 */
-		if (lhsName.indexOf("(") == -1) {
+		if (lhsName.indexOf("(") == -1 && !getMatrixValue(lhsName).getShape().isScalar()) {
 			rhsString = rhsString.replace("(:, 1)", "").replace("(1, :)", "");
 			fAssignStmt.setFRHS(rhsString);
 		}
@@ -1348,6 +1348,75 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							}
 							sb.append(")");
 						}
+						else if (name.equals("transpose")) {
+							/*
+							 * for transpose, we need to make a separate variable to fill 
+							 * the gap of the fact that we translate vector in matlab to 
+							 * 1-by-n or n-by-1 array in fortran, while apply transpose on 
+							 * those arrays in fortran, the return value is still 
+							 * 2-dimensional, which means we have to linearize them to 
+							 * map matlab.
+							 */
+							Shape<AggrValue<BasicMatrixValue>> tempShape;
+							if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+								 tempShape = getMatrixValue(((Name)analysisEngine
+										 .getTemporaryVariablesRemovalAnalysis()
+										 .getExprToTempVarTable()
+										 .get(node.getChild(1).getChild(0))).getID())
+										 .getShape();
+							}
+							else if (node.getChild(1).getChild(0) instanceof NameExpr) {
+								tempShape = getMatrixValue(((NameExpr)node.getChild(1)
+										.getChild(0)).getName().getID()).getShape();
+							}
+							// TODO someone may use transpose on literals...
+							else {
+								tempShape = null;
+							}
+							if (tempShape != null && tempShape.isScalar()) {
+								node.getChild(1).getChild(0).analyze(this);
+							}
+							else {
+								/*
+								 * add a separate variable here.
+								 */
+								StringBuffer backupSB = new StringBuffer();
+								backupSB.append(sb);
+								sb.setLength(0);
+								sb.append("TRANSPOSE(");
+								node.getChild(1).getChild(0).analyze(this);
+								sb.append(")");
+								FAssignStmt separateAssign = new FAssignStmt();
+								separateAssign.setFLHS(getMoreIndent(0) + "transpose_temp" + tempCounter);
+								separateAssign.setFRHS(sb.toString());
+								if (ifWhileForBlockNest != 0) {
+									stmtSecForIfWhileForBlock.addStatement(separateAssign);
+								}
+								else {
+									subprogram.getStatementSection().addStatement(separateAssign);
+								}
+								sb.setLength(0);
+								sb.append(backupSB);
+								sb.append("transpose_temp" + tempCounter);
+								if (tempShape.isRowVector()) {
+									sb.append("(:, 1)");
+								}
+								else if (tempShape.isColVector()) {
+									sb.append("(1, :)");
+								}
+								fotranTemporaries.put("transpose_temp" + tempCounter, new BasicMatrixValue(
+										null, 
+										PrimitiveClassReference.DOUBLE, 
+										new ShapeFactory<AggrValue<BasicMatrixValue>>().newShapeFromInputString("?*?"), 
+										null, 
+										new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+										.newisComplexInfoFromStr("REAL")
+										));
+								if (passCounter > 0) {
+									tempCounter++;
+								}
+							}
+						}
 						else {
 							sb.append(fortranMapping.getFortranDirectBuiltinMapping(name));
 							sb.append("(");
@@ -1516,19 +1585,19 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								node.getChild(1).getChild(1).analyze(this);
 								sb.append(")");
 							}
-							else if (!shapeOp1.isConstant() && !shapeOp2.isConstant()) {
-								// TODO use MATMUL, sometimes should make a shadow var.
-								sb.append("MATMUL(");
-								node.getChild(1).getChild(0).analyze(this);
-								sb.append(", ");
-								node.getChild(1).getChild(1).analyze(this);
-								sb.append(")");
-							}
-							else {
+							else if (shapeOp1.isScalar() || shapeOp2.isScalar()) {
 								// use * operator
 								sb.append("(");
 								node.getChild(1).getChild(0).analyze(this);
 								sb.append(" * ");
+								node.getChild(1).getChild(1).analyze(this);
+								sb.append(")");
+							}
+							else {
+								// TODO use MATMUL, sometimes should make a shadow var.
+								sb.append("MATMUL(");
+								node.getChild(1).getChild(0).analyze(this);
+								sb.append(", ");
 								node.getChild(1).getChild(1).analyze(this);
 								sb.append(")");
 							}
@@ -1546,6 +1615,22 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								node.getChild(1).getChild(0).analyze(this);
 								sb.append(" / ");
 								node.getChild(1).getChild(1).analyze(this);
+								sb.append(")");
+							}
+						}
+						else if (name.equals("mldivide")) {
+							if (shapeOp1.isRowVector() && shapeOp2.isColVector()) {
+								// TODO
+							}
+							else if (!shapeOp1.isConstant() && !shapeOp2.isConstant()) {
+								// TODO
+							}
+							else {
+								// swap the operands and then use / operator
+								sb.append("(");
+								node.getChild(1).getChild(1).analyze(this);
+								sb.append(" / ");
+								node.getChild(1).getChild(0).analyze(this);
 								sb.append(")");
 							}
 						}
@@ -1678,12 +1763,12 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								}
 							}
 							else {
-								sb.append("[(I, I=INT(");
+								sb.append("[(FI, FI=INT(");
 								node.getChild(1).getChild(0).analyze(this);
 								sb.append("),INT(");
 								node.getChild(1).getChild(1).analyze(this);
 								sb.append("))]");
-								fotranTemporaries.put("I", new BasicMatrixValue(
+								fotranTemporaries.put("FI", new BasicMatrixValue(
 										null, 
 										PrimitiveClassReference.INT32, 
 										new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
@@ -1766,14 +1851,14 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								// TODO
 							}
 							else {
-								sb.append("[(I, I=INT(");
+								sb.append("[(FI, FI=INT(");
 								node.getChild(1).getChild(0).analyze(this);
 								sb.append("),INT(");
 								node.getChild(1).getChild(2).analyze(this);
 								sb.append("),INT(");
 								node.getChild(1).getChild(1).analyze(this);
 								sb.append("))]");
-								fotranTemporaries.put("I", new BasicMatrixValue(
+								fotranTemporaries.put("FI", new BasicMatrixValue(
 										null, 
 										PrimitiveClassReference.INT32, 
 										new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
@@ -1967,7 +2052,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						&& getMatrixValue(name).getShape().isRowVector() 
 						&& getMatrixValue(name).getShape().isConstant() 
 						&& rightOfAssign 
-						&& insideArray == 0) {
+						&& insideArray == 0 
+						&& node.getParent().getParent() instanceof ParameterizedExpr 
+						&& !((NameExpr)((ParameterizedExpr)(node.getParent()
+								.getParent())).getChild(0)).getName().getID().equals("transpose")) {
 					sb.append(name + "(1, :)");
 					rhsArrayAssign = true;
 				}
@@ -1975,7 +2063,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						&& getMatrixValue(name).getShape().isColVector() 
 						&& getMatrixValue(name).getShape().isConstant() 
 						&& rightOfAssign 
-						&& insideArray == 0) {
+						&& insideArray == 0 
+						&& node.getParent().getParent() instanceof ParameterizedExpr 
+						&& !((NameExpr)((ParameterizedExpr)(node.getParent()
+								.getParent())).getChild(0)).getName().getID().equals("transpose")) {
 					sb.append(name + "(:, 1)");
 					rhsArrayAssign = true;
 				}
