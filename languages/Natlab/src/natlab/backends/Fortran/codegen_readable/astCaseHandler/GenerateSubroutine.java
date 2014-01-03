@@ -198,28 +198,14 @@ public class GenerateSubroutine {
 							tempBuf.append(":");
 							counter = true;
 						}
-						tempBuf.append("), ALLOCATABLE");
+						tempBuf.append(")");
+						tempBuf.append(", ALLOCATABLE");
 						keyword.setName(tempBuf.toString());
 						keywordList.addKeyword(keyword);
-						/*if (fcg.inArgs.contains(variable) 
-								&& !fcg.inputHasChanged.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(IN)");
-							keywordList.addKeyword(keyword2);
-						}
-						else if (fcg.outRes.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(OUT)");
-							keywordList.addKeyword(keyword2);
-						}*/
+						// TODO add the keyword INTENT?
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
-						if (fcg.inputHasChanged.contains(variable)) {
-							Variable varCopy = new Variable();
-							varCopy.setName(variable+"_cp");
-							varList.addVariable(varCopy);
-						}
 						// need extra temporaries for runtime reallocate variables.
 						if (fcg.backupTempArrays.contains(variable)) {
 							Variable varBackup = new Variable();
@@ -228,6 +214,22 @@ public class GenerateSubroutine {
 						}
 						declStmt.setKeywordList(keywordList);
 						declStmt.setVariableList(varList);
+						if (fcg.inputHasChanged.contains(variable)) {
+							DeclStmt declStmt_cp = new DeclStmt();
+							declStmt_cp.setType(declStmt.getType());
+							// type is already a token, don't forget.
+							Keyword keyword_cp = new Keyword();
+							keyword_cp.setName(tempBuf.substring(0, tempBuf.indexOf(", ALLOCATABLE")));
+							KeywordList keywordList_cp = new KeywordList();
+							keywordList_cp.addKeyword(keyword_cp);
+							declStmt_cp.setKeywordList(keywordList_cp);
+							VariableList varList_cp = new VariableList();
+							Variable varCopy = new Variable();
+							varCopy.setName(variable+"_cp");
+							varList_cp.addVariable(varCopy);
+							declStmt_cp.setVariableList(varList_cp);
+							declSection.addDeclStmt(declStmt_cp);
+						}
 					}
 					/*
 					 * if the shape is exactly known, get into else block. 
@@ -250,17 +252,7 @@ public class GenerateSubroutine {
 						 * the input has been modified, but for main 
 						 * programs or functions, we don't need to care.
 						 */
-						/*if (fcg.inArgs.contains(variable) 
-								&& !fcg.inputHasChanged.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(IN)");
-							keywordList.addKeyword(keyword2);
-						}
-						else if (fcg.outRes.contains(variable)) {
-							Keyword keyword2 = new Keyword();
-							keyword2.setName("INTENT(OUT)");
-							keywordList.addKeyword(keyword2);
-						}*/
+						// TODO add the keyword INTENT?
 						Variable var = new Variable();
 						var.setName(variable);
 						varList.addVariable(var);
@@ -277,19 +269,7 @@ public class GenerateSubroutine {
 				 * declare scalars.
 				 */
 				else {
-					/*if (fcg.inArgs.contains(variable) 
-							&& !fcg.inputHasChanged.contains(variable)) {
-						Keyword keyword = new Keyword();
-						keyword.setName("INTENT(IN)");
-						keywordList.addKeyword(keyword);
-						declStmt.setKeywordList(keywordList);
-					}
-					else if (fcg.outRes.contains(variable)) {
-						Keyword keyword = new Keyword();
-						keyword.setName("INTENT(OUT)");
-						keywordList.addKeyword(keyword);
-						declStmt.setKeywordList(keywordList);
-					}*/
+					// TODO add the keyword INTENT?
 					Variable var = new Variable();
 					var.setName(variable);
 					varList.addVariable(var);

@@ -114,7 +114,7 @@ aspect PrettyPrinter {
         for (int i=0;i<size;i++) {
         	getVariable(i).pp(sb);
         	if (i<size-1) sb.append(", ");
-        	if (i!=0 && i%8==0 && i!=size-1) 
+        	if (i!=0 && i%5==0 && i!=size-1) 
         		sb.append("&\n&");
         }
     }
@@ -145,7 +145,6 @@ aspect PrettyPrinter {
     
     public void FAssignStmt.pp(StringBuffer sb) {
     	if (hasRuntimeAllocate()) {
-    		sb.append(getIndent());
     		getRuntimeAllocate().pp(sb);
     	}
     	sb.append(getIndent());
