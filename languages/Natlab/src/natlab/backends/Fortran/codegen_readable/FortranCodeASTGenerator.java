@@ -1464,7 +1464,65 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				}
 			}
 			else if (inputNum == 1) {
-				if (fortranMapping.isFortranUnOperator(name)) {
+				/*
+				 * overloaded functions have the highest priority.
+				 */
+				if (fortranMapping.isFortranOverloadingInlineSet(name)) {
+					// getting the mclass of the input of the builtins
+					BasicMatrixValue value = null;
+					if (node.getChild(1).getChild(0) instanceof LiteralExpr) {
+						if (node.getChild(1).getChild(0) instanceof IntLiteralExpr) {
+							int number = ((IntLiteralExpr)node.getChild(1).getChild(0))
+									.getValue().getValue().intValue();
+							if (number == 0) {
+								sb.append("0");
+							}
+							else {
+								sb.append("1");
+							}
+						}
+						else {
+							sb.append("1");
+						}
+					}
+					else if (node.getChild(1).getChild(0) instanceof NameExpr) {
+						value = getMatrixValue(((NameExpr)node.getChild(1).getChild(0))
+								.getName().getID());
+					}
+					else if (node.getChild(1).getChild(0) instanceof ParameterizedExpr) {
+						value = getMatrixValue(((Name)analysisEngine
+								.getTemporaryVariablesRemovalAnalysis()
+								.getExprToTempVarTable()
+								.get(node.getChild(1).getChild(0))).getID());
+					}
+					if (name.equals("any")) {
+						sb.append("ANY(");
+						node.getChild(1).getChild(0).analyze(this);
+						sb.append(")");
+						if (value != null // if value is null, means that the input is literal and already been handled.
+								&& value.getMatlabClass().equals(PrimitiveClassReference.LOGICAL)) {
+							// do nothing
+						}
+						else if (value != null) {
+							// calling user defined fortran module
+							allSubprograms.add("any");
+						}
+					}
+					else if (name.equals("all")) {
+						sb.append("ALL(");
+						node.getChild(1).getChild(0).analyze(this);
+						sb.append(")");
+						if (value != null // if value is null, means that the input is literal and already been handled.
+								&& value.getMatlabClass().equals(PrimitiveClassReference.LOGICAL)) {
+							// do nothing
+						}
+						else if (value != null) {
+							// calling user defined fortran module
+							allSubprograms.add("all");
+						}
+					}
+				}
+				else if (fortranMapping.isFortranUnOperator(name)) {
 					sb.append(fortranMapping.getFortranUnOpMapping(name));
 					node.getChild(1).getChild(0).analyze(this);
 				}
@@ -1633,7 +1691,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			else if (inputNum == 2) {
 				/*
 				 * determine which operator or function to inline 
-				 * depends on the shape of the oprands. 
+				 * depends on the shape of the oprands. both the 
+				 * overloading and the inlining need this info.
 				 */
 				Shape<AggrValue<BasicMatrixValue>> shapeOp1;
 				Shape<AggrValue<BasicMatrixValue>> shapeOp2;
@@ -1744,10 +1803,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 					else if (name.equals("mrdivide")) {
 						if (shapeOp1.isRowVector() && shapeOp2.isColVector()) {
-							// TODO
+							// TODO calling user defined fortran module.
 						}
 						else if (!shapeOp1.isConstant() && !shapeOp2.isConstant()) {
-							// TODO
+							// TODO calling user defined fortran module.
 						}
 						else {
 							// use / operator
@@ -1760,10 +1819,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 					else if (name.equals("mldivide")) {
 						if (shapeOp1.isRowVector() && shapeOp2.isColVector()) {
-							// TODO
+							// TODO calling user defined fortran module.
 						}
 						else if (!shapeOp1.isConstant() && !shapeOp2.isConstant()) {
-							// TODO
+							// TODO calling user defined fortran module.
 						}
 						else {
 							// swap the operands and then use / operator
@@ -1776,10 +1835,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					}
 					else if (name.equals("mpower")) {
 						if (shapeOp1.isRowVector() && shapeOp2.isColVector()) {
-							// TODO
+							// TODO calling user defined fortran module.
 						}
 						else if (!shapeOp1.isConstant() && !shapeOp2.isConstant()) {
-							// TODO
+							// TODO calling user defined fortran module.
 						}
 						else {
 							// use ** operator
@@ -2098,7 +2157,12 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							int intArg = Integer.parseInt(sb.toString());
 							sb.setLength(0);
 							sb.append(sb_bk);
-							sb.append(intArg);
+							if (userDefinedFunctions.contains(name)) {
+								sb.append("DBLE(" + intArg + ")");
+							}
+							else {
+								sb.append(intArg);
+							}
 						} catch (Exception e) {
 							sb.setLength(0);
 							sb.append(sb_bk);

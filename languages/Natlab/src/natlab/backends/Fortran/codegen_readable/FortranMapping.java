@@ -54,19 +54,16 @@ public class FortranMapping {
 		FortranBinOperatorMap.put("plus", "+");
 		FortranBinOperatorMap.put("minus", "-");
 		FortranBinOperatorMap.put("times", "*");
-		FortranBinOperatorMap.put("mtimes", "*");
 		FortranBinOperatorMap.put("rdivide", "/");
-		FortranBinOperatorMap.put("mrdivide", "/");
 		FortranBinOperatorMap.put("power", "**");
-		FortranBinOperatorMap.put("mpower", "**");
 		// relational operators
 		FortranBinOperatorMap.put("lt", ".LT.");
 		FortranBinOperatorMap.put("le", ".LE.");
 		FortranBinOperatorMap.put("gt", ".GT.");
 		FortranBinOperatorMap.put("ge", ".GE.");
 		FortranBinOperatorMap.put("eq", ".EQ.");
-		FortranBinOperatorMap.put("isequal", ".EQ.");
 		FortranBinOperatorMap.put("ne", ".NE.");
+		FortranBinOperatorMap.put("isequal", ".EQ.");
 		// logical operators
 		FortranBinOperatorMap.put("and", ".AND.");
 		FortranBinOperatorMap.put("or", ".OR.");
@@ -129,8 +126,6 @@ public class FortranMapping {
 		FortranDirectBuiltinMap.put("size", "SHAPE"); // for char string, map to LEN.
 		FortranDirectBuiltinMap.put("length", "SIZE");
 		// logical operators
-		FortranDirectBuiltinMap.put("any", "ANY");
-		FortranDirectBuiltinMap.put("all", "ALL");
 		FortranDirectBuiltinMap.put("bitand", "IAND");
 		FortranDirectBuiltinMap.put("bitor", "IOR");
 		FortranDirectBuiltinMap.put("bitcmp", "NOT");
@@ -173,6 +168,9 @@ public class FortranMapping {
 		FortranOverloadingInlineSet.add("ge");
 		FortranOverloadingInlineSet.add("eq");
 		FortranOverloadingInlineSet.add("ne");
+		// overloaded one-input builtins
+		FortranOverloadingInlineSet.add("any");
+		FortranOverloadingInlineSet.add("all");
 	}
 	
 	public boolean isFortranOverloadingInlineSet(String builtinName) {
