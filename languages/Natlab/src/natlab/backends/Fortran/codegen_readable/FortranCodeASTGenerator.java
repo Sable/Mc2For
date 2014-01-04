@@ -55,9 +55,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	private boolean leftOfAssign;
 	private boolean rightOfAssign;
 	public boolean zerosAlloc;
-	private boolean colonAlloc;
-	private boolean horzcat;
-	private boolean vertcat;
+	public boolean colonAlloc;
+	public boolean horzcat;
+	public boolean vertcat;
 	private boolean rhsArrayAssign;
 	private String overloadedRelational;
 	private String overloadedRelationalFlag; // l means lhs is array, r means rhs is array.
@@ -438,9 +438,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							.get(node.getRHS().getChild(1).getChild(i))).getID())
 							.getShape();
 				}
-				if (tempShape != null && tempShape.maybeVector()) {
+				if (tempShape != null && tempShape.isScalar()) {
 					sbForRuntimeInline.append(getMoreIndent(0) + lhsName + "_2" + (i+1) 
 							+ " = 1;\n");
+				}
+				else if (tempShape != null && tempShape.maybeVector()) {
+					sbForRuntimeInline.append(getMoreIndent(0) + lhsName + "_2" + (i+1) 
+							+ " = SIZE(" + rhsArgsList.get(i) + ");\n");
 				}
 				else {
 					sbForRuntimeInline.append(getMoreIndent(0) + lhsName + "_2" + (i+1) 
@@ -474,7 +478,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 								.get(node.getRHS().getChild(1).getChild(i))).getID())
 								.getShape();
 					}
-					if (tempShape != null && tempShape.maybeVector()) {
+					if (tempShape != null && tempShape.isScalar()) {
 						sbForRuntimeInline.append("1");
 					}
 					else {
@@ -504,16 +508,19 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				}
 				sbForRuntimeInline.append(getMoreIndent(0) + lhsName + "(");
 				if (i == 0) {
-					if (tempShape != null && tempShape.maybeVector()) {
+					if (tempShape != null && tempShape.isScalar()) {
 						// if right hand side is a vector;
-						sbForRuntimeInline.append(":, 1");
+						sbForRuntimeInline.append("1, 1");
+					}
+					else if (tempShape != null && tempShape.isRowVector()) {
+						sbForRuntimeInline.append("1, 1 : " + lhsName + "_2" + (i+1) + "");
 					}
 					else {
 						sbForRuntimeInline.append(":, 1 : " + lhsName + "_2" + (i+1) + "");
 					}
 				}
 				else {
-					if (tempShape != null && tempShape.maybeVector()) {
+					if (tempShape != null && tempShape.isScalar()) {
 						// if right hand side is a vector;
 						sbForRuntimeInline.append(":, " + lhsName + "_2" + i + " + 1");
 					}
@@ -626,7 +633,12 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sbForRuntimeInline.append(" + ");
 					}
 				}
-				sbForRuntimeInline.append(", SIZE(" + rhsArgsList.get(0) + ", 2)));\n");
+				if (lhsName.equals(rhsArgsList.get(0))) {
+					sbForRuntimeInline.append(", SIZE(" + rhsArgsList.get(0) + "_bk, 2)));\n");
+				}
+				else {
+					sbForRuntimeInline.append(", SIZE(" + rhsArgsList.get(0) + ", 2)));\n");
+				}
 			}
 			for (int i = 0; i < rhsArgsList.size(); i++) {
 				Shape<AggrValue<BasicMatrixValue>> tempShape;
@@ -1999,8 +2011,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						sb.append("), INT(");
 						node.getChild(1).getChild(1).analyze(this);
 						sb.append(")");
-						runtimeAlloc.setBlock(getMoreIndent(0) + "ALLOCATE(rand_temp" 
-								+ tempCounter + "(" + sb + "));\n");
+						runtimeAlloc.setBlock(getMoreIndent(0) + "IF (.NOT.ALLOCATED(rand_temp" 
+								+ tempCounter + ")) THEN\n"  + getMoreIndent(1) 
+								+ "ALLOCATE(rand_temp" + tempCounter + "(" + sb + "));\n" 
+								+ getMoreIndent(0) + "END IF\n");
 						fSubroutines.setRuntimeAllocate(runtimeAlloc);
 						sb.setLength(0);
 						sb.append(backBuff);
@@ -2042,6 +2056,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							node.getChild(1).getChild(1).analyze(this);
 						}
 						else if (shapeOp1.isScalar() && shapeOp2.isScalar()) {
+							rhsArrayAssign = true;
 							sb.append("[");
 							node.getChild(1).getChild(0).analyze(this);
 							sb.append(", ");
@@ -2129,7 +2144,6 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						}
 						else {
 							rhsArrayAssign = true;
-							horzcat = true;
 							sb.append("[");
 							for (int i = 0; i < inputNum; i++) {
 								node.getChild(1).getChild(i).analyze(this);
@@ -2211,6 +2225,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				if (!getMatrixValue(name).getShape().isConstant() 
 						&& !(node.getParent() instanceof AssignStmt) 
 						&& leftOfAssign 
+						&& !horzcat // TODO double check this later
+						&& !vertcat 
 						&& colonAlloc 
 						&& !allocatedArrays.contains(name)) {
 					allocatedArrays.add(name);
@@ -2270,6 +2286,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						&& getMatrixValue(name).getShape().isRowVector() 
 						&& leftOfAssign 
 						&& insideArray == 0 
+						&& !horzcat // TODO double check this later.
+						&& !vertcat 
 						&& colonAlloc) {
 					sb.append(name + "(1, :)");
 					colonAlloc = false;
@@ -2278,6 +2296,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						&& getMatrixValue(name).getShape().isColVector() 
 						&& leftOfAssign 
 						&& insideArray == 0 
+						&& !horzcat // TODO double check this later.
+						&& !vertcat 
 						&& colonAlloc) {
 					sb.append(name + "(:, 1)");
 					colonAlloc = false;

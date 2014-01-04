@@ -48,6 +48,11 @@ public class GenerateMainEntryPoint {
 		fcg.iterateStatements(node.getStmts());
 		fcg.passCounter++;
 		fcg.allocatedArrays.clear();
+		fcg.sbForRuntimeInline.setLength(0);
+		fcg.zerosAlloc = false;;
+		fcg.colonAlloc = false;
+		fcg.horzcat = false;
+		fcg.vertcat = false;
 		/* 
 		 * second pass of all the statements, using 
 		 * information collected from the first pass.
