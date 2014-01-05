@@ -807,10 +807,6 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		// NameExpr(List), NameExpr is the first child, List is the second child.
 		if (Debug) System.out.println("parameterized expr: " 
 				+ node + ", has " + node.getNumChild() + " children.");
-		if (! (node.getChild(0) instanceof NameExpr)) {
-			System.err.println("how does this happen?");
-			System.exit(0);
-		}
 		String name = ((NameExpr) node.getChild(0)).getName().getID();
 		if (remainingVars.contains(name)) {
 			if (Debug) System.out.println("this is an array index.");
@@ -830,7 +826,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			 * optional.
 			 */
 			int numOfIndices = node.getChild(1).getNumChild();
-			int numOfdimensions = getMatrixValue(name).getShape().getDimensions().size();
+			int numOfDimensions = getMatrixValue(name).getShape().getDimensions().size();
 			if (getMatrixValue(name).getMatlabClass().equals(PrimitiveClassReference.CHAR)) {
 				// indexing a char string is handled differently from other arrays.
 				sb.append(name + "(");
@@ -841,7 +837,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				sb.append(")");
 				return;
 			}
-			else if (numOfIndices != numOfdimensions 
+			else if (numOfIndices < numOfDimensions 
 					&& !getMatrixValue(name).getShape().maybeVector()) {
 				/*
 				 * TODO need linear indexing transformation, 
@@ -849,7 +845,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				 * add subroutines/functions to the libmc2for.
 				 */
 				if (Debug) System.err.println("There are/is " + numOfIndices 
-						+ " indices for " + numOfdimensions + "dims");
+						+ " indices for " + numOfDimensions + "dims");
 				if (rightOfAssign) {
 					// TODO linear indexing appears on the rhs.
 					return;
@@ -860,7 +856,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					return;
 				}
 			}
-			else if (numOfIndices == numOfdimensions 
+			else if (numOfIndices == numOfDimensions 
 					&& isNeedLinearTransform(node)) {
 				/*
 				 * TODO for the case, using matrix as index. 
@@ -941,13 +937,132 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				return;
 			}
 			else if (!getMatrixValue(name).getShape().isConstant() 
-					&& rightOfAssign && !nocheck) {
+					&& rightOfAssign 
+					&& !nocheck) {
 				/*
 				 * TODO add runtime abc.
 				 */
 				if (Debug) System.out.println("unknown shape array indexing " +
 						"on right hand side, need run-time abc.");
-				sbForRuntimeInline.append(getMoreIndent(0) + "! need run-time abc.\n");
+				sbForRuntimeInline.append(getMoreIndent(0) + "! add run-time abc.\n");
+				insideArray++;
+				sbForRuntimeInline.append(getMoreIndent(0) + "IF (");
+				StringBuffer backup = new StringBuffer();
+				backup.append(sb);
+				sb.setLength(0);
+				for (int i = 0; i < numOfIndices; i++) {
+					if (node.getChild(1).getChild(i) instanceof ColonExpr) {
+						// do nothing.
+					}
+					else if (i + 1 < numOfIndices) {
+						/*
+						 * not the last index, comparing the ith index with 
+						 * the ith dimension size of the array.
+						 */
+						if (i != 0 && !(node.getChild(1).getChild(i-1) instanceof ColonExpr)) {
+							// not the first index.
+							sb.append(" .OR. ");
+						}
+						if (node.getChild(1).getChild(i) instanceof ParameterizedExpr) {
+							String tempName = ((NameExpr)((ParameterizedExpr)node.getChild(1).
+									getChild(i)).getChild(0)).getName().getID();
+							if (tempName.equals("colon")) {
+								StringBuffer backup2 = new StringBuffer();
+								backup2.append(sb);
+								sb.setLength(0);
+								node.getChild(1).getChild(i).getChild(1).analyze(this);
+								String colonStr = sb.toString();
+								String[] args = colonStr.split(", ");
+								sb.setLength(0);
+								sb.append(backup2);
+								sb.append(args[args.length - 1]);
+							}
+							else {
+								node.getChild(1).getChild(i).analyze(this);
+							}
+						}
+						else {
+							node.getChild(1).getChild(i).analyze(this);
+						}
+						sb.append(" .GT. SIZE(" + name + ", " + (i+1) + ")");
+					}
+					else if (i + 1 == numOfIndices && numOfIndices < numOfDimensions) {
+						/*
+						 * the last index, comparing the ith index with the size 
+						 * of the remaining dimensions of the array. the case 
+						 * of the accessed array is not vector is handled above. 
+						 * TODO here only handle the case the accessed array is vector.
+						 */
+						if (i != 0 && !(node.getChild(1).getChild(i-1) instanceof ColonExpr)) {
+							// not the first index.
+							sb.append(" .OR. ");
+						}
+						if (node.getChild(1).getChild(i) instanceof ParameterizedExpr) {
+							String tempName = ((NameExpr)((ParameterizedExpr)node.getChild(1).
+									getChild(i)).getChild(0)).getName().getID();
+							if (tempName.equals("colon")) {
+								StringBuffer backup2 = new StringBuffer();
+								backup2.append(sb);
+								sb.setLength(0);
+								node.getChild(1).getChild(i).getChild(1).analyze(this);
+								String colonStr = sb.toString();
+								String[] args = colonStr.split(", ");
+								sb.setLength(0);
+								sb.append(backup2);
+								sb.append(args[args.length - 1]);
+							}
+							else {
+								node.getChild(1).getChild(i).analyze(this);
+							}
+						}
+						else {
+							node.getChild(1).getChild(i).analyze(this);
+						}
+						sb.append(" .GT. SIZE(" + name + ", ");
+						if (getMatrixValue(name).getShape().isRowVector()) {
+							sb.append("2)");
+						}
+						else if (getMatrixValue(name).getShape().isColVector()) {
+							sb.append("1)");
+						}
+					}
+					else if (i + 1 == numOfIndices) {
+						// normal case of the last index for the last dimension.
+						if (i != 0 && !(node.getChild(1).getChild(i-1) instanceof ColonExpr)) {
+							// not the first index.
+							sb.append(" .OR. ");
+						}
+						if (node.getChild(1).getChild(i) instanceof ParameterizedExpr) {
+							String tempName = ((NameExpr)((ParameterizedExpr)node.getChild(1).
+									getChild(i)).getChild(0)).getName().getID();
+							if (tempName.equals("colon")) {
+								StringBuffer backup2 = new StringBuffer();
+								backup2.append(sb);
+								sb.setLength(0);
+								node.getChild(1).getChild(i).getChild(1).analyze(this);
+								String colonStr = sb.toString();
+								String[] args = colonStr.split(", ");
+								sb.setLength(0);
+								sb.append(backup2);
+								sb.append(args[args.length - 1]);
+							}
+							else {
+								node.getChild(1).getChild(i).analyze(this);
+							}
+						}
+						else {
+							node.getChild(1).getChild(i).analyze(this);
+						}
+						sb.append(" .GT. SIZE(" + name + ", " + (i+1) + ")");
+					}
+				}
+				sb.append(") THEN\n");
+				sbForRuntimeInline.append(sb);
+				sb.setLength(0);
+				sb.append(backup);
+				insideArray--;
+				sbForRuntimeInline.append(getMoreIndent(1) + "STOP \"INDEX OUT OF BOUND\";\n" 
+						+ getMoreIndent(0) + "END IF\n" + getMoreIndent(0) + "!\n");
 			}
 			else if (!getMatrixValue(name).getShape().isConstant() 
 					&& leftOfAssign) {
@@ -1011,15 +1126,15 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					 * one index and two dimensional array.
 					 */
 					insideArray++;
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							// do nothing.
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							// do nothing.
@@ -1030,15 +1145,15 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						}
 					}
 					sbForRuntimeInline.append(getMoreIndent(0) + "IF (");
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							// do nothing.
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							node.getChild(1).getChild(0).analyze(this);
@@ -1056,13 +1171,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							}
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							// do nothing.
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							node.getChild(1).getChild(0).analyze(this);
@@ -1093,7 +1208,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 											+ name + "_d" + (i+1));
 								}
 							}
-							if (i + 1 < numOfdimensions 
+							if (i + 1 < numOfDimensions 
 									&& !indexCurrent.equals(":") 
 									&& !node.getChild(1).getChild(i+1).getPrettyPrinted().equals(":")) {
 								sbForRuntimeInline.append(" .OR. ");
@@ -1107,16 +1222,16 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							+ "_bk" + ");\n");
 					sbForRuntimeInline.append(getMoreIndent(1) + "END IF\n");
 					sbForRuntimeInline.append(getMoreIndent(1) + "ALLOCATE(" + name + "_bk(");
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							sbForRuntimeInline.append("1");
 							
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							sbForRuntimeInline.append("1");
@@ -1124,22 +1239,22 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						else {
 							sbForRuntimeInline.append(name + "_d" + (i+1));
 						}
-						if (i + 1 < numOfdimensions) {
+						if (i + 1 < numOfDimensions) {
 							sbForRuntimeInline.append(", ");
 						}
 					}
 					sbForRuntimeInline.append("));\n");
 					sbForRuntimeInline.append(getMoreIndent(1) + name + "_bk = " + name + ";\n");
 					sbForRuntimeInline.append(getMoreIndent(1) + "DEALLOCATE(" + name + ");\n");
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							// do nothing.
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							node.getChild(1).getChild(0).analyze(this);
@@ -1163,13 +1278,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 							}
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							// do nothing.
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							node.getChild(1).getChild(0).analyze(this);
@@ -1215,16 +1330,16 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						}
 					}
 					sbForRuntimeInline.append(getMoreIndent(1) + "ALLOCATE(" + name + "(");
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							sbForRuntimeInline.append("1");
 							
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							sbForRuntimeInline.append("1");
@@ -1232,22 +1347,22 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						else {
 							sbForRuntimeInline.append(name + "_d" + (i+1) + "max");
 						}
-						if (i + 1 < numOfdimensions) {
+						if (i + 1 < numOfDimensions) {
 							sbForRuntimeInline.append(", ");
 						}
 					}
 					sbForRuntimeInline.append("));\n");
 					sbForRuntimeInline.append(getMoreIndent(1) + name + "(");
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							sbForRuntimeInline.append("1");
 							
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							sbForRuntimeInline.append("1");
@@ -1255,21 +1370,21 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						else {
 							sbForRuntimeInline.append("1:" + name + "_d" + (i+1));
 						}
-						if (i + 1 < numOfdimensions) {
+						if (i + 1 < numOfDimensions) {
 							sbForRuntimeInline.append(", ");
 						}
 					}
 					sbForRuntimeInline.append(") = " + name + "_bk(");
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							sbForRuntimeInline.append("1");
 							
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							sbForRuntimeInline.append("1");
@@ -1277,23 +1392,23 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						else {
 							sbForRuntimeInline.append("1:" + name + "_d" + (i+1));
 						}
-						if (i + 1 < numOfdimensions) {
+						if (i + 1 < numOfDimensions) {
 							sbForRuntimeInline.append(", ");
 						}
 					}
 					sbForRuntimeInline.append(");\n");
 					sbForRuntimeInline.append(getMoreIndent(0) + "END IF\n");
 					sbForRuntimeInline.append(getMoreIndent(0) + "!\n");
-					for (int i = 0; i < numOfdimensions; i++) {
+					for (int i = 0; i < numOfDimensions; i++) {
 						if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 0 
 								&& getMatrixValue(name).getShape().isRowVector()) {
 							// do nothing.
 							
 						}
 						else if (numOfIndices == 1 
-								&& numOfdimensions == 2 
+								&& numOfDimensions == 2 
 								&& i == 1 
 								&& getMatrixValue(name).getShape().isColVector()) {
 							// do nothing.
@@ -2007,7 +2122,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 						backBuff.append(sb);
 						sb.setLength(0);
 						sb.append("INT(");
-						node.getChild(1).getChild(1).analyze(this);
+						node.getChild(1).getChild(0).analyze(this);
 						sb.append("), INT(");
 						node.getChild(1).getChild(1).analyze(this);
 						sb.append(")");
