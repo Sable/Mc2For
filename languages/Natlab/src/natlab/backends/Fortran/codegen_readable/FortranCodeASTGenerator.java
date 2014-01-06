@@ -250,16 +250,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		leftOfAssign = false;
 		rhsArrayAssign = false;
 		String lhsName = sb.toString();
-		/*
-		 * if lhs is parameterizedExpr, it's a array set statement, 
-		 * if not, there should be no (:, 1) or (1, :) on the rhs. 
-		 * if there is, the ranks of the rhs and lhs won't match, 
-		 * because we never declare variables as vectors.
-		 */
-		if (lhsName.indexOf("(") == -1 && !getMatrixValue(lhsName).getShape().isScalar()) {
-			rhsString = rhsString.replace("(:, 1)", "").replace("(1, :)", "");
-			fAssignStmt.setFRHS(rhsString);
-		}
+		if (lhsName.equals("q"))
+			System.out.println("lala");
 		boolean specialCase = false;
 		if (lhsName.indexOf("(") == -1 
 				&& needLinearTransform && node.getRHS() instanceof ParameterizedExpr) {
@@ -271,7 +263,9 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			}
 		}
 		
-		if (lhsName.indexOf("(") == -1 && needLinearTransform && !specialCase) {
+		if (lhsName.indexOf("(") == -1 
+				&& needLinearTransform 
+				&& !specialCase) {
 			/*
 			 * using a subroutine to perform the array set.
 			 */
@@ -337,6 +331,21 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			fSubroutines.setFunctionCall(temp.toString());
 			needLinearTransform = false;
 			sb.setLength(0);
+			/*
+			 * if lhs is parameterizedExpr, it's an array set statement, 
+			 * if not and when there is a vector on the rhs, add (:, 1) 
+			 * or (1, :) to linearize the lhs.
+			 */
+			if (lhsName.indexOf("(") == -1 && !getMatrixValue(lhsName).getShape().isScalar()) {
+				if (rhsString.indexOf("(:, 1)") != -1) {
+					lhsName = lhsName + "(:, 1)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+				else if (rhsString.indexOf("(1, :)") != -1) {
+					lhsName = lhsName + "(1, :)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+			}
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
 			}
@@ -360,6 +369,21 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				sbForRuntimeInline.setLength(0);
 			}
 			convertUserFuncToSubroutine = false;
+			/*
+			 * if lhs is parameterizedExpr, it's an array set statement, 
+			 * if not and when there is a vector on the rhs, add (:, 1) 
+			 * or (1, :) to linearize the lhs.
+			 */
+			if (lhsName.indexOf("(") == -1 && !getMatrixValue(lhsName).getShape().isScalar()) {
+				if (rhsString.indexOf("(:, 1)") != -1) {
+					lhsName = lhsName + "(:, 1)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+				else if (rhsString.indexOf("(1, :)") != -1) {
+					lhsName = lhsName + "(1, :)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+			}
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fSubroutines);
 			}
@@ -402,6 +426,21 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			sb.setLength(0);
 			overloadedRelational = "";
 			overloadedRelationalFlag = "";
+			/*
+			 * if lhs is parameterizedExpr, it's an array set statement, 
+			 * if not and when there is a vector on the rhs, add (:, 1) 
+			 * or (1, :) to linearize the lhs.
+			 */
+			if (lhsName.indexOf("(") == -1 && !getMatrixValue(lhsName).getShape().isScalar()) {
+				if (rhsString.indexOf("(:, 1)") != -1) {
+					lhsName = lhsName + "(:, 1)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+				else if (rhsString.indexOf("(1, :)") != -1) {
+					lhsName = lhsName + "(1, :)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+			}
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
 			}
@@ -785,6 +824,21 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				fAssignStmt.setFRHS(rhsString + "(:, 1)");
 			}
 			sb.setLength(0);
+			/*
+			 * if lhs is parameterizedExpr, it's an array set statement, 
+			 * if not and when there is a vector on the rhs, add (:, 1) 
+			 * or (1, :) to linearize the lhs.
+			 */
+			if (lhsName.indexOf("(") == -1 && !getMatrixValue(lhsName).getShape().isScalar()) {
+				if (rhsString.indexOf("(:, 1)") != -1) {
+					lhsName = lhsName + "(:, 1)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+				else if (rhsString.indexOf("(1, :)") != -1) {
+					lhsName = lhsName + "(1, :)";
+					fAssignStmt.setFLHS(lhsName);
+				}
+			}
 			if (ifWhileForBlockNest != 0) {
 				stmtSecForIfWhileForBlock.addStatement(fAssignStmt);
 			}
@@ -1061,8 +1115,10 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				sb.setLength(0);
 				sb.append(backup);
 				insideArray--;
-				sbForRuntimeInline.append(getMoreIndent(1) + "STOP \"INDEX OUT OF BOUND\";\n" 
+				sbForRuntimeInline.append(getMoreIndent(1) + "STOP \"INDEX OUT OF BOUND, LABEL: " 
+						+ tempCounter + "\";\n" 
 						+ getMoreIndent(0) + "END IF\n" + getMoreIndent(0) + "!\n");
+				tempCounter++;
 			}
 			else if (!getMatrixValue(name).getShape().isConstant() 
 					&& leftOfAssign) {
@@ -2324,9 +2380,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			if (inArgs.contains(name) && leftOfAssign && insideArray == 0) {
 				inputHasChanged.add(name);
 			}
-			if (mustBeInt) {
-				forceToInt.add(name);
-			}			
+			if (mustBeInt) forceToInt.add(name);
 			if (!functionName.equals(entryPointFile) 
 					&& !isInSubroutine 
 					&& outRes.contains(name)) {
@@ -2465,7 +2519,12 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					rhsArrayAssign = true;
 				}
 				else {
-					sb.append(name);
+					if (forceToInt.contains(name) && rightOfAssign && insideArray == 0) {
+						sb.append("DBLE(" + name + ")");
+					}
+					else {
+						sb.append(name);
+					}
 				}
 			}
 			
