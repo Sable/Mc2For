@@ -240,7 +240,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 			if (remainingVars.contains(
 					((NameExpr)node.getRHS().getChild(0)).getName().getID())) {
 				// rhs is array index
-				String name = ((NameExpr)node.getRHS().getChild(0)).getName().getID();
+				// String name = ((NameExpr)node.getRHS().getChild(0)).getName().getID();
 				rhsArrayAssign = true;
 			}
 		}
@@ -2328,7 +2328,13 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					else if (name.equals("vertcat")) {
 						rhsArrayAssign = true;
 						vertcat = true;
-						// TODO
+						// TODO what if the inputs are all scalars.
+						for (int i = 0; i < inputNum; i++) {
+							node.getChild(1).getChild(i).analyze(this);
+							if (i < inputNum - 1) {
+								sb.append("!! "); // used as delimiter
+							}
+						}
 					}
 				}
 				else {

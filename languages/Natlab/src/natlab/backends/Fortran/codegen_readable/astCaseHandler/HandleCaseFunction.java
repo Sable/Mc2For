@@ -2,7 +2,6 @@ package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
 import ast.Name;
 import ast.Function;
-import java.util.*;
 
 import natlab.backends.Fortran.codegen_readable.*;
 
@@ -33,18 +32,9 @@ public class HandleCaseFunction {
 		 *  we use that entry point file name to determine which function 
 		 *  should be transformed as the main program in fortran.
 		 */
-		if (fcg.entryPointFile.equals(node.getName())) {
+		if (fcg.entryPointFile.equals(node.getName()) && fcg.outRes.size() == 0) {
 			GenerateMainEntryPoint mainEntryPoint = new GenerateMainEntryPoint();
 			mainEntryPoint.newMain(fcg, node);
-		}
-		/* 
-		 * transform matlab functions, which are not entry point functions 
-		 * but has only one return value, to function files in fortran.
-		 * TODO currently, this case cannot happen...
-		 */
-		else if (fcg.outRes.size() == 1 && !fcg.userDefinedFunctions.contains(node.getName())) {
-			GenerateFunction function = new GenerateFunction();
-			function.newFunction(fcg, node);			
 		}
 		/*
 		 * transform matlab functions, which are not entry point functions 

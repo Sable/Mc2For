@@ -182,7 +182,6 @@ public class GenerateMainEntryPoint {
 				DeclStmt declStmt = new DeclStmt();
 				// type is already a token, don't forget.
 				KeywordList keywordList = new KeywordList();
-				ShapeInfo shapeInfo = new ShapeInfo();
 				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
 				/*
@@ -313,7 +312,6 @@ public class GenerateMainEntryPoint {
 		for (String tmpVariable : fcg.fotranTemporaries.keySet()) {
 			DeclStmt declStmt = new DeclStmt();
 			// type is already a token, don't forget.
-			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
 			/*
 			 * declare types, especially character string.

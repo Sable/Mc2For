@@ -30,8 +30,8 @@ public class Main_readable {
 	 * to the program, currently, the type info is composed like double&3*3&REAL.
 	 */
 	public static void main(String[] args) {
-		String fileDir = "/home/aaron/Dropbox/benchmarks/fdtd/";
-	    String entryPointFile = "drv_fdtd";
+		String fileDir = "/home/aaron/Dropbox/benchmarks/zz_garbage/test/";
+	    String entryPointFile = "drv_adapt";
 	    GenericFile gFile = GenericFile.create(fileDir + entryPointFile + ".m");
 		FileEnvironment env = new FileEnvironment(gFile); //get path environment obj
 		
@@ -97,7 +97,8 @@ public class Main_readable {
 		        		true); // nocheck
 		        StringBuffer sb = new StringBuffer();
 		        String currentFunction = subprogram.getProgramTitle().getProgramName();
-		        if (!currentFunction.equals(entryPointFile)) {
+		        String subprogramType = subprogram.getProgramTitle().getProgramType();
+		        if (subprogramType.equals("SUBROUTINE")) {
 		        	sb.append("MODULE mod_"+currentFunction+"\n\nCONTAINS\n\n");
 		        	subprogram.pp(sb);
 		        	sb.append("\nEND MODULE");

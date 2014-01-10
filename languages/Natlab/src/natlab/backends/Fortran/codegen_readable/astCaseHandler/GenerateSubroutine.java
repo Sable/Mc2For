@@ -144,7 +144,6 @@ public class GenerateSubroutine {
 				DeclStmt declStmt = new DeclStmt();
 				// type is already a token, don't forget.
 				KeywordList keywordList = new KeywordList();
-				ShapeInfo shapeInfo = new ShapeInfo();
 				VariableList varList = new VariableList();
 				if (Debug) System.out.println(variable + "'s value is " + fcg.getMatrixValue(variable));
 				/*
@@ -163,8 +162,15 @@ public class GenerateSubroutine {
 				}
 				else if (fcg.getMatrixValue(variable).getMatlabClass().equals(PrimitiveClassReference.CHAR) 
 						&& !fcg.getMatrixValue(variable).getShape().isScalar()) {
-					declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
-							+"(LEN=*)");
+					if (fcg.inArgs.contains(variable)) {
+						declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
+								+"(LEN=*)");
+					}
+					else {
+						// TODO quick fix, just set the length to 10
+						declStmt.setType(fcg.fortranMapping.getFortranTypeMapping("char")
+								+"(10)");
+					}
 				}
 				else if (fcg.forceToInt.contains(variable)) {
 					declStmt.setType("INTEGER(KIND=4)");
@@ -310,7 +316,6 @@ public class GenerateSubroutine {
 		for (String tmpVariable : fcg.fotranTemporaries.keySet()) {
 			DeclStmt declStmt = new DeclStmt();
 			// type is already a token, don't forget.
-			ShapeInfo shapeInfo = new ShapeInfo();
 			VariableList varList = new VariableList();
 			declStmt.setType(fcg.fortranMapping.getFortranTypeMapping(
 					fcg.fotranTemporaries.get(tmpVariable).getMatlabClass().toString()));
