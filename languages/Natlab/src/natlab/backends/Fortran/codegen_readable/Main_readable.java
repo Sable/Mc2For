@@ -237,7 +237,8 @@ public class Main_readable {
 		        		options.nocheck());
 		        StringBuffer sb = new StringBuffer();
 		        String currentFunction = subprogram.getProgramTitle().getProgramName();
-		        if (!currentFunction.equals(fileEnvironment.getMainFile().getName().replace(".m", ""))) {
+		        String subprogramType = subprogram.getProgramTitle().getProgramType();
+		        if (subprogramType.equals("SUBROUTINE")) {
 		        	sb.append("MODULE mod_"+currentFunction+"\n\nCONTAINS\n\n");
 		        	subprogram.pp(sb);
 		        	sb.append("\nEND MODULE");
