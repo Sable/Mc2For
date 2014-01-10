@@ -1641,6 +1641,29 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				else if (name.equals("false")) {
 					sb.append(".FALSE.");
 				}
+				else if (name.equals("toc")) {
+					GetInput inlineTic = new GetInput();
+					inlineTic.setBlock("CALL CPU_TIME(ftime1);\n");
+					subprogram.setGetInput(inlineTic);
+					sb.append("(ftime2 - ftime1)");
+					FSubroutines tempSubroutine = new FSubroutines();
+					tempSubroutine.setFunctionCall("CPU_TIME(ftime2)");
+					subprogram.getStatementSection().addStatement(tempSubroutine);
+					fotranTemporaries.put("ftime1", new BasicMatrixValue(
+							null, 
+							PrimitiveClassReference.DOUBLE, 
+							new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+							null, 
+							new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+							.newisComplexInfoFromStr("REAL")));
+					fotranTemporaries.put("ftime2", new BasicMatrixValue(
+							null, 
+							PrimitiveClassReference.DOUBLE, 
+							new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+							null, 
+							new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+							.newisComplexInfoFromStr("REAL")));
+				}
 				else {
 					// no directly-mapping functions, leave the hole.
 					sb.append(name + "()");
