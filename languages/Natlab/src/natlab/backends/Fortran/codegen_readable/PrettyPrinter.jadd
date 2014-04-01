@@ -170,7 +170,12 @@ aspect PrettyPrinter {
     public void FSubroutines.pp(StringBuffer sb) {
     	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
     	sb.append(getIndent());
-    	sb.append("CALL "+getFunctionCall()+";");
+    	if (getFunctionCall().indexOf("PRINT") != -1) {
+    		sb.append(getFunctionCall()+";");
+    	}
+    	else {
+    		sb.append("CALL "+getFunctionCall()+";");
+    	}
     }
     
     public void FBreakStmt.pp(StringBuffer sb) {

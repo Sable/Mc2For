@@ -94,17 +94,31 @@ public class GenerateMainEntryPoint {
 					.newisComplexInfoFromStr("REAL")));
 		}
 		// here is a hack to add timing TODO find a better way.
-		temp.append("\nCALL CPU_TIME(ftime1);\n");
-		fcg.fotranTemporaries.put("ftime1", new BasicMatrixValue(
+		temp.append("\nCALL SYSTEM_CLOCK(count1, count_rate, count_max);\n");
+		fcg.fotranTemporaries.put("count1", new BasicMatrixValue(
 				null, 
-				PrimitiveClassReference.DOUBLE, 
+				PrimitiveClassReference.INT32, 
 				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
 				null, 
 				new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
 				.newisComplexInfoFromStr("REAL")));
-		fcg.fotranTemporaries.put("ftime2", new BasicMatrixValue(
+		fcg.fotranTemporaries.put("count2", new BasicMatrixValue(
 				null, 
-				PrimitiveClassReference.DOUBLE, 
+				PrimitiveClassReference.INT32, 
+				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+				null, 
+				new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+				.newisComplexInfoFromStr("REAL")));
+		fcg.fotranTemporaries.put("count_rate", new BasicMatrixValue(
+				null, 
+				PrimitiveClassReference.INT32, 
+				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+				null, 
+				new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+				.newisComplexInfoFromStr("REAL")));
+		fcg.fotranTemporaries.put("count_max", new BasicMatrixValue(
+				null, 
+				PrimitiveClassReference.INT32, 
 				new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
 				null, 
 				new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
@@ -366,8 +380,9 @@ public class GenerateMainEntryPoint {
 		mainEntry.setDeclarationSection(declSection);
 		// here a hack to add timing TODO find a better way.
 		StringBuffer timeEnd = new StringBuffer();
-		timeEnd.append("\nCALL CPU_TIME(ftime2);\n");
-		timeEnd.append("PRINT '(\"Time = \", f6.3, \" seconds.\")', ftime2-ftime1;\n\n");
+		timeEnd.append("\nCALL SYSTEM_CLOCK(count2, count_rate, count_max);\n");
+		timeEnd.append("PRINT '(\"The Wall Time = \", f6.3, \" seconds.\")'" +
+				", DBLE(count2 - count1) / DBLE(count_rate);\n\n");
 		mainEntry.setProgramEnd(timeEnd + "END PROGRAM");
 		return fcg;
 	}

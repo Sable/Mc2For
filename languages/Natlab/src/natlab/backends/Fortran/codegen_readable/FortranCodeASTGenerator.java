@@ -355,7 +355,18 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 		}
 		else if (lhsName.isEmpty()) {
 			// TODO for the case where there is no return value, i.e. the builtin function disp.
-			return;
+			if (rhsString.substring(0, rhsString.indexOf("(")).equals("disp")) {
+				FSubroutines fSubroutines = new FSubroutines();
+				fSubroutines.setIndent(getMoreIndent(0));
+				fSubroutines.setFunctionCall("PRINT *, " 
+						+ rhsString.substring(rhsString.indexOf("(") + 1, rhsString.indexOf(")")));
+				if (ifWhileForBlockNest != 0) {
+					stmtSecForIfWhileForBlock.addStatement(fSubroutines);
+				}
+				else {
+					subprogram.getStatementSection().addStatement(fSubroutines);
+				}
+			}
 		}
 		else if (convertUserFuncToSubroutine) {
 			sb.setLength(0);
@@ -1641,29 +1652,6 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				else if (name.equals("false")) {
 					sb.append(".FALSE.");
 				}
-				else if (name.equals("toc")) {
-					GetInput inlineTic = new GetInput();
-					inlineTic.setBlock("CALL CPU_TIME(ftime1);\n");
-					subprogram.setGetInput(inlineTic);
-					sb.append("(ftime2 - ftime1)");
-					FSubroutines tempSubroutine = new FSubroutines();
-					tempSubroutine.setFunctionCall("CPU_TIME(ftime2)");
-					subprogram.getStatementSection().addStatement(tempSubroutine);
-					fotranTemporaries.put("ftime1", new BasicMatrixValue(
-							null, 
-							PrimitiveClassReference.DOUBLE, 
-							new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-							null, 
-							new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
-							.newisComplexInfoFromStr("REAL")));
-					fotranTemporaries.put("ftime2", new BasicMatrixValue(
-							null, 
-							PrimitiveClassReference.DOUBLE, 
-							new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
-							null, 
-							new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
-							.newisComplexInfoFromStr("REAL")));
-				}
 				else {
 					// no directly-mapping functions, leave the hole.
 					sb.append(name + "()");
@@ -1888,7 +1876,7 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					sb.append(name + "(");
 					node.getChild(1).analyze(this);
 					sb.append(")");
-					allSubprograms.add(name);
+					if (!name.equals("disp")) allSubprograms.add(name);
 				}
 			}
 			/*
