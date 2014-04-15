@@ -367,6 +367,32 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					subprogram.getStatementSection().addStatement(fSubroutines);
 				}
 			}
+			else if (rhsString.substring(0, rhsString.indexOf("(")).equals("load")) {
+				FSubroutines fSubroutines = new FSubroutines();
+				fSubroutines.setIndent(getMoreIndent(0));
+				StringBuffer sb = new StringBuffer();
+				String fileName = rhsString.substring(rhsString.indexOf("(") + 1, rhsString.indexOf(")")).replace("'", "");
+				sb.append("OPEN(UNIT = 1, FILE = \"" + fileName + "\");\n");
+				String varName = fileName.split("\\.")[0];
+				sb.append(getMoreIndent(0) + "DO row_" + varName + " = 1, SIZE(" + varName + ", 1)\n");
+				sb.append(getMoreIndent(1) + "READ(1, *) " + varName + "(row_" + varName + ", :);\n");
+				sb.append(getMoreIndent(0) + "END DO\n");
+				fSubroutines.setFunctionCall(sb.toString());
+				fotranTemporaries.put("row_" + varName, new BasicMatrixValue(
+						null, 
+						PrimitiveClassReference.INT32, 
+						new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+						null, 
+						new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+						.newisComplexInfoFromStr("REAL")
+						));
+				if (ifWhileForBlockNest != 0) {
+					stmtSecForIfWhileForBlock.addStatement(fSubroutines);
+				}
+				else {
+					subprogram.getStatementSection().addStatement(fSubroutines);
+				}
+			}
 		}
 		else if (convertUserFuncToSubroutine) {
 			sb.setLength(0);
@@ -1876,7 +1902,8 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 					sb.append(name + "(");
 					node.getChild(1).analyze(this);
 					sb.append(")");
-					if (!name.equals("disp")) allSubprograms.add(name);
+					if (!name.equals("disp") && !name.equals("load")) 
+						allSubprograms.add(name);
 				}
 			}
 			/*

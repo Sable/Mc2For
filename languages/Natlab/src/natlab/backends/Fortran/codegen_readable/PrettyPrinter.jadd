@@ -173,6 +173,9 @@ aspect PrettyPrinter {
     	if (getFunctionCall().indexOf("PRINT") != -1) {
     		sb.append(getFunctionCall()+";");
     	}
+    	else if (getFunctionCall().indexOf("READ") != -1) {
+    		sb.append(getFunctionCall());
+    	}
     	else {
     		sb.append("CALL "+getFunctionCall()+";");
     	}
