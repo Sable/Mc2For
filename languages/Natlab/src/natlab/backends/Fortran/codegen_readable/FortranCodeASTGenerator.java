@@ -374,6 +374,25 @@ public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 				String fileName = rhsString.substring(rhsString.indexOf("(") + 1, rhsString.indexOf(")")).replace("'", "");
 				sb.append("OPEN(UNIT = 1, FILE = \"" + fileName + "\");\n");
 				String varName = fileName.split("\\.")[0];
+				// TODO adding some preprocessing function to get the shape of the file.
+				sb.append(getMoreIndent(0) + "CALL file_analyze('" + fileName + "', " + varName + "_r, " + varName + "_c);\n");
+				sb.append(getMoreIndent(0) + "ALLOCATE(" + varName + "(" + varName + "_r, " + varName + "_c));\n");
+				fotranTemporaries.put(varName + "_r", new BasicMatrixValue(
+						null, 
+						PrimitiveClassReference.INT32, 
+						new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+						null, 
+						new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+						.newisComplexInfoFromStr("REAL")
+						));
+				fotranTemporaries.put(varName + "_c", new BasicMatrixValue(
+						null, 
+						PrimitiveClassReference.INT32, 
+						new ShapeFactory<AggrValue<BasicMatrixValue>>().getScalarShape(), 
+						null, 
+						new isComplexInfoFactory<AggrValue<BasicMatrixValue>>()
+						.newisComplexInfoFromStr("REAL")
+						));
 				sb.append(getMoreIndent(0) + "DO row_" + varName + " = 1, SIZE(" + varName + ", 1)\n");
 				sb.append(getMoreIndent(1) + "READ(1, *) " + varName + "(row_" + varName + ", :);\n");
 				sb.append(getMoreIndent(0) + "END DO\n");
