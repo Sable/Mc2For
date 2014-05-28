@@ -2,12 +2,15 @@ package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import java.util.ArrayList;
 
-import natlab.tame.tir.*;
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.AssignLiteralStmt;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.RuntimeAllocate;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Statement;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Variable;
+import natlab.tame.tir.TIRAssignLiteralStmt;
+import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.constant.Constant;
-import natlab.tame.valueanalysis.components.shape.*;
-import natlab.tame.valueanalysis.basicmatrix.*;
-import natlab.backends.Fortran.codegen_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.tame.valueanalysis.components.shape.Shape;
 
 public class HandleCaseTIRAssignLiteralStmt {
 	static boolean Debug = false;

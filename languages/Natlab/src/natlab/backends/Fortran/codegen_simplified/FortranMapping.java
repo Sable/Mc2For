@@ -1,6 +1,8 @@
 package natlab.backends.Fortran.codegen_simplified;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FortranMapping {
 	private static HashMap<String, String> FortranTypeMap = 

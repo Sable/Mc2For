@@ -2,11 +2,26 @@ package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
 import java.util.List;
 
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.BackupVar;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.DeclStmt;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.DeclarationSection;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.DerivedType;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.DerivedTypeList;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Keyword;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.KeywordList;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Module;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Parameter;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.ProgramParameterList;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.ProgramTitle;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.ShapeInfo;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.StatementSection;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Subprogram;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Variable;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.VariableList;
 import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.tir.TIRFunction;
 import natlab.tame.valueanalysis.components.shape.DimValue;
-import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
 public class GenerateFunction {
 	static boolean Debug = false;

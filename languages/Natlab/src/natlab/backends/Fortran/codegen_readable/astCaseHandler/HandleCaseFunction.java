@@ -1,9 +1,8 @@
 package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
-import ast.Name;
+import natlab.backends.Fortran.codegen_readable.FortranCodeASTGenerator;
 import ast.Function;
-
-import natlab.backends.Fortran.codegen_readable.*;
+import ast.Name;
 
 public class HandleCaseFunction {
 	static boolean Debug =false;

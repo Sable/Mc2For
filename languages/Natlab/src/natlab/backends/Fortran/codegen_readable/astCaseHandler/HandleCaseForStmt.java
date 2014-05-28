@@ -1,14 +1,16 @@
 package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
-import ast.ForStmt;
-
-import natlab.backends.Fortran.codegen_readable.*;
-import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
+import natlab.backends.Fortran.codegen_readable.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FAssignStmt;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FForStmt;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.Statement;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.StatementSection;
 import natlab.tame.classes.reference.PrimitiveClassReference;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
 import natlab.tame.valueanalysis.components.isComplex.isComplexInfoFactory;
 import natlab.tame.valueanalysis.components.shape.ShapeFactory;
+import ast.ForStmt;
 
 public class HandleCaseForStmt {
 	static boolean Debug = false;

@@ -1,23 +1,43 @@
 package natlab.backends.Fortran.codegen_simplified;
 
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import ast.ASTNode;
-
-import natlab.tame.tir.*;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.StatementSection;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Subprogram;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRAbstractAssignToListStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRAbstractAssignToVarStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRArrayGetStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRArraySetStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRAssignLiteralStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRCommentStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRForStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRFunction;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRIfStmt;
+import natlab.backends.Fortran.codegen_simplified.astCaseHandler.HandleCaseTIRWhileStmt;
+import natlab.tame.tir.TIRAbstractAssignToListStmt;
+import natlab.tame.tir.TIRAbstractAssignToVarStmt;
+import natlab.tame.tir.TIRArrayGetStmt;
+import natlab.tame.tir.TIRArraySetStmt;
+import natlab.tame.tir.TIRAssignLiteralStmt;
+import natlab.tame.tir.TIRCommentStmt;
+import natlab.tame.tir.TIRForStmt;
+import natlab.tame.tir.TIRFunction;
+import natlab.tame.tir.TIRIfStmt;
+import natlab.tame.tir.TIRNode;
+import natlab.tame.tir.TIRWhileStmt;
 import natlab.tame.tir.analysis.TIRAbstractNodeCaseHandler;
+import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.ValueFlowMap;
 import natlab.tame.valueanalysis.ValueSet;
-import natlab.tame.valueanalysis.ValueAnalysis;
-import natlab.tame.valueanalysis.aggrvalue.*;
+import natlab.tame.valueanalysis.aggrvalue.AggrValue;
+import natlab.tame.valueanalysis.aggrvalue.CellValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.astCaseHandler.*;
+import ast.ASTNode;
 
 public class FortranCodeASTGenerator extends TIRAbstractNodeCaseHandler {
 	static boolean Debug = false;

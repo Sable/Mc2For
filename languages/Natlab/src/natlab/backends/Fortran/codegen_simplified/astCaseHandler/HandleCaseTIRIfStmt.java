@@ -1,8 +1,10 @@
 package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
-import natlab.tame.tir.*;
-import natlab.backends.Fortran.codegen_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.IfStmt;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Statement;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.StatementSection;
+import natlab.tame.tir.TIRIfStmt;
 
 public class HandleCaseTIRIfStmt {
 	static boolean Debug = false;

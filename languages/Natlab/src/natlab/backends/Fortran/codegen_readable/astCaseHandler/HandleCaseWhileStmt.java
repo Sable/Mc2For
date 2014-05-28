@@ -1,9 +1,10 @@
 package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
+import natlab.backends.Fortran.codegen_readable.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FWhileStmt;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.Statement;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.StatementSection;
 import ast.WhileStmt;
-
-import natlab.backends.Fortran.codegen_readable.*;
-import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
 
 public class HandleCaseWhileStmt {
 	static boolean Debug = false;

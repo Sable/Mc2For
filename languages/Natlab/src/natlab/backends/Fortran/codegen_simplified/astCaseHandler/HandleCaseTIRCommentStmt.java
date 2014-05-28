@@ -1,8 +1,9 @@
 package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
-import natlab.tame.tir.*;
-import natlab.backends.Fortran.codegen_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.CommentStmt;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Statement;
+import natlab.tame.tir.TIRCommentStmt;
 
 public class HandleCaseTIRCommentStmt {
 	static boolean Debug = false;

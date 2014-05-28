@@ -1,9 +1,10 @@
 package natlab.backends.Fortran.codegen_simplified.astCaseHandler;
 
-import natlab.tame.tir.*;
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.AbstractAssignToVarStmt;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Statement;
+import natlab.tame.tir.TIRAbstractAssignToVarStmt;
 import natlab.tame.valueanalysis.components.constant.Constant;
-import natlab.backends.Fortran.codegen_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
 public class HandleCaseTIRAbstractAssignToVarStmt {
 	static boolean Debug = false;

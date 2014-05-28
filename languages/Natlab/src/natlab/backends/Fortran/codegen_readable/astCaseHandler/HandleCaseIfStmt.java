@@ -1,9 +1,10 @@
 package natlab.backends.Fortran.codegen_readable.astCaseHandler;
 
+import natlab.backends.Fortran.codegen_readable.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FIfStmt;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.Statement;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.StatementSection;
 import ast.IfStmt;
-
-import natlab.backends.Fortran.codegen_readable.*;
-import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
 
 public class HandleCaseIfStmt {
 	static boolean Debug = false;

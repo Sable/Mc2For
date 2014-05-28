@@ -1,23 +1,53 @@
 package natlab.backends.Fortran.codegen_readable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import ast.ASTNode;
-import ast.List;
-import ast.*;
-import natlab.tame.tir.TIRCommentStmt;
-
-import nodecases.AbstractNodeCaseHandler;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.ExtraInlined;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FAssignStmt;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FBreakStmt;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FCommentStmt;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.FSubroutines;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.RuntimeAllocate;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.StatementSection;
+import natlab.backends.Fortran.codegen_readable.FortranAST_readable.Subprogram;
+import natlab.backends.Fortran.codegen_readable.astCaseHandler.HandleCaseForStmt;
+import natlab.backends.Fortran.codegen_readable.astCaseHandler.HandleCaseFunction;
+import natlab.backends.Fortran.codegen_readable.astCaseHandler.HandleCaseIfStmt;
+import natlab.backends.Fortran.codegen_readable.astCaseHandler.HandleCaseWhileStmt;
 import natlab.tame.classes.reference.PrimitiveClassReference;
+import natlab.tame.tamerplus.analysis.AnalysisEngine;
+import natlab.tame.tir.TIRCommentStmt;
 import natlab.tame.valueanalysis.ValueFlowMap;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.aggrvalue.CellValue;
-import natlab.tame.tamerplus.analysis.AnalysisEngine;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
-import natlab.tame.valueanalysis.components.shape.*;
 import natlab.tame.valueanalysis.components.isComplex.isComplexInfoFactory;
-import natlab.backends.Fortran.codegen_readable.FortranAST_readable.*;
-import natlab.backends.Fortran.codegen_readable.astCaseHandler.*;
+import natlab.tame.valueanalysis.components.shape.Shape;
+import natlab.tame.valueanalysis.components.shape.ShapeFactory;
+import nodecases.AbstractNodeCaseHandler;
+import ast.ASTNode;
+import ast.AssignStmt;
+import ast.BreakStmt;
+import ast.ColonExpr;
+import ast.EmptyStmt;
+import ast.ForStmt;
+import ast.Function;
+import ast.IfStmt;
+import ast.IntLiteralExpr;
+import ast.List;
+import ast.LiteralExpr;
+import ast.MatrixExpr;
+import ast.Name;
+import ast.NameExpr;
+import ast.ParameterizedExpr;
+import ast.RangeExpr;
+import ast.Row;
+import ast.StringLiteralExpr;
+import ast.WhileStmt;
 
 public class FortranCodeASTGenerator extends AbstractNodeCaseHandler {
 	/*

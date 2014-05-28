@@ -4,16 +4,28 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import natlab.tame.valueanalysis.value.Args;
-import natlab.tame.tir.*;
-import natlab.tame.builtin.*;
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTGenerator;
+import natlab.backends.Fortran.codegen_simplified.FortranCodeASTInliner;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.BinaryExpr;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.BuiltinConstantExpr;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.DirectBuiltinExpr;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Functions;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.IOOperationExpr;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.NoDirectBuiltinExpr;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.RuntimeAllocate;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Statement;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Subroutines;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.UnaryExpr;
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Variable;
+import natlab.tame.builtin.Builtin;
 import natlab.tame.builtin.shapeprop.HasShapePropagationInfo;
 import natlab.tame.builtin.shapeprop.ShapePropTool;
-import natlab.tame.valueanalysis.components.constant.*;
-import natlab.tame.valueanalysis.components.shape.*;
+import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValueFactory;
-import natlab.backends.Fortran.codegen_simplified.*;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
+import natlab.tame.valueanalysis.components.constant.CharConstant;
+import natlab.tame.valueanalysis.components.constant.Constant;
+import natlab.tame.valueanalysis.components.shape.Shape;
+import natlab.tame.valueanalysis.value.Args;
 
 public class HandleCaseTIRAbstractAssignToListStmt {
 	static boolean Debug = false;

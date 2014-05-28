@@ -1,16 +1,18 @@
 package natlab.backends.Fortran.codegen_simplified;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.Program;
 import natlab.tame.BasicTamerTool;
-import natlab.tame.valueanalysis.*;
+import natlab.tame.valueanalysis.ValueAnalysis;
+import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.tame.valueanalysis.basicmatrix.BasicMatrixValue;
-import natlab.tame.valueanalysis.aggrvalue.*;
 import natlab.toolkits.filehandling.GenericFile;
 import natlab.toolkits.path.FileEnvironment;
-import natlab.backends.Fortran.codegen_simplified.FortranAST_simplified.*;
 
 public class Main_simplified {
 
