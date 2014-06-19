@@ -19,7 +19,7 @@ public class HandleCaseFunction {
 			FortranCodeASTGenerator fcg, 
 			Function node) 
 	{
-		fcg.functionName = node.getName();
+		fcg.functionName = node.getName().getID();
 		for (Name param : node.getInputParams()) {
 			fcg.inArgs.add(param.getVarName());
 		}
@@ -31,7 +31,7 @@ public class HandleCaseFunction {
 		 *  we use that entry point file name to determine which function 
 		 *  should be transformed as the main program in fortran.
 		 */
-		if (fcg.entryPointFile.equals(node.getName()) && fcg.outRes.size() == 0) {
+		if (fcg.entryPointFile.equals(node.getName().getID()) && fcg.outRes.size() == 0) {
 			GenerateMainEntryPoint mainEntryPoint = new GenerateMainEntryPoint();
 			mainEntryPoint.newMain(fcg, node);
 		}

@@ -18,7 +18,7 @@ public class HandleCaseTIRFunction {
 			FortranCodeASTGenerator fcg, 
 			TIRFunction node) 
 	{
-		fcg.functionName = node.getName();
+		fcg.functionName = node.getName().getID();
 		for (Name param : node.getInputParams()) {
 			fcg.inArgs.add(param.getVarName());
 		}
@@ -30,7 +30,7 @@ public class HandleCaseTIRFunction {
 		 *  we use that entry point file name to determine which function 
 		 *  should be transformed as the main program in fortran.
 		 */
-		if (fcg.entryPointFile.equals(node.getName())) {
+		if (fcg.entryPointFile.equals(node.getName().getID())) {
 			GenerateMainEntryPoint mainEntryPoint = new GenerateMainEntryPoint();
 			mainEntryPoint.newMain(fcg, node);
 		}
