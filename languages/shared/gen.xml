@@ -1,0 +1,35 @@
+<!--
+    Requires:
+        Properties: src.dir, lexer.spec, parser.spec, gen.dir, ast.pkg
+        Paths: n/a
+        Targets: def.jflex.task, def.beaver.task, def.jastadd.task
+-->
+<project name="Gen">
+	<!-- generates Java files from JFlex scanner spec -->
+
+	
+	<!-- generates Java files from JastAdd specs -->
+	<target name="jastadd" depends="def.jastadd.task">
+    <jastadd package="${fortran_simplified.ast.pkg}" beaver="true" rewrite="regular" outdir="${basedir}/${gen.dir}">
+      <fileset dir="${src.dir}/${fortran_simplified.src.dir}">
+				<include name="**/*.ast" />
+				<include name="**/*.jadd" />
+				<include name="**/*.jrag" />
+			</fileset> 
+    </jastadd> 
+    <jastadd package="${fortran_readable.ast.pkg}" beaver="true" rewrite="regular" outdir="${basedir}/${gen.dir}">
+      <fileset dir="${src.dir}/${fortran_readable.src.dir}">
+				<include name="**/*.ast" />
+				<include name="**/*.jadd" />
+				<include name="**/*.jrag" />
+			</fileset> 
+    </jastadd> 
+	</target>
+	
+	<!-- remove files created by gen -->
+	<target name="clean.gen">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${gen.dir}" includes="**/*" />
+		</delete>
+	</target>
+</project>
