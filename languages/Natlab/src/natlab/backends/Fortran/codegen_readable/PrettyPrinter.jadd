@@ -1,0 +1,215 @@
+aspect PrettyPrinter {
+	public void ASTNode.pp(StringBuffer sb) {}
+	
+	public void Program.pp(StringBuffer sb) {}
+	
+	public void Subprogram.pp(StringBuffer sb) {
+		getProgramTitle().pp(sb);
+		getDeclarationSection().pp(sb);
+		int size = getNumBackupVar();
+    	for (int i=0;i<size;i++) {
+    		getBackupVar(i).pp(sb);
+    	}
+    	if (hasGetInput()) {
+    		getGetInput().pp(sb);
+    	}
+		getStatementSection().pp(sb);
+		sb.append(getProgramEnd()+"\n");
+	}
+    
+    public void BackupVar.pp(StringBuffer sb) {
+    	sb.append(getStmt()+"\n");
+    }
+    
+    public void GetInput.pp(StringBuffer sb) {
+    	sb.append(getBlock()+"\n");
+    }
+	
+	public void ProgramTitle.pp(StringBuffer sb) {
+	    sb.append(getProgramType()+" "+getProgramName());
+	    if (hasProgramParameterList()) {
+	    	sb.append("(");
+	    	getProgramParameterList().pp(sb);
+	    	sb.append(")");
+	    }
+	    int size = getNumModule();
+	    if (size>0) {
+		    for (int i=0;i<size;i++) {
+		    	getModule(i).pp(sb);
+	    	}
+	    }
+	    sb.append("\nIMPLICIT NONE\n");
+	}
+    
+    public void ProgramParameterList.pp(StringBuffer sb) {
+        int size = getNumParameter();
+        for (int i=0;i<size;i++) {
+        	getParameter(i).pp(sb);
+        	if(i<size-1) sb.append(",");
+        }
+    }
+    
+    public void Parameter.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void Module.pp(StringBuffer sb) {
+    	sb.append("\nUSE mod_"+getName());
+    }
+    
+    public void DeclarationSection.pp(StringBuffer sb) {
+    	int size = getNumDeclStmt();
+    	for (int i=0;i<size;i++) {
+    		getDeclStmt(i).pp(sb);
+    		sb.append("\n");
+    	}
+    	if (hasDerivedTypeList()) {
+    		getDerivedTypeList().pp(sb);
+    	}
+    }
+    
+    public void DerivedTypeList.pp(StringBuffer sb) {
+    	int size = getNumDerivedType();
+    	for (int i=0;i<size;i++) {
+    		getDerivedType(i).pp(sb);
+    	}
+    }
+    
+    public void DerivedType.pp(StringBuffer sb) {
+    	sb.append(getBlock());
+    }
+    
+    public void DeclStmt.pp(StringBuffer sb) {
+    	sb.append(getType());
+    	if (hasKeywordList()) {
+    	    sb.append(", ");
+    		getKeywordList().pp(sb);
+    	}
+    	if (hasShapeInfo()) {
+    		sb.append(", ");
+    		getShapeInfo().pp(sb);
+    	}
+    	sb.append(" :: ");
+    	getVariableList().pp(sb);
+    }
+    
+    public void KeywordList.pp(StringBuffer sb) {
+    	int size = getNumKeyword();
+        for (int i=0;i<size;i++) {
+        	getKeyword(i).pp(sb);
+        	if(i<size-1) sb.append(", ");
+        }
+    }
+    
+    public void Keyword.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void ShapeInfo.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void VariableList.pp(StringBuffer sb) {
+    	int size = getNumVariable();
+        for (int i=0;i<size;i++) {
+        	getVariable(i).pp(sb);
+        	if (i<size-1) sb.append(", ");
+        	if (i!=0 && i%5==0 && i!=size-1) 
+        		sb.append("&\n&");
+        }
+    }
+    
+    public void Variable.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void StatementSection.pp(StringBuffer sb) {
+    	int size = getNumStatement();
+    	for (int i=0;i<size;i++) {
+    		getStatement(i).pp(sb);
+    		sb.append("\n");
+    	}
+    }
+    
+    public void Statement.pp(StringBuffer sb) {
+    
+    }
+    
+    public void FCommentStmt.pp(StringBuffer sb) {
+    	if (getFComment()!=null) {
+    		sb.append(getIndent());
+    		sb.append("!");
+    		sb.append(getFComment());
+    	}
+    }
+    
+    public void FAssignStmt.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) {
+    		getRuntimeAllocate().pp(sb);
+    	}
+    	sb.append(getIndent());
+    	if (!getFLHS().equals("")) {
+    		sb.append(getFLHS());
+    		sb.append(" = ");
+    	}
+    	sb.append(getFRHS()+";");
+    	if (hasExtraInlined()) {
+    		sb.append("\n"+getIndent());
+    		getExtraInlined().pp(sb);
+    	}
+    }
+    
+    public void RuntimeAllocate.pp(StringBuffer sb) {
+    	sb.append(getBlock());
+    }
+    
+    public void ExtraInlined.pp(StringBuffer sb) {
+    	sb.append(getBlock());
+    }
+    
+    public void FSubroutines.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	if (getFunctionCall().indexOf("PRINT") != -1) {
+    		sb.append(getFunctionCall()+";");
+    	}
+    	else if (getFunctionCall().indexOf("READ") != -1) {
+    		sb.append(getFunctionCall());
+    	}
+    	else {
+    		sb.append("CALL "+getFunctionCall()+";");
+    	}
+    }
+    
+    public void FBreakStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	sb.append(getFBreak());
+    }
+    
+    public void FIfStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	sb.append("IF ("+getFIfCondition()+") THEN\n");
+    	getFIfBlock().pp(sb);
+    	if (hasFElseBlock()) {
+    		sb.append(getIndent());
+    		sb.append("ELSE\n");
+    		getFElseBlock().pp(sb);
+    	}
+    	sb.append(getIndent()+"ENDIF");
+    }
+    
+    public void FWhileStmt.pp(StringBuffer sb) {
+   	 	sb.append(getIndent());
+    	sb.append("DO WHILE ("+getFWhileCondition()+")");
+    	sb.append("\n");
+    	getFWhileBlock().pp(sb);
+    	sb.append(getIndent()+"ENDDO");   	
+    }
+    
+    public void FForStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	sb.append("DO "+getFForCondition()+"\n");
+    	getFForBlock().pp(sb);
+    	sb.append(getIndent()+"ENDDO");    	
+    }
+}

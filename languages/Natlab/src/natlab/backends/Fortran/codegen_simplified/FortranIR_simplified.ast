@@ -1,0 +1,52 @@
+Program ::= Subprogram*;
+Subprogram ::= ProgramTitle DeclarationSection BackupVar* StatementSection <ProgramEnd>;
+BackupVar ::= <Stmt: String>;
+
+ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList] Module*;
+ProgramParameterList ::= Parameter*;
+Parameter ::= <Name: String>;
+Module ::= <Name: String>;
+
+DeclarationSection ::= DeclStmt* [DerivedTypeList];
+DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList;
+KeywordList ::= Keyword*;
+VariableList ::= Variable*;
+Keyword ::= <Name: String>;
+Variable ::= <Name: String>;
+ShapeInfo ::= <Name: String>;
+DerivedTypeList ::= DerivedType*;
+DerivedType ::= <Block: String>;
+
+StatementSection ::= Statement*;
+abstract Statement;
+
+CommentStmt: Statement ::= <Indent> <Comment>;
+
+AssignLiteralStmt: Statement ::= <Indent> [RuntimeAllocate] Variable <Literal>;
+RuntimeAllocate ::= <Block: String>;
+
+AbstractAssignToVarStmt: Statement ::= <Indent> [RuntimeAllocate] <TargetVariable> <SourceVariable>;
+
+abstract AbstractAssignToListStmt: Statement;
+BinaryExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <Operand1> <Operator> <Operand2>;
+UnaryExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <Operator> <Operand>;
+DirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <BuiltinFunc> <ArgsList>;
+NoDirectBuiltinExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <CodeInline>;
+BuiltinConstantExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] Variable* <BuiltinFunc>;
+IOOperationExpr: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <IOOperator> <ArgsList>;
+
+Subroutines: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <FuncName> <InputArgsList> <OutputArgsList>;
+Functions: AbstractAssignToListStmt ::= <Indent> [RuntimeAllocate] <TargetVar> <FuncName> <InputArgsList>;
+
+IfStmt: Statement ::= <Indent> <Condition> IfBlock: StatementSection [ElseBlock: StatementSection];
+
+WhileStmt: Statement ::= <Indent> <Condition> WhileBlock: StatementSection;
+
+ForStmt: Statement ::= <Indent> <LoopVar> <LowBoundary> [Inc] <UpperBoundary> ForBlock: StatementSection;
+Inc ::= <Name: String>;
+
+ArrayGetStmt: Statement ::= <Indent> [RuntimeAllocate] [RigorousIndexingTransformation] <lhsVariable> [lhsIndex] <rhsVariable> <rhsIndex>;
+lhsIndex ::= <Name: String>;
+RigorousIndexingTransformation ::= <FunctionCall: String>;
+
+ArraySetStmt: Statement ::= <Indent> [RuntimeAllocate] [RigorousIndexingTransformation] <lhsVariable> <lhsIndex> <rhsVariable>;

@@ -1,0 +1,296 @@
+aspect PrettyPrinter {
+	public void ASTNode.pp(StringBuffer sb) {}
+	
+	public void Program.pp(StringBuffer sb) {}
+	
+	public void Subprogram.pp(StringBuffer sb) {
+		getProgramTitle().pp(sb);
+		getDeclarationSection().pp(sb);
+		int size = getNumBackupVar();
+    	for (int i=0;i<size;i++) {
+    		getBackupVar(i).pp(sb);
+    	}
+		getStatementSection().pp(sb);
+		sb.append(getProgramEnd()+"\n");
+	}
+    
+    public void BackupVar.pp(StringBuffer sb) {
+    	sb.append(getStmt()+"\n");
+    }
+	
+	public void ProgramTitle.pp(StringBuffer sb) {
+	    sb.append(getProgramType()+" "+getProgramName());
+	    if (hasProgramParameterList()) {
+	    	sb.append("(");
+	    	getProgramParameterList().pp(sb);
+	    	sb.append(")");
+	    }
+	    int size = getNumModule();
+	    if (size>0) {
+		    for (int i=0;i<size;i++) {
+		    	getModule(i).pp(sb);
+	    	}
+	    }
+	    sb.append("\nIMPLICIT NONE\n");
+	}
+    
+    public void ProgramParameterList.pp(StringBuffer sb) {
+        int size = getNumParameter();
+        for (int i=0;i<size;i++) {
+        	getParameter(i).pp(sb);
+        	if(i<size-1) sb.append(",");
+        }
+    }
+    
+    public void Parameter.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void Module.pp(StringBuffer sb) {
+    	sb.append("\nUSE mod_"+getName());
+    }
+    
+    public void DeclarationSection.pp(StringBuffer sb) {
+    	int size = getNumDeclStmt();
+    	for (int i=0;i<size;i++) {
+    		getDeclStmt(i).pp(sb);
+    		sb.append("\n");
+    	}
+    	if (hasDerivedTypeList()) {
+    		getDerivedTypeList().pp(sb);
+    	}
+    }
+    
+    public void DerivedTypeList.pp(StringBuffer sb) {
+    	int size = getNumDerivedType();
+    	for (int i=0;i<size;i++) {
+    		getDerivedType(i).pp(sb);
+    	}
+    }
+    
+    public void DerivedType.pp(StringBuffer sb) {
+    	sb.append(getBlock());
+    }
+    
+    public void DeclStmt.pp(StringBuffer sb) {
+    	sb.append(getType());
+    	if (hasKeywordList()) {
+    	    sb.append(" , ");
+    		getKeywordList().pp(sb);
+    	}
+    	if (hasShapeInfo()) {
+    		sb.append(" , ");
+    		getShapeInfo().pp(sb);
+    	}
+    	sb.append(" :: ");
+    	getVariableList().pp(sb);
+    }
+    
+    public void KeywordList.pp(StringBuffer sb) {
+    	int size = getNumKeyword();
+        for (int i=0;i<size;i++) {
+        	getKeyword(i).pp(sb);
+        	if(i<size-1) sb.append(" , ");
+        }
+    }
+    
+    public void Keyword.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void ShapeInfo.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void VariableList.pp(StringBuffer sb) {
+    	int size = getNumVariable();
+        for (int i=0;i<size;i++) {
+        	getVariable(i).pp(sb);
+        	if (i<size-1) sb.append(", ");
+        }
+    }
+    
+    public void Variable.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void StatementSection.pp(StringBuffer sb) {
+    	int size = getNumStatement();
+    	for (int i=0;i<size;i++) {
+    		getStatement(i).pp(sb);
+    		sb.append("\n");
+    	}
+    }
+    
+    public void Statement.pp(StringBuffer sb) {
+    
+    }
+    
+    public void CommentStmt.pp(StringBuffer sb) {
+    	if (getComment()!=null) {
+    		sb.append(getIndent());
+    		sb.append("!");
+    		sb.append(getComment());
+    	}
+    }
+    
+    public void AssignLiteralStmt.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	getVariable().pp(sb);
+    	sb.append(" = "+getLiteral()+";");
+    }
+    
+    public void RuntimeAllocate.pp(StringBuffer sb) {
+    	sb.append(getBlock());
+    }
+    
+    public void AbstractAssignToVarStmt.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	sb.append(getTargetVariable()+" = "+getSourceVariable()+";");
+    }
+    
+    public void AbstractAssignToListStmt.pp(StringBuffer sb) {
+    
+    }
+    
+    public void BinaryExpr.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	int size = getNumVariable();
+    	for (int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if (i<size-1) sb.append(",");
+    	}
+    	sb.append(" = "+getOperand1()+" "+getOperator()+" "+getOperand2()+";");
+    }
+    
+    public void UnaryExpr.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	int size = getNumVariable();
+    	for (int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if (i<size-1) sb.append(",");
+    	}
+    	sb.append(" = "+getOperator()+" "+getOperand()+";");
+    }
+    
+    public void DirectBuiltinExpr.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	int size = getNumVariable();
+    	for (int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if (i<size-1) sb.append(",");
+    	}
+    	sb.append(" = "+getBuiltinFunc()+"("+getArgsList()+");");
+    }
+    
+    public void NoDirectBuiltinExpr.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	sb.append(getCodeInline());
+    }
+    
+    public void BuiltinConstantExpr.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	int size = getNumVariable();
+    	for (int i=0;i<size;i++) {
+    		getVariable(i).pp(sb);
+    		if (i<size-1) sb.append(",");
+    	}
+    	sb.append(" = "+getBuiltinFunc()+";");
+    }
+    
+    public void IOOperationExpr.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	sb.append(getIOOperator()+getArgsList()+";");
+    }
+    
+    public void Subroutines.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	sb.append("CALL "+getFuncName()+"("+getInputArgsList()+", "+getOutputArgsList()+");");
+    }
+    
+    public void Functions.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	sb.append(getTargetVar()+" = "+getFuncName()+"("+getInputArgsList()+");");
+    }
+    
+    public void IfStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	sb.append("IF ("+getCondition()+") THEN\n");
+    	getIfBlock().pp(sb);
+    	if (hasElseBlock()) {
+    		sb.append(getIndent());
+    		sb.append("ELSE\n");
+    		getElseBlock().pp(sb);
+    	}
+    	sb.append(getIndent()+"ENDIF");
+    }
+    
+    public void WhileStmt.pp(StringBuffer sb) {
+   	 	sb.append(getIndent());
+    	sb.append("DO WHILE ("+getCondition()+")");
+    	sb.append("\n");
+    	getWhileBlock().pp(sb);
+    	sb.append(getIndent()+"ENDDO");   	
+    }
+    
+    public void ForStmt.pp(StringBuffer sb) {
+    	sb.append(getIndent());
+    	sb.append("DO "+getLoopVar()+" = "+getLowBoundary()+" , ");
+    	sb.append(getUpperBoundary());
+    	if (hasInc()) {
+    		sb.append(" , ");
+    		getInc().pp(sb);
+    	}
+    	sb.append("\n");
+    	getForBlock().pp(sb);
+    	sb.append(getIndent()+"ENDDO");    	
+    }
+    
+    public void Inc.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void ArrayGetStmt.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	if (hasRigorousIndexingTransformation()) {
+    		getRigorousIndexingTransformation().pp(sb);
+    		return;
+    	}
+    	sb.append(getlhsVariable());
+    	if (haslhsIndex()) {
+    		sb.append("(");
+    		getlhsIndex().pp(sb);
+    		sb.append(")");
+    	}
+    	sb.append(" = "+getrhsVariable()+"("+getrhsIndex()+");");
+    }
+    
+    public void lhsIndex.pp(StringBuffer sb) {
+    	sb.append(getName());
+    }
+    
+    public void RigorousIndexingTransformation.pp(StringBuffer sb) {
+    	sb.append(getFunctionCall());
+    }
+    
+    public void ArraySetStmt.pp(StringBuffer sb) {
+    	if (hasRuntimeAllocate()) getRuntimeAllocate().pp(sb);
+    	sb.append(getIndent());
+    	if (hasRigorousIndexingTransformation()) {
+    		getRigorousIndexingTransformation().pp(sb);
+    		return;
+    	}
+    	sb.append(getlhsVariable()+"("+getlhsIndex()+") = "+getrhsVariable()+";");
+    }
+}

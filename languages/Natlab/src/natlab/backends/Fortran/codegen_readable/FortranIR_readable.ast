@@ -1,0 +1,38 @@
+Program ::= Subprogram*;
+Subprogram ::= ProgramTitle DeclarationSection BackupVar* [GetInput] StatementSection <ProgramEnd>;
+BackupVar ::= <Stmt: String>;
+GetInput ::= <Block: String>;
+
+ProgramTitle ::= <ProgramType> <ProgramName> [ProgramParameterList] Module*;
+ProgramParameterList ::= Parameter*;
+Parameter ::= <Name: String>;
+Module ::= <Name: String>;
+
+DeclarationSection ::= DeclStmt* [DerivedTypeList];
+DeclStmt ::= <Type> [KeywordList] [ShapeInfo] VariableList;
+KeywordList ::= Keyword*;
+VariableList ::= Variable*;
+Keyword ::= <Name: String>;
+Variable ::= <Name: String>;
+ShapeInfo ::= <Name: String>;
+DerivedTypeList ::= DerivedType*;
+DerivedType ::= <Block: String>;
+
+StatementSection ::= Statement*;
+abstract Statement;
+
+FCommentStmt: Statement ::= <Indent> <FComment>;
+
+FAssignStmt: Statement ::= <Indent> [RuntimeAllocate] <FLHS> <FRHS> [ExtraInlined];
+RuntimeAllocate ::= <Block: String>;
+ExtraInlined ::= <Block: String>;
+
+FSubroutines: FAssignStmt ::= <Indent> [RuntimeAllocate] <FunctionCall>;
+
+FBreakStmt: Statement ::= <Indent> <FBreak>;
+
+FIfStmt: Statement ::= <Indent> <FIfCondition> FIfBlock: StatementSection [FElseBlock: StatementSection];
+
+FWhileStmt: Statement ::= <Indent> <FWhileCondition> FWhileBlock: StatementSection;
+
+FForStmt: Statement ::= <Indent> <FForCondition> FForBlock: StatementSection;
