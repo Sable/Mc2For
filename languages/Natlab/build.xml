@@ -1,0 +1,116 @@
+<project name="Natlab" default="build">
+	<!-- load properties -->
+	<property file="natlab.properties" />
+
+  <!-- setup a local basename -->
+  <dirname property="Natlab.basedir" file="${ant.file.Natlab}" />
+
+	<!-- useful paths -->
+	<path id="jflex.jar.path" path="${lib.dir}/${jflex.jar.path.prop}" />
+	<path id="beaver.jar.path" path="${lib.dir}/${beaver.jar.path.prop}" />
+	<path id="beaver.rt.jar.path" path="${lib.dir}/${beaver.rt.jar.path.prop}" />
+	<path id="jastadd.jar.path" path="${lib.dir}/${jastadd.jar.path.prop}" />
+	<path id="jastaddparser.jar.path" path="${lib.dir}/${jastaddparser.jar.path.prop}" />
+	<path id="junit.jar.path" path="${lib.dir}/${junit.jar.path.prop}" />
+  <path id="guava.jar.path" path="${lib.dir}/${guava.jar.path.prop}" />
+  <path id="json.jar.path" path="${lib.dir}/${json.jar.path.prop}" />
+  <path id="tamer.jar.path" path="${lib.dir}/${tamer.jar.path.prop}"/>
+	<path id="antlr.jar.path">
+		<fileset dir="${lib.dir}">
+			<include name="${antlr.task.jar.path.prop}" />
+			<include name="${antlr3.jar.path.prop}" />
+			<include name="${string.template.jar.path.prop}" />
+			<include name="${antlr2.jar.path.prop}" />
+		</fileset>
+	</path>
+	<target name="set.bin.dir" depends="BinDir.set.bin.dir">
+		<path id="compile.classpath">
+			<path refid="junit.jar.path" />
+			<path refid="beaver.rt.jar.path" />
+			<path refid="antlr.jar.path" />
+      <path refid="guava.jar.path" />
+      <path refid="json.jar.path" />
+	  <path refid="tamer.jar.path"/>
+			<path location="${basedir}/${matlab.bin.dir}" />
+		</path>
+		<path id="test.classpath">
+			<path refid="junit.jar.path" />
+			<path refid="beaver.rt.jar.path" />
+			<path refid="antlr.jar.path" />
+      <path refid="guava.jar.path" />
+      <path refid="json.jar.path" />
+			<path location="${basedir}/${bin.dir}" />
+			<path location="${basedir}/${matlab.bin.dir}" />
+      <path location="${basedir}/resources" />
+		</path>
+	</target>
+
+	<!--=====================================================================-->
+	<!-- Private Targets                                                     -->
+	<!--=====================================================================-->
+
+	<import file="../shared/taskdef.xml" />
+	<import file="../shared/gen.xml" />
+	<import file="../shared/compile.xml" />
+	<import file="../shared/bindir.xml" />
+	<import file="../shared/options.xml" />
+
+	<!-- Extend and override parts of gen.xml -->
+  <import optional="true" file="local.xml" />
+
+	<target name="gen.tests" depends="set.bin.dir">
+    <exec dir="${basedir}" executable="./gen_tests.sh">
+      <arg line="${basedir}/${test.dir} ${basedir}/${bin.dir} ${basedir}/${gen.dir}" />
+    </exec>
+  </target>
+
+	<!-- jflex, beaver, jastadd, and tests -->
+	<!-- NB: overrides target from gen.xml -->
+	<target name="gen" depends="options,jastadd" />
+
+
+	<!--=====================================================================-->
+	<!-- Public Targets                                                      -->
+	<!--=====================================================================-->
+
+	<import file="../shared/cli.xml" />
+	<import file="../shared/eclipse.xml" />
+
+  <macrodef name="natlab-jar">
+  <attribute name="excludes" default="" />
+  <attribute name="basename" />
+  <sequential>
+    <jar destfile="@{basename}.jar">
+      <manifest><attribute name="Main-Class" value="${entrypoint.class}" /></manifest>
+      <zipgroupfileset dir="${lib.dir}"
+        includes="${beaver.rt.jar.path.prop},${antlr3.rt.jar.path.prop},${string.template.jar.path.prop},${antlr2.jar.path.prop},${guava.jar.path.prop},${json.jar.path.prop},${tamer.jar.path.prop}" />
+      <fileset dir="${basedir}/${bin.dir}" includes="**/*.class" excludes="@{excludes}" />
+    </jar>
+    <echo file="@{basename}.sh">${entrypoint.script.header}
+java -jar "${basedir}/@{basename}.jar" "$$@"</echo>
+    <chmod file="@{basename}.sh" perm="755" />  
+  </sequential>
+  </macrodef>
+
+	<!-- public versions of cli.xml targets -->
+	<target name="build" depends="CommandLineInterface.build" description="generate and build all files (including matlab)">
+	</target>
+	<target name="clean" depends="CommandLineInterface.clean" description="deletes all files produced by build" />
+	<target name="test" depends="build, CommandLineInterface.test" description="runs all JUnit tests" />
+
+
+
+  <target name="jar-mc2for" depends="clean, jar_noclean_mc2for"
+          description="creates an executable release jar" />
+	<target name="jar_noclean_mc2for" depends="gen, compile" 
+          description="creates an executable release jar without cleaning first">
+		<natlab-jar basename="${entrypoint.fortran_backend.name}" />
+	</target>
+ 
+
+	<!-- public versions of eclipse.xml targets -->
+	<target name="eclipse.clean" depends="Eclipse.eclipse.clean" description="deletes all files produced by build.eclipse" />
+	<target name="eclipse.test" depends="Eclipse.eclipse.test" description="runs all JUnit tests, as built by Eclipse" />
+	<target name="Natlab.gen" depends="gen" description="Just generates the Natlab related code" />
+
+ </project>
