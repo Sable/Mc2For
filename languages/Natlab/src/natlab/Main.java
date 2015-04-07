@@ -21,40 +21,15 @@
 
 package natlab;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import mclint.McLint;
-import natlab.options.Options;
+import natlab.options.Mc2ForOptions;
 import natlab.backends.Fortran.codegen_readable.Main_readable;
-import natlab.tame.BasicTamerTool;
-import natlab.tame.tamerplus.TamerPlusMain;
-import natlab.toolkits.rewrite.Simplifier;
-import natlab.toolkits.rewrite.simplification.FullSimplification;
-import analysis.AbstractDepthFirstAnalysis;
-import analysis.AbstractStructuralAnalysis;
-import ast.CompilationUnits;
-import ast.Program;
-
-import com.google.common.base.Joiner;
 
 /**
  * Main entry point for McLab compiler. Includes a main method that deals with
  * command line options and performs the desired functions.
  */
 public class Main {
-	private static Options options;
-
-	private static void log(String message) {
-		if (!options.quiet()) {
-			System.err.println(message);
-		}
-	}
+	private static Mc2ForOptions options;
 
 	/**
 	 * Main method deals with command line options and execution of desired
@@ -66,62 +41,8 @@ public class Main {
 			return;
 		}
 
-		options = new Options();
+		options = new Mc2ForOptions();
 		options.parse(args);
-		if (options.help()) {
-			System.err.println(options.getUsage());
-			return;
-		}
-
-		if (options.pref()) {
-			NatlabPreferences.modify(options);
-			return;
-		}
-
-		if (options.show_pref()) {
-			System.out.println("Preferences:");
-			System.out.println(Joiner.on('\n').withKeyValueSeparator(" = ")
-					.join(NatlabPreferences.getAllPreferences()));
-		}
-
-		if (options.version()) {
-			System.out.println("The version of this release is: "
-					+ VersionInfo.getVersion());
-			return;
-		}
-
-		if (options.quiet()) {
-			AbstractDepthFirstAnalysis.DEBUG = false;
-			AbstractStructuralAnalysis.DEBUG = false;
-
-		}
-
-		if (options.tamer()) {
-			// TODO - the parsing of the options should probably not be done by
-			// the tamer tool
-			BasicTamerTool.main(options);
-			return;
-		}
-
-		if (options.tamerplus()) {
-			TamerPlusMain.main(options);
-		}
-
-		if (options.mclint()) {
-			McLint.main(options);
-			return;
-		}
-
-		if (options.server()) {
-			NatlabServer.create(options).start();
-			return;
-		}
-
-		// Mc2For options
-		if (options.codegen() || options.nocheck()) {
-			Main_readable.compile(options);
-		}
-
 		if (options.getFiles().isEmpty()) {
 			if (!options.main().isEmpty()) {
 				/*
@@ -136,53 +57,12 @@ public class Main {
 			}
 			return;
 		}
-
-		List<String> files = options.getFiles();
-		log("Parsing " + Joiner.on(", ").join(files));
-		List<CompilationProblem> errors = new ArrayList<>();
-		CompilationUnits cu;
-		if (!options.natlab()) {
-			cu = Parse.parseMatlabFiles(files, errors);
+		// Mc2For options
+		if (options.codegen() || options.nocheck()) {
+			Main_readable.compile(options);
 		} else {
-			cu = Parse.parseNatlabFiles(files, errors);
+			McLabCore.run(args);
 		}
 
-		if (!errors.isEmpty()) {
-			System.err.println(errors.stream().map(Object::toString)
-					.collect(Collectors.joining("\n")));
-			return;
-		}
-
-		if (options.simplify()) {
-			Simplifier.simplify(cu, FullSimplification.class);
-		}
-
-		if (options.json()) {
-			System.out.println(cu.getJsonString());
-			return;
-		}
-
-		if (options.xml()) {
-			System.out.print(cu.XMLtoString(cu.ASTtoXML()));
-			return;
-		}
-
-		if (options.pretty()) {
-			log("Pretty printing");
-
-			if (options.od().length() == 0) {
-				System.out.println(cu.getPrettyPrinted());
-			} else {
-				Path outputDir = Paths.get(options.od());
-				for (Program program : cu.getPrograms()) {
-					Path outputFile = outputDir.resolve(program.getFile()
-							.getName());
-					Files.createDirectories(outputFile.getParent());
-					Files.write(outputFile, program.getPrettyPrinted()
-							.getBytes(StandardCharsets.UTF_8));
-				}
-			}
-			return;
-		}
 	}
 }
