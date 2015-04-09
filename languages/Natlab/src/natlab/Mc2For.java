@@ -36,11 +36,6 @@ public class Mc2For {
 	 * functions.
 	 */
 	public static void main(String[] args) throws Exception {
-		run(args);
-
-	}
-
-	public static void run(String args[]) throws Exception {
 		if (args.length == 0) {
 			System.err.println("No options given\nTry -help for usage");
 			return;
@@ -48,25 +43,29 @@ public class Mc2For {
 
 		options = new Mc2ForOptions();
 		options.parse(args);
-		if (options.getFiles().isEmpty()) {
-			if (!options.main().isEmpty()) {
-				/*
-				 * If the user provided an entry point function and did not
-				 * provide a separate file, Use the main file as the input file.
-				 */
-				options.getFiles().add(options.main());
-				return;
-			} else {
-				System.err
-						.println("No files provided, must have at least one file.");
-			}
-			return;
-		}
+		run(options);
+	}
+
+	public static void run(Mc2ForOptions options) throws Exception {
 		// Mc2For options
 		if (options.codegen() || options.nocheck()) {
-			Main_readable.compile(options);
+				if (options.files().isEmpty()) {
+						if (!options.main().isEmpty()) {
+								/*
+								 * If the user provided an entry point function and did not
+								 * provide a separate file, Use the main file as the input file.
+								 */
+								options.files().add(options.main());
+								return;
+						} else {
+								System.err
+										.println("No files provided, must have at least one file.");
+						}
+						return;
+				}
+				Main_readable.compile(options);
 		} else {
-			McLabCore.run(args);
+				McLabCore.run(options);
 		}
 	}
 }
