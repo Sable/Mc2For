@@ -6,39 +6,16 @@
   <dirname property="Natlab.basedir" file="${ant.file.Natlab}" />
 
 	<!-- useful paths -->
-	<path id="jflex.jar.path" path="${lib.dir}/${jflex.jar.path.prop}" />
-	<path id="beaver.jar.path" path="${lib.dir}/${beaver.jar.path.prop}" />
-	<path id="beaver.rt.jar.path" path="${lib.dir}/${beaver.rt.jar.path.prop}" />
 	<path id="jastadd.jar.path" path="${lib.dir}/${jastadd.jar.path.prop}" />
 	<path id="jastaddparser.jar.path" path="${lib.dir}/${jastaddparser.jar.path.prop}" />
-	<path id="junit.jar.path" path="${lib.dir}/${junit.jar.path.prop}" />
-  <path id="guava.jar.path" path="${lib.dir}/${guava.jar.path.prop}" />
-  <path id="json.jar.path" path="${lib.dir}/${json.jar.path.prop}" />
   <path id="tamer.jar.path" path="${lib.dir}/${tamer.jar.path.prop}"/>
-	<path id="antlr.jar.path">
-		<fileset dir="${lib.dir}">
-			<include name="${antlr.task.jar.path.prop}" />
-			<include name="${antlr3.jar.path.prop}" />
-			<include name="${string.template.jar.path.prop}" />
-			<include name="${antlr2.jar.path.prop}" />
-		</fileset>
-	</path>
 	<target name="set.bin.dir" depends="BinDir.set.bin.dir">
 		<path id="compile.classpath">
-			<path refid="junit.jar.path" />
-			<path refid="beaver.rt.jar.path" />
-			<path refid="antlr.jar.path" />
-      <path refid="guava.jar.path" />
-      <path refid="json.jar.path" />
 	  <path refid="tamer.jar.path"/>
 			<path location="${basedir}/${matlab.bin.dir}" />
 		</path>
 		<path id="test.classpath">
-			<path refid="junit.jar.path" />
-			<path refid="beaver.rt.jar.path" />
-			<path refid="antlr.jar.path" />
-      <path refid="guava.jar.path" />
-      <path refid="json.jar.path" />
+			  <path refid="tamer.jar.path"/>
 			<path location="${basedir}/${bin.dir}" />
 			<path location="${basedir}/${matlab.bin.dir}" />
       <path location="${basedir}/resources" />
