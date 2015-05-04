@@ -41,7 +41,7 @@
     </exec>
   </target>
 
-	<!-- jflex, beaver, jastadd, and tests -->
+	<!-- jastadd and tests -->
 	<!-- NB: overrides target from gen.xml -->
 	<target name="gen" depends="jastadd" />
 
@@ -60,7 +60,7 @@
     <jar destfile="@{basename}.jar">
       <manifest><attribute name="Main-Class" value="${entrypoint.class}" /></manifest>
       <zipgroupfileset dir="${lib.dir}"
-        includes="${beaver.rt.jar.path.prop},${antlr3.rt.jar.path.prop},${string.template.jar.path.prop},${antlr2.jar.path.prop},${guava.jar.path.prop},${json.jar.path.prop},${tamer.jar.path.prop}" />
+        includes="${tamer.jar.path.prop}" />
       <fileset dir="${basedir}/${bin.dir}" includes="**/*.class" excludes="@{excludes}" />
     </jar>
     <echo file="@{basename}.sh">${entrypoint.script.header}
