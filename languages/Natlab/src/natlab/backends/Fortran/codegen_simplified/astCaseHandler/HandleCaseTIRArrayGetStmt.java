@@ -48,7 +48,7 @@ public class HandleCaseTIRArrayGetStmt {
 		/*
 		 * insert constant variable replacement check for RHS array index.
 		 */
-		String[] indexString = node.getIndizes().toString().replace("[", "")
+		String[] indexString = node.getIndices().toString().replace("[", "")
 				.replace("]", "").split(",");
 		ArrayList<String> rhsIndex = new ArrayList<String>();
 		ArrayList<String> lhsIndex = new ArrayList<String>();
