@@ -34,7 +34,7 @@ public class HandleCaseTIRIfStmt {
 		StatementSection ifStmtSec = new StatementSection();
 		fcg.stmtSecForIfWhileForBlock = ifStmtSec;
 		fcg.indentNum++;
-		fcg.iterateStatements(node.getIfStaments());
+		fcg.iterateStatements(node.getIfStatements());
 		stmt.setIfBlock(ifStmtSec);
 		fcg.indentNum--;
 		fcg.ifWhileForBlockNest--;
