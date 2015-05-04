@@ -47,7 +47,7 @@ public class HandleCaseTIRArraySetStmt {
 		 */
 		@SuppressWarnings("rawtypes")
 		Shape lhsArrayShape = fcg.getMatrixValue(lhsArrayName).getShape();
-		String[] indexString = node.getIndizes().toString().replace("[", "")
+		String[] indexString = node.getIndices().toString().replace("[", "")
 				.replace("]", "").split(",");
 		if (!lhsArrayShape.isConstant()) {
 			/*
