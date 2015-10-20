@@ -1,0 +1,4 @@
+bin-ant
+bin-eclipse
+*.class
+gen

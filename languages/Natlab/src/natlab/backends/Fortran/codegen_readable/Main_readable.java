@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import natlab.backends.Fortran.codegen_readable.FortranAST_readable.Subprogram;
-import natlab.options.Options;
+import natlab.options.Mc2ForOptions;
 import natlab.tame.BasicTamerTool;
 import natlab.tame.callgraph.StaticFunction;
 import natlab.tame.tamerplus.analysis.AnalysisEngine;
@@ -167,7 +167,7 @@ public class Main_readable {
         }
 	}
 	
-	public static void compile(Options options) {
+	public static void compile(Mc2ForOptions options) {
 		FileEnvironment fileEnvironment = new FileEnvironment(options); //get path/files
 
 		//arguments - TODO for now just parse them as inputs
